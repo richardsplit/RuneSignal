@@ -1,0 +1,17 @@
+<svg width="400" height="100" viewBox="0 0 400 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="brandGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#10b981" /> <!-- Emerald -->
+      <stop offset="100%" stop-color="#f59e0b" /> <!-- Amber -->
+    </linearGradient>
+  </defs>
+  <text 
+    x="10" y="65" 
+    font-family="-apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" 
+    font-size="48" 
+    font-weight="800" 
+    letter-spacing="-1.5"
+    fill="url(#brandGradient)">
+    TrustLayer
+  </text>
+</svg>
