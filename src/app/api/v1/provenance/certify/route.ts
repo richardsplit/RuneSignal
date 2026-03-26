@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { CertificateService } from '../../../../lib/modules/s3-provenance/certificate';
-import { VersionMonitor } from '../../../../lib/modules/s3-provenance/version-monitor';
+import { CertificateService } from '../../../../../../lib/modules/s3-provenance/certificate';
+import { VersionMonitor } from '../../../../../../lib/modules/s3-provenance/version-monitor';
 
 export async function POST(request: Request) {
   try {
@@ -23,8 +23,8 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json(result);
-  } catch (error: any) {
-    console.error('Certification Route Error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (e: any) {
+    console.error('Certification Route Error:', e);
+    return NextResponse.json({ error: e.message }, { status: 500 });
   }
 }

@@ -1,36 +1,46 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TrustLayer : Enterprise AI Governance Platform
 
-## Getting Started
+TrustLayer is a centralized, cryptographic control plane for enterprise AI agents. It provides provenance, accountability, identity, and operational control over autonomous AI actors acting on behalf of an enterprise.
 
-First, run the development server:
+## Architecture Modules
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+The platform is split into 5 core governance modules:
+- **S3 (Provenance Engine)**: Cryptographic hashing and signing of LLM inputs, outputs, and system prompts acting as a tamper-evident audit ledger.
+- **S6 (Identity & Permissions)**: Registration and credential issuance for agents (RS256 JWTs) and strictly typed tool permission scopes.
+- **S1 (Conflict Arbiter)**: Semantic intent registry (`pgvector`) preventing multi-agent collisions and enforcing global corporate policies.
+- **S7 (HITL Ops Routing)**: Human-in-the-loop exception handling, SLA tracking, and Slack routing for agent ambiguities.
+- **S5 (Insurance Micro-OS)**: Actuarial risk scoring and dynamic premium generation based on historical agent telemetry.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Tech Stack
+- **Framework**: Next.js 16 (App Router)
+- **Database**: Supabase (PostgreSQL 15, `pgvector`, RLS)
+- **Authentication**: JWT / `@panva/jose` edge middleware
+- **Cryptography**: Ed25519 signatures via Web Crypto API
+- **Deployment**: Vercel
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Local Setup
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. **Clone & Install Dependencies**
+   ```bash
+   git clone https://github.com/richardsplit/TrustLayer.git
+   cd TrustLayer
+   npm install
+   ```
 
-## Learn More
+2. **Environment Variables**
+   Create a `.env.local` file based on `.env.local.example`. You will need to provide your Supabase connection strings, Edge Secret Key (for auth), and Ed25519 signing keys.
 
-To learn more about Next.js, take a look at the following resources:
+3. **Database Migrations**
+   Use the Supabase CLI, or copy the SQL files in `supabase/migrations/` into the Supabase Dashboard SQL editor to provision the core schema.
+   ```bash
+   npx supabase db push
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+4. **Run Development Server**
+   ```bash
+   npm run dev
+   ```
+   Open [http://localhost:3000](http://localhost:3000)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Design System
+TrustLayer uses a bespoke design system focusing on professional fintech aesthetics components. It embraces a deep charcoal background with electric emerald and warm amber accents, combined with glassmorphism to present an advanced cyber-physical command center feel.

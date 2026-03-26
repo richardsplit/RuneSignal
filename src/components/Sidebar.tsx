@@ -8,7 +8,8 @@ export default function Sidebar() {
     { name: 'S3 Provenance', href: '/provenance' },
     { name: 'S6 Identity', href: '/identity' },
     { name: 'S1 Conflict', href: '/conflict' },
-    { name: 'S7 Exeptions', href: '/exceptions' },
+    { name: 'S7 Exceptions', href: '/exceptions' },
+    { name: 'S5 Insurance', href: '/insurance' },
   ];
 
   return (

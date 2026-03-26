@@ -1,17 +1,24 @@
-<svg width="400" height="100" viewBox="0 0 400 100" xmlns="http://www.w3.org/2000/svg">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 80" width="300" height="80">
   <defs>
-    <linearGradient id="brandGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#10b981" /> <!-- Emerald -->
-      <stop offset="100%" stop-color="#f59e0b" /> <!-- Amber -->
+    <linearGradient id="brandGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#10b981" />
+      <stop offset="100%" stop-color="#f59e0b" />
+    </linearGradient>
+    <linearGradient id="shieldFill" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10b981" stop-opacity="0.1" />
+      <stop offset="100%" stop-color="#f59e0b" stop-opacity="0.4" />
     </linearGradient>
   </defs>
-  <text 
-    x="10" y="65" 
-    font-family="-apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" 
-    font-size="48" 
-    font-weight="800" 
-    letter-spacing="-1.5"
-    fill="url(#brandGradient)">
-    TrustLayer
+
+  <!-- Shield Icon -->
+  <path d="M 20,15 L 40,5 L 60,15 L 60,40 C 60,55 40,70 40,70 C 40,70 20,55 20,40 Z" fill="url(#shieldFill)" stroke="url(#brandGrad)" stroke-width="3" stroke-linejoin="round" />
+  
+  <!-- Inner Circuit Detail -->
+  <path d="M 40,20 L 40,55 M 30,35 L 50,35" stroke="url(#brandGrad)" stroke-width="2" stroke-linecap="round" />
+  <circle cx="40" cy="35" r="4" fill="#1a1a2e" stroke="url(#brandGrad)" stroke-width="2" />
+
+  <!-- Text -->
+  <text x="80" y="52" font-family="-apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-weight="800" font-size="34" fill="#ffffff" letter-spacing="-1">
+    Trust<tspan fill="url(#brandGrad)">Layer</tspan>
   </text>
 </svg>

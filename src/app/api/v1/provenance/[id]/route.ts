@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createAdminClient } from '../../../../../lib/db/supabase';
+import { createAdminClient } from '../../../../../../lib/db/supabase';
 
 export async function GET(request: Request, { params }: { params: { id: string } }) {
   const tenantId = request.headers.get('X-Tenant-Id');

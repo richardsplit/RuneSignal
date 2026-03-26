@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
-import { getLedgerSigner } from '../../../../lib/ledger/signer';
+import { LedgerSigner } from '../../../../../../lib/ledger/signer';
 
 export async function GET() {
   try {
-    const signer = getLedgerSigner();
+    const signer = new LedgerSigner();
     const pubKeyPem = signer.exportPublicKeyPEM();
     
     return NextResponse.json({

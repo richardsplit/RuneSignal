@@ -1,0 +1,58 @@
+import { NextResponse } from 'next/server';
+import { ArbiterService } from '../../../../../lib/modules/s1-conflict/service';
+
+export async function POST(request: Request) {
+  try {
+    const tenantId = request.headers.get('X-Tenant-Id');
+    const agentId = request.headers.get('X-Agent-Id');
+
+    if (!tenantId || !agentId) {
+      return NextResponse.json({ error: 'Missing Authentication' }, { status: 401 });
+    }
+
+    const body = await request.json();
+    if (!body.intent_description) {
+      return NextResponse.json({ error: 'Missing intent_description' }, { status: 400 });
+    }
+
+    const result = await ArbiterService.mediateIntent(tenantId, agentId, body);
+
+    if (result.decision === 'block') {
+      return NextResponse.json(result, { status: 403 });
+    }
+    
+    if (result.decision === 'queue') {
+      return NextResponse.json(result, { status: 409 });
+    }
+
+    return NextResponse.json(result);
+  } catch (error: any) {
+    console.error('Arbiter Intent Error:', error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
+export async function GET(request: Request) {
+  try {
+    const tenantId = request.headers.get('X-Tenant-Id');
+    if (!tenantId) {
+      return NextResponse.json({ error: 'Missing Tenant Authentication' }, { status: 401 });
+    }
+
+    const { createAdminClient } = require('../../../../../lib/db/supabase');
+    const supabase = createAdminClient();
+
+    const { data, error } = await supabase
+      .from('agent_intents')
+      .select('*, agent_credentials(agent_name)')
+      .eq('tenant_id', tenantId)
+      .order('created_at', { ascending: false })
+      .limit(50);
+
+    if (error) throw error;
+
+    return NextResponse.json({ intents: data });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}

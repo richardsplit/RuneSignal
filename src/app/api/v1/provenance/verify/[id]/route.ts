@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { createAdminClient } from '../../../../../../lib/db/supabase';
-import { getLedgerSigner } from '../../../../../../lib/ledger/signer';
+import { createAdminClient } from '../../../../../../../lib/db/supabase';
+import { LedgerSigner } from '../../../../../../../lib/ledger/signer';
 
 export async function GET(request: Request, { params }: { params: { id: string } }) {
   const supabase = createAdminClient();
@@ -24,7 +24,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
   const payloadString = JSON.stringify(data.payload, Object.keys(data.payload).sort());
   const dataToVerify = `${data.id}|${data.event_type}|${payloadString}|${data.created_at}`;
   
-  const signer = getLedgerSigner();
+  const signer = new LedgerSigner();
   const isValid = signer.verify(Buffer.from(dataToVerify, 'utf-8'), data.signature);
 
   return NextResponse.json({
