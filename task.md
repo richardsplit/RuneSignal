@@ -70,15 +70,15 @@
 - [x] Vercel deploy validation
 - [x] Connect all UI buttons (interactivity)
 - [x] Final UI/UX review & polish
-- [ ] Final verification and push to dev branch
+- [x] Final verification and push to dev branch
 
 ## Phase 7: Deep Functional Build
-- [ ] Implement Global Modal/Popup System
-- [ ] Build S6 Agent Registration Wizard (Form + DB Insert)
-- [ ] Build S3 Certificate Generator (Mock trace + Hash + Sign)
-- [ ] Build S1 Semantic Policy Builder (Intent definition)
-- [ ] Build S7 Integrations Config (Webhook setting)
-- [ ] Wire S7 Approve/Reject to trigger DB updates
+- [x] Implement Global Modal/Popup System
+- [x] Build S6 Agent Registration Wizard (Form + DB Insert)
+- [x] Build S3 Certificate Generator (Mock trace + Hash + Sign)
+- [x] Build S1 Semantic Policy Builder (Intent definition)
+- [x] Build S7 Integrations Config (Webhook setting)
+- [x] Wire S7 Approve/Reject to trigger DB updates
 
 ## Phase 7.8: MFA Configuration Sub-flow [COMPLETED]
 - [x] Create `MFASetupModal` with QR code simulation
