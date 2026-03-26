@@ -1,4 +1,5 @@
 import { CertificateService } from '../lib/modules/s3-provenance/certificate';
+import { createAdminClient } from '../lib/db/supabase';
 import { v4 as uuidv4 } from 'uuid';
 import * as crypto from 'crypto';
 
@@ -11,6 +12,16 @@ async function runTests() {
   console.log(`Starting S3 Provenance tests for Tenant: ${tenantId}`);
 
   try {
+    const supabase = createAdminClient();
+
+    // 0. Setup: Create Tenant record (required by FK constraint)
+    console.log('Creating test tenant...');
+    await supabase.from('tenants').insert({
+       id: tenantId,
+       name: `Test Tenant ${tenantId.slice(0,8)}`
+    });
+    console.log('✅ Tenant created.');
+
     // 1. Test Certification with Hashes
     console.log('Testing Certificate Generation with Hashes...');
     

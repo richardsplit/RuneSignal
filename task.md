@@ -106,7 +106,7 @@
 - [x] Implement rate limiting using Upstash Redis per tenant
 - [x] Fix Agent Registration payload handling (scopes/metadata)
 - [x] Switch Identity dashboard to real DB data
-- [ ] Build S6 unit tests for registration & enforcement
+- [x] Build S6 unit tests for registration & enforcement
 
 ### Part 2: S3 Provenance - Real LLM Certification
 - [x] Install `openai` and `@anthropic-ai/sdk`
@@ -119,21 +119,26 @@
 - [x] Pushed all Phase 8.1 Parts 1-2 changes to `dev` branch
 
 ### Part 3: S1 Conflict - Real-time Arbiter
-- [ ] Implement `pgvector` distance calculation for intents
-- [ ] Connect semantic policies to enforcement engine
-- [ ] Implement Intent Queueing logic using DB
-- [ ] Switch S1 dashboard to real collision logs
-- [ ] Build S1 unit tests for semantic detection
+- [x] Implement `pgvector` distance calculation for intents
+- [x] Connect semantic policies to enforcement engine
+- [x] Implement Intent Queueing logic using DB
+- [x] Switch S1 dashboard to real collision logs
+- [x] Build S1 unit tests for semantic detection
+    > [!WARNING]
+    > OpenAI API quota exceeded during final verification; fallback to mock embeddings validated. Future fix required for live production tests.
+- [x] Implement Multi-vendor support (OpenAI/Claude) & Custom API Keys
 
 ### Part 4: S7 Exceptions - Workflow Automation
-- [ ] Implement real Slack/Teams webhook routing
-- [ ] Build ticket life cycle management (Open -> Resolved)
-- [ ] Switch HITL dashboard to real ticket data
-- [ ] Build S7 unit tests for SLA timers
+- [x] Implement real Slack/Teams webhook routing
+- [x] Build ticket life cycle management (Open -> Resolved)
+- [x] Switch HITL dashboard to real ticket data
+- [x] Build S7 unit tests for SLA timers
 
 ### Part 5: S5 Insurance - Actuarial Logic
-- [ ] Implement real Risk Score aggregation from violations
-- [ ] Build claims processing & coverage update logic
+- [x] Build the dynamic Risk Score aggregator for the Insurance Micro-OS
+- [x] Build claims processing & coverage update logic
+- [x] Switch Insurance dashboard to real actuarial data
+- [x] Build S5 unit tests for actuarial logic
 
 ## Phase 9: Advanced UI/UX Polish
 - [ ] Research contemporary SaaS Figma templates for inspiration

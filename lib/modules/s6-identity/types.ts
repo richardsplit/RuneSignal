@@ -2,7 +2,7 @@ export interface AgentCredential {
   id: string;
   tenant_id: string;
   agent_name: string;
-  agent_type: 'langgraph' | 'mcp' | 'crewai' | 'custom';
+  agent_type: 'langgraph' | 'mcp' | 'crewai' | 'custom' | 'finance' | 'orchestrator';
   framework?: string;
   public_key?: string;
   status: 'active' | 'suspended' | 'revoked';
@@ -25,7 +25,7 @@ export interface PermissionScope {
 
 export interface RegisterAgentRequest {
   agent_name: string;
-  agent_type: 'langgraph' | 'mcp' | 'crewai' | 'custom';
+  agent_type: 'langgraph' | 'mcp' | 'crewai' | 'custom' | 'finance' | 'orchestrator';
   framework?: string;
   public_key?: string;
   scopes?: {

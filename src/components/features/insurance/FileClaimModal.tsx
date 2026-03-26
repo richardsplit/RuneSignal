@@ -6,49 +6,53 @@ interface FileClaimModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: (claim: any) => void;
+  profiles: any[];
 }
 
-export default function FileClaimModal({ isOpen, onClose, onSuccess }: FileClaimModalProps) {
+export default function FileClaimModal({ isOpen, onClose, onSuccess, profiles }: FileClaimModalProps) {
   const { showToast } = useToast();
   const [formData, setFormData] = useState({
-    agentId: 'agt-003',
+    agentId: profiles[0]?.agent_id || '',
     incidentType: 'data-exfiltration',
     impactEstimate: '',
     description: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // Simulate API logic to file a claim
-    setTimeout(() => {
-      showToast(`Claim for agent ${formData.agentId} submitted for review.`, 'success');
-      
-      let typeLabel = formData.incidentType;
-      if (typeLabel === 'data-exfiltration') typeLabel = 'Data Exfiltration Violation';
-      if (typeLabel === 'fin-loss') typeLabel = 'Unauthorized Financial Loss';
-      if (typeLabel === 'pii-leak') typeLabel = 'PII Leakage';
-      if (typeLabel === 'sla-breach') typeLabel = 'Critical SLA Breach';
+    try {
+      const tenantId = localStorage.getItem('tl_tenant_id') || '7da27c93-6889-4fda-8b22-df4689fbbcd6';
+      const res = await fetch('/api/v1/insurance/claims', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'X-Tenant-Id': tenantId 
+        },
+        body: JSON.stringify({
+          agent_id: formData.agentId,
+          incident_type: formData.incidentType,
+          financial_impact: parseFloat(formData.impactEstimate),
+          description: formData.description
+        })
+      });
 
-      if (onSuccess) {
-        onSuccess({
-          id: `clm-${Math.floor(Math.random() * 10000)}`,
-          agent: formData.agentId === 'agt-001' ? 'InventoryManager' : 
-                 formData.agentId === 'agt-002' ? 'ContractAnalyst' : 
-                 formData.agentId === 'agt-003' ? 'SlackBot_Dev' : 'CustomerSupport',
-          type: typeLabel,
-          impact: `$${parseInt(formData.impactEstimate || '0').toLocaleString()}.00`,
-          status: 'under review',
-          date: 'just now'
-        });
+      if (res.ok) {
+        const claim = await res.json();
+        showToast(`Claim filed successfully.`, 'success');
+        if (onSuccess) onSuccess(claim);
+        setFormData({ agentId: profiles[0]?.agent_id || '', incidentType: 'data-exfiltration', impactEstimate: '', description: '' });
+        onClose();
+      } else {
+        const err = await res.json();
+        showToast(`Failed to file claim: ${err.error}`, 'error');
       }
-
-      setFormData({ agentId: 'agt-003', incidentType: 'data-exfiltration', impactEstimate: '', description: '' });
+    } catch (e) {
+      showToast('Network error filing claim', 'error');
+    } finally {
       setIsSubmitting(false);
-      onClose();
-    }, 1500);
+    }
   };
 
   return (
@@ -63,10 +67,10 @@ export default function FileClaimModal({ isOpen, onClose, onSuccess }: FileClaim
             value={formData.agentId}
             onChange={(e) => setFormData({ ...formData, agentId: e.target.value })}
           >
-            <option value="agt-001">InventoryManager (agt-001)</option>
-            <option value="agt-002">ContractAnalyst (agt-002)</option>
-            <option value="agt-003">SlackBot_Dev (agt-003)</option>
-            <option value="agt-004">CustomerSupport (agt-004)</option>
+            <option value="" disabled>Select an agent...</option>
+            {profiles.map(p => (
+              <option key={p.agent_id} value={p.agent_id}>Agent {p.agent_id.split('-')[0]}</option>
+            ))}
           </select>
         </div>
 

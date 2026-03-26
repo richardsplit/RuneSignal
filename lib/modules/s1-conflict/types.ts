@@ -25,6 +25,8 @@ export interface RegisterIntentRequest {
   intent_description: string;
   metadata?: Record<string, any>;
   ttl_seconds?: number;
+  vendor?: 'openai' | 'claude';
+  apiKey?: string;
 }
 
 export interface ArbiterResponse {

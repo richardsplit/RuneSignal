@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useToast } from '@/components/ToastProvider';
 import FileClaimModal from '@/components/features/insurance/FileClaimModal';
 import RiskProfilesTable from '@/components/features/insurance/RiskProfilesTable';
@@ -8,23 +8,41 @@ import ClaimsLedger from '@/components/features/insurance/ClaimsLedger';
 import InsuranceMetrics from '@/components/features/insurance/InsuranceMetrics';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 
-const DEFAULT_PROFILES = [
-  { id: 'agt-001', agent: 'InventoryManager', score: 0, violations: 0, hitl: 0, anomalies: 0, premium: '$500.00' },
-  { id: 'agt-002', agent: 'ContractAnalyst', score: 25, violations: 2, hitl: 7, anomalies: 0, premium: '$600.00' },
-  { id: 'agt-003', agent: 'SlackBot_Dev', score: 95, violations: 14, hitl: 2, anomalies: 1, premium: '$1,500.00' },
-  { id: 'agt-004', agent: 'CustomerSupport', score: 45, violations: 4, hitl: 12, anomalies: 0, premium: '$750.00' },
-];
-
-const DEFAULT_CLAIMS = [
-  { id: 'clm-8921', agent: 'SlackBot_Dev', type: 'Data Exfiltration Violation', impact: '$12,500', status: 'investigating', date: '2 days ago' }
-];
-
 export default function InsuranceDashboard() {
   const { showToast } = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [profiles, setProfiles] = useState<any[]>([]);
+  const [claims, setClaims] = useState<any[]>([]);
 
-  const [profiles, setProfiles] = useLocalStorage<any[]>('trustlayer_insurance_profiles', DEFAULT_PROFILES);
-  const [claims, setClaims] = useLocalStorage<any[]>('trustlayer_insurance_claims', DEFAULT_CLAIMS);
+  const fetchInsuranceData = async () => {
+    setLoading(true);
+    try {
+      const tenantId = localStorage.getItem('tl_tenant_id') || '7da27c93-6889-4fda-8b22-df4689fbbcd6';
+      
+      const [riskRes, claimsRes] = await Promise.all([
+        fetch('/api/v1/insurance/risk', { headers: { 'X-Tenant-Id': tenantId } }),
+        fetch('/api/v1/insurance/claims', { headers: { 'X-Tenant-Id': tenantId } })
+      ]);
+
+      if (riskRes.ok && claimsRes.ok) {
+        setProfiles(await riskRes.json());
+        setClaims(await claimsRes.json());
+      } else {
+        console.error('Failed to fetch insurance data:', riskRes.status, claimsRes.status);
+        showToast('Failed to load insurance data.', 'error');
+      }
+    } catch (e) {
+      console.error('Failed to fetch insurance data:', e);
+      showToast('An error occurred while fetching data.', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchInsuranceData();
+  }, []);
 
   const getRiskColor = (score: number) => {
     if (score < 10) return 'var(--color-primary-emerald)';
@@ -33,10 +51,53 @@ export default function InsuranceDashboard() {
     return 'var(--color-error-rose)';
   };
 
-  const handleRecalculate = () => {
-    showToast('Triggering actuarial risk recalculation for entire fleet...');
-    setProfiles(profiles.map(p => ({ ...p, score: Math.max(0, p.score - Math.floor(Math.random() * 5)) })));
+  const handleRecalculate = async () => {
+    const tenantId = localStorage.getItem('tl_tenant_id') || '7da27c93-6889-4fda-8b22-df4689fbbcd6';
+    showToast('Triggering fleet-wide risk recalculation...', 'info');
+    
+    try {
+      const res = await fetch('/api/v1/insurance/risk', {
+        method: 'POST',
+        headers: { 'X-Tenant-Id': tenantId }
+      });
+      if (res.ok) {
+        showToast('Actuarial refresh complete.', 'success');
+        fetchInsuranceData(); // Refresh data after recalculation
+      } else {
+        showToast('Risk calculation failed.', 'error');
+      }
+    } catch (e) {
+      showToast('Risk calculation failed due to network error.', 'error');
+      console.error('Risk recalculation failed:', e);
+    }
   };
+
+  // Metrics calculation
+  const totalLiabilities = "$5,000,000"; // Based on policy limit
+  const fleetAvgRisk = profiles.length > 0 
+    ? Math.round(profiles.reduce((acc, p) => acc + p.risk_score, 0) / profiles.length) 
+    : 0;
+  
+  const calculateTotalPremium = () => {
+    const base = 500;
+    const total = profiles.reduce((acc, p) => {
+      let m = 1.0;
+      if (p.risk_score > 10) m = 1.2;
+      if (p.risk_score > 30) m = 1.5;
+      if (p.risk_score > 60) m = 2.0;
+      if (p.risk_score > 90) m = 3.0;
+      return acc + (base * m);
+    }, 0);
+    return total.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+  };
+
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
+        <p>Loading insurance data...</p>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -83,7 +144,8 @@ export default function InsuranceDashboard() {
       <FileClaimModal 
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSuccess={(claim: any) => setClaims([claim, ...claims])}
+        onSuccess={() => fetchInsuranceData()}
+        profiles={profiles}
       />
     </>
   );

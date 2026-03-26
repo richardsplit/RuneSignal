@@ -4,11 +4,11 @@ import React from 'react';
 
 interface Claim {
   id: string;
-  agent: string;
-  type: string;
-  impact: string;
-  status: string;
-  date: string;
+  agent_id: string;
+  incident_type: string;
+  financial_impact: number;
+  status: 'filed' | 'investigating' | 'approved' | 'denied';
+  filed_at: string;
 }
 
 interface ClaimsLedgerProps {
@@ -16,6 +16,19 @@ interface ClaimsLedgerProps {
 }
 
 export default function ClaimsLedger({ claims }: ClaimsLedgerProps) {
+  const formatImpact = (amount: number) => {
+    return amount.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'approved': return 'var(--color-primary-emerald)';
+      case 'denied': return 'var(--color-error-rose)';
+      case 'investigating': return 'var(--color-accent-amber)';
+      default: return 'var(--color-info-cyan)';
+    }
+  };
+
   return (
     <div className="glass-panel" style={{ overflow: 'hidden' }}>
       <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-glass)' }}>
@@ -25,30 +38,31 @@ export default function ClaimsLedger({ claims }: ClaimsLedgerProps) {
         {claims.map(claim => (
           <div key={claim.id} style={{ 
             padding: '1rem', 
-            background: 'rgba(255,255,255,0.02)', 
+            background: 'rgba(255,255,255,0.01)', 
             border: '1px solid var(--border-glass)', 
             borderRadius: 'var(--radius-md)',
             marginBottom: '1rem'
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-              <span style={{ fontWeight: 600, color: 'var(--color-error-rose)' }}>{claim.agent}</span>
-              <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>{claim.date}</span>
+              <span style={{ fontWeight: 600, fontSize: '0.875rem', color: 'var(--color-text-bright)' }}>Agent {claim.agent_id.split('-')[0]}</span>
+              <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>{new Date(claim.filed_at).toLocaleDateString()}</span>
             </div>
-            <div style={{ fontSize: '0.875rem', marginBottom: '0.5rem' }}>{claim.type}</div>
+            <div style={{ fontSize: '0.8125rem', marginBottom: '0.5rem', color: 'var(--color-text-main)' }}>{claim.incident_type}</div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontWeight: 700, fontFamily: 'monospace' }}>{claim.impact}</span>
+              <span style={{ fontWeight: 700, fontFamily: 'monospace', fontSize: '1rem' }}>{formatImpact(claim.financial_impact)}</span>
               <span style={{ 
-                fontSize: '0.7rem', 
+                fontSize: '0.6rem', 
                 padding: '0.2rem 0.5rem', 
-                borderRadius: '12px',
-                background: 'rgba(245, 158, 11, 0.1)',
-                color: 'var(--color-accent-amber)',
-                textTransform: 'uppercase'
+                borderRadius: '4px',
+                background: `${getStatusColor(claim.status)}15`,
+                color: getStatusColor(claim.status),
+                border: `1px solid ${getStatusColor(claim.status)}40`,
+                textTransform: 'uppercase',
+                fontWeight: 600
               }}>
                 {claim.status}
               </span>
             </div>
-            <div style={{ marginTop: '0.75rem', fontSize: '0.75rem', fontFamily: 'monospace', color: 'var(--color-text-muted)' }}>ID: {claim.id}</div>
           </div>
         ))}
         {claims.length === 0 && (

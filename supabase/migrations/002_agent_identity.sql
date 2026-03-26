@@ -5,7 +5,7 @@ CREATE TABLE agent_credentials (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id UUID NOT NULL REFERENCES tenants(id),
     agent_name TEXT NOT NULL,
-    agent_type TEXT NOT NULL, -- 'langgraph' | 'mcp' | 'crewai' | 'custom'
+    agent_type TEXT NOT NULL, -- 'langgraph' | 'mcp' | 'crewai' | 'custom' | 'finance' | 'orchestrator'
     framework TEXT,
     public_key TEXT, -- RS256 public key for agent-signed requests (optional if using HS256 for MVP)
     status TEXT NOT NULL DEFAULT 'active', -- active | suspended | revoked

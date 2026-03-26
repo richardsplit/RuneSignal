@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useToast } from '@/components/ToastProvider';
 import IntegrationsModal from '@/components/features/exceptions/IntegrationsModal';
 import ExceptionsTable from '@/components/features/exceptions/ExceptionsTable';
@@ -21,9 +21,10 @@ const DEFAULT_RESOLVED = [
 export default function ExceptionsDashboard() {
   const { showToast } = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
   
-  const [exceptions, setExceptions] = useLocalStorage<any[]>('trustlayer_exceptions', DEFAULT_EXCEPTIONS);
-  const [resolved, setResolved] = useLocalStorage<any[]>('trustlayer_resolved', DEFAULT_RESOLVED);
+  const [exceptions, setExceptions] = useState<any[]>([]);
+  const [resolved, setResolved] = useState<any[]>([]);
 
   const getPriorityColor = (priority: string) => {
     switch(priority) {
@@ -34,24 +35,58 @@ export default function ExceptionsDashboard() {
     }
   };
 
-  const handleAction = async (id: string, action: 'approved' | 'rejected') => {
-    const target = exceptions.find(e => e.id === id);
-    if (!target) return;
+  const fetchTickets = async () => {
+    try {
+      const tenantId = localStorage.getItem('tl_tenant_id') || '32c2de2e-e89d-44a6-98e7-27ee88e06bc7'; // Default for MVP
+      const res = await fetch('/api/v1/exceptions', {
+        headers: { 'X-Tenant-Id': tenantId }
+      });
+      const data = await res.json();
+      
+      if (res.ok) {
+        setExceptions(data.filter((t: any) => t.status === 'open' || t.status === 'escalated'));
+        setResolved(data.filter((t: any) => t.status !== 'open' && t.status !== 'escalated'));
+      }
+    } catch (e) {
+      console.error('Failed to fetch exceptions:', e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTickets();
+  }, []);
+
+  const handleAction = async (id: string, action: 'approve' | 'reject') => {
+    const tenantId = localStorage.getItem('tl_tenant_id') || '32c2de2e-e89d-44a6-98e7-27ee88e06bc7';
     
-    showToast(`Processing ${action.toUpperCase()} action for ${id}...`, 'info');
-    await new Promise(r => setTimeout(r, 1000));
+    showToast(`Processing ${action.toUpperCase()}...`, 'info');
     
-    setExceptions(exceptions.filter(e => e.id !== id));
-    setResolved([{
-      id: target.id,
-      agent: target.agent,
-      priority: target.priority,
-      title: target.title,
-      status: action,
-      reason: `Manually ${action} by Admin (Database Sync Complete)`
-    }, ...resolved]);
-    
-    showToast(`Successfully ${action.toUpperCase()} exception ${id}. Ledger updated.`, action === 'approved' ? 'success' : 'error');
+    try {
+      const res = await fetch(`/api/v1/exceptions/${id}/resolve`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'X-Tenant-Id': tenantId 
+        },
+        body: JSON.stringify({
+          action,
+          reason: `Resolved via TrustLayer Dashboard`,
+          reviewer_id: 'admin-001' // Mock reviewer ID for MVP
+        })
+      });
+
+      if (res.ok) {
+        showToast(`Successfully ${action.toUpperCase()}D ticket.`, 'success');
+        fetchTickets(); // Refresh list
+      } else {
+        const err = await res.json();
+        showToast(`Failure: ${err.error}`, 'error');
+      }
+    } catch (e) {
+      showToast('Network error during resolution', 'error');
+    }
   };
 
   return (

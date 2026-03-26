@@ -109,4 +109,48 @@ export class HitlService {
 
     return updatedTicket;
   }
+
+  /**
+   * Scans for open exceptions that have breached their SLA and escalates them.
+   */
+  static async checkSlas(tenantId?: string): Promise<number> {
+    const supabase = createAdminClient();
+    
+    let query = supabase
+      .from('hitl_exceptions')
+      .update({ status: 'escalated' })
+      .eq('status', 'open')
+      .lt('sla_deadline', new Date().toISOString());
+
+    if (tenantId) {
+      query = query.eq('tenant_id', tenantId);
+    }
+
+    const { data, error } = await query.select('id, title, tenant_id, agent_id');
+
+    if (error) {
+      console.error('SLA Escalation Failed:', error.message);
+      return 0;
+    }
+
+    if (data && data.length > 0) {
+      for (const ticket of data) {
+        await AuditLedgerService.appendEvent({
+          event_type: 'hitl.sla_breach',
+          module: 's7',
+          tenant_id: ticket.tenant_id,
+          agent_id: ticket.agent_id,
+          request_id: ticket.id,
+          payload: { title: ticket.title, status: 'escalated' }
+        });
+
+        await WebhookEmitter.notifySlack(`🚨 SLA BREACH: Ticket ${ticket.id.split('-')[0]} [${ticket.title}] has been escalated!`, {
+          Status: 'ESCALATED',
+          Original_Title: ticket.title
+        });
+      }
+    }
+
+    return data?.length || 0;
+  }
 }
