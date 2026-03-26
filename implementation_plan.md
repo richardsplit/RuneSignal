@@ -221,6 +221,32 @@ Ensuring the codebase is scalable, performant, and maintainable.
 - **Custom Hooks**: Extracted logic for `localStorage` synchronization into a reusable `useLocalStorage` hook, simplifying state management across all platform modules.
 - **Improved Maintainability**: Isolated feature-specific UI logic from page layouts, reducing file complexity and improving core readability.
 
+## Phase 8.1: Platform Refinement & Fixes [NEW]
+Transitioning from simulated logic to real-world infrastructure and API integrations.
+
+### Part 1: Security & Identity Sync
+- **Header Enforcement**: Update `middleware.ts` to validate `X-Agent-Id` for all authenticated v1 API routes.
+- **Database Validation**: Connect `S6IdentityService` to the Supabase `agent_credentials` table to verify agent status (`active`/`suspended`) in real-time.
+- **Upstash Redis Rate Limiting**: Implement per-tenant rate limiting using `@upstash/redis` in the edge-compatible middleware.
+
+### Part 2: S3 Provenance - Real LLM Certification
+- **Real SDK Integration**: Install and configure `openai` and `@anthropic-ai/sdk`.
+- **ATPClient Logic**: update `atp-sdk.ts` to perform real upstream calls to LLM providers using environment-secured API keys.
+- **SHA-256 Hashing**: Ensure the certification pipeline in `S3ProvenanceService` performs cryptographic hashing of both inputs and outputs before signing.
+- **Audit Ledger Persistence**: Save verified certificates directly to the Supabase `audit_events` table.
+
+### Part 3: S1 Conflict - Real-time Arbiter
+- **pgvector Search**: Implement real vector distance calculation in `S1ArbiterService` using PostgreSQL `pgvector` operators to detect semantic conflicts.
+- **Intent Queueing**: Build a real queueing mechanism stored in Supabase to handle `QUEUE` policy outcomes.
+
+### Part 4: S7 Exceptions - Workflow Automation
+- **Real Webhooks**: Move from mock logs to real POST requests to Slack/Teams endpoints defined in tenant configuration.
+- **State Management**: implement a real state machine for tickets (Open -> In Review -> Resolved) backed by Supabase.
+
+### Part 5: S5 Insurance - Actuarial Logic
+- **Dynamic Scoring**: build an aggregator that computes Risk Scores by querying the frequency and severity of agent violations in `audit_events`.
+- **Claims API**: Implement real endpoints for submitting and processing insurance claims.
+
 ## Phase 9: Advanced UI/UX Polish
 Elevating the visual design to a highly contemporary, professional standard without breaking existing functionality.
 - Researching contemporary SaaS Figma templates and existing modern designs for inspiration and overlaying existing layout.

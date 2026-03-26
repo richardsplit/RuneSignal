@@ -99,6 +99,40 @@
 - [x] Extract `useLocalStorage` custom hook for unified state management
 - [x] Standardize all dashboards to use modular patterns and shared hooks
 
+## Phase 8.1: Platform Refinement & Fixes [NEW]
+### Part 1: Security & Identity Sync
+- [ ] Enforce `X-Agent-Id` header validation in middleware
+- [ ] Connect real Supabase `agent_credentials` table for status checks
+- [ ] Implement rate limiting using Upstash Redis per tenant
+- [ ] Fix Agent Registration payload handling (scopes/metadata)
+- [ ] Switch Identity dashboard to real DB data
+- [ ] Build S6 unit tests for registration & enforcement
+
+### Part 2: S3 Provenance - Real LLM Certification
+- [ ] Install `openai` and `@anthropic-ai/sdk`
+- [ ] Update `ATPClient` for real upstream LLM calls
+- [ ] Implement SHA-256 hashing pipeline for I/O
+- [ ] Persist certified outputs to `audit_events` ledger
+- [ ] Switch Provenance dashboard to real DB data
+- [ ] Build S3 unit tests for signature integrity
+
+### Part 3: S1 Conflict - Real-time Arbiter
+- [ ] Implement `pgvector` distance calculation for intents
+- [ ] Connect semantic policies to enforcement engine
+- [ ] Implement Intent Queueing logic using DB
+- [ ] Switch S1 dashboard to real collision logs
+- [ ] Build S1 unit tests for semantic detection
+
+### Part 4: S7 Exceptions - Workflow Automation
+- [ ] Implement real Slack/Teams webhook routing
+- [ ] Build ticket life cycle management (Open -> Resolved)
+- [ ] Switch HITL dashboard to real ticket data
+- [ ] Build S7 unit tests for SLA timers
+
+### Part 5: S5 Insurance - Actuarial Logic
+- [ ] Implement real Risk Score aggregation from violations
+- [ ] Build claims processing & coverage update logic
+
 ## Phase 9: Advanced UI/UX Polish
 - [ ] Research contemporary SaaS Figma templates for inspiration
 - [ ] Refine UX for a more contemporary, professional look (Figma-level design)
