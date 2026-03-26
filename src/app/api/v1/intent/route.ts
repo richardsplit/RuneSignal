@@ -12,7 +12,6 @@ export async function POST(request: Request) {
 
     const body = await request.json();
     const vendor = request.headers.get('X-Vendor') as 'openai' | 'claude' || body.vendor || 'openai';
-    const apiKey = request.headers.get('X-LLM-Key') || body.apiKey;
 
     if (!body.intent_description) {
       return NextResponse.json({ error: 'Missing intent_description' }, { status: 400 });
@@ -20,8 +19,7 @@ export async function POST(request: Request) {
 
     const result = await ArbiterService.mediateIntent(tenantId, agentId, {
       ...body,
-      vendor,
-      apiKey
+      vendor
     });
 
     if (result.decision === 'block') {

@@ -12,7 +12,6 @@ export class ArbiterService {
   static async mediateIntent(tenantId: string, agentId: string, request: RegisterIntentRequest): Promise<ArbiterResponse> {
     const supabase = createAdminClient();
     const vendor = request.vendor || 'openai';
-    const apiKey = request.apiKey;
     
     // 0. Resource Lock Check (Exact-match protection for high-value resources)
     if (request.resource_name) {
@@ -83,15 +82,15 @@ export class ArbiterService {
         .select('name, description')
         .eq('tenant_id', tenantId);
       
-      const result = await PolicyEngine.evaluateWithClaude(request.intent_description, policies || [], apiKey);
+      const result = await PolicyEngine.evaluateWithClaude(request.intent_description, policies || []);
       if (result.blocked) {
         await this.logArbiterEvent(tenantId, agentId, request.intent_description, 'block', result.reason!, vendor);
         return { decision: 'block', reason: result.reason!, suggested_action: 'Modify intent to comply with corporate policy.' };
       }
     } else {
       // OpenAI Default Path: Embedding + Vector Similarity
-      const embedding = await EmbeddingService.generate(request.intent_description, apiKey);
-      const policyResult = await PolicyEngine.evaluatePolicy(tenantId, embedding, apiKey);
+      const embedding = await EmbeddingService.generate(request.intent_description);
+      const policyResult = await PolicyEngine.evaluatePolicy(tenantId, embedding);
       console.log(`[S1 DEBUG] Intent: "${request.intent_description}" | Blocked: ${policyResult.blocked} | Reason: ${policyResult.reason}`);
       
       if (policyResult.blocked) {
@@ -100,7 +99,7 @@ export class ArbiterService {
       }
 
       // Check for Concurrent Conflicts
-      const conflictResult = await PolicyEngine.checkConcurrentConflicts(tenantId, agentId, embedding, apiKey);
+      const conflictResult = await PolicyEngine.checkConcurrentConflicts(tenantId, agentId, embedding);
       if (conflictResult.conflict) {
         await this.logArbiterEvent(tenantId, agentId, request.intent_description, 'queue', conflictResult.reason!, vendor);
         return { decision: 'queue', reason: conflictResult.reason!, suggested_action: 'Wait for conflicting agent to complete.' };
@@ -111,11 +110,8 @@ export class ArbiterService {
     const expiresAt = new Date();
     expiresAt.setSeconds(expiresAt.getSeconds() + (request.ttl_seconds || 60));
 
-    // We still generate an embedding for the intent feed visualization if using Claude,
-    // using mock if no OpenAI key is available.
-    const finalEmbedding = vendor === 'openai' ? 
-      await EmbeddingService.generate(request.intent_description, apiKey) : 
-      await EmbeddingService.generate(request.intent_description); // Fallback to mock/default
+    // We still generate an embedding for the intent feed visualization
+    const finalEmbedding = await EmbeddingService.generate(request.intent_description);
 
     const { error: insertError } = await supabase
       .from('agent_intents')

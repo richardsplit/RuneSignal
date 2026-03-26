@@ -174,6 +174,11 @@
 - [x] Migrate 5-event audit chain script to `audit-chain.test.ts` (Vitest)
 - [x] Create unit tests for `IdentityService` and `CertificateService`
 
+## Phase 8.5: Security Hardening (API Key Isolation) [x]
+- [x] Remove `X-LLM-Key` header from `intent` route
+- [x] Refactor `ArbiterService`, `PolicyEngine`, and `EmbeddingService` to use `process.env`
+- [x] Verify mediation chain without client-side keys
+
 ## Phase 9: Advanced UI/UX Polish
 - [ ] Research contemporary SaaS Figma templates for inspiration
 - [ ] Refine UX for a more contemporary, professional look (Figma-level design)

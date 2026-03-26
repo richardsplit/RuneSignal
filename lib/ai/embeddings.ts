@@ -6,8 +6,8 @@ export class EmbeddingService {
   /**
    * Generates a 1536-dimensional embedding for a given text.
    */
-  static async generate(text: string, customApiKey?: string): Promise<number[]> {
-    const apiKey = customApiKey || process.env.OPENAI_API_KEY;
+  static async generate(text: string): Promise<number[]> {
+    const apiKey = process.env.OPENAI_API_KEY;
 
     if (!apiKey || apiKey === 'sk-...' || process.env.STRICT_EMBEDDINGS !== 'true') {
       const vector = new Array(1536).fill(0);

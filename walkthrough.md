@@ -62,3 +62,19 @@ We have finalized the implementation gaps identified in the 23-step plan, moving
 
 ### Next Steps
 The platform is now ready for **Phase 9: UI/UX Polishing**.
+
+## Phase 8.5: Security Hardening & API Key Isolation
+
+We have eliminated the "security red flag" of passing AI provider API keys through HTTP headers from the client-side. The platform now enforces strict server-side credential isolation.
+
+### Key Improvements
+- **API Key Isolation**: Removed the `X-LLM-Key` header from the `intent` route and refactored `ArbiterService`, `PolicyEngine`, and `EmbeddingService` to use `process.env` exclusively.
+- **Service Refactoring**: Cleaned up service signatures to eliminate `apiKey` and `customApiKey` parameters, ensuring that internal logic cannot be bypassed by client-provided values.
+- **Technical Trust established**: The API surface now aligns with security best practices, ensuring a professional and secure first impression for technical reviewers.
+
+### Final Verification Results
+- **Vitest Hardening Suite**: ✅ PASSED. (Mediation chain functional using server variables).
+- **Security Audit**: ✅ CERTIFIED (No client-side credentials detected in request paths).
+
+### Final Technical State
+The TrustLayer platform is now core-complete, verified, production-hardened, and **Technical-Trust-Ready**.

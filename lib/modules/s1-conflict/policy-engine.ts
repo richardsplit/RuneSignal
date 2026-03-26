@@ -5,7 +5,7 @@ export class PolicyEngine {
   /**
    * Checks if an intent violates any established semantic policies.
    */
-  static async evaluatePolicy(tenantId: string, embedding: number[], apiKey?: string, threshold?: number): Promise<{ blocked: boolean; policyName?: string; reason?: string }> {
+  static async evaluatePolicy(tenantId: string, embedding: number[], threshold?: number): Promise<{ blocked: boolean; policyName?: string; reason?: string }> {
     const supabase = createAdminClient();
     const matchThreshold = threshold || parseFloat(process.env.S1_POLICY_THRESHOLD || '0.85');
 
@@ -74,10 +74,10 @@ export class PolicyEngine {
   /**
    * Performs deep semantic mediation using Claude (Anthropic).
    */
-  static async evaluateWithClaude(intent: string, policies: any[], apiKey?: string): Promise<{ blocked: boolean; reason?: string }> {
-    const apiToken = apiKey || process.env.ANTHROPIC_API_KEY;
+  static async evaluateWithClaude(intent: string, policies: any[]): Promise<{ blocked: boolean; reason?: string }> {
+    const apiToken = process.env.ANTHROPIC_API_KEY;
     if (!apiToken) {
-      throw new Error('Claude API Key missing for S1 mediation');
+      throw new Error('Claude API Key missing for S1 mediation (ANTHROPIC_API_KEY)');
     }
 
     const policyContext = policies.map(p => `- ${p.name}: ${p.description}`).join('\n');
@@ -126,7 +126,7 @@ export class PolicyEngine {
   /**
    * Detects semantic overlap with other active agent intents in the registry.
    */
-  static async checkConcurrentConflicts(tenantId: string, agentId: string, embedding: number[], apiKey?: string, threshold?: number): Promise<{ conflict: boolean; conflictingAgentId?: string; reason?: string }> {
+  static async checkConcurrentConflicts(tenantId: string, agentId: string, embedding: number[], threshold?: number): Promise<{ conflict: boolean; conflictingAgentId?: string; reason?: string }> {
     const supabase = createAdminClient();
     const matchThreshold = threshold || parseFloat(process.env.S1_CONCURRENT_THRESHOLD || '0.9');
 
