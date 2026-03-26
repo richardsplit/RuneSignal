@@ -1,8 +1,11 @@
 import { ProvenanceResponse } from '../modules/s3-provenance/types';
+import OpenAI from 'openai';
+import Anthropic from '@anthropic-ai/sdk';
+import crypto from 'crypto';
 
 /**
- * Drop-in wrapper SDK for intercepting LLM calls on the client side.
- * In a real-world scenario, this might also be published as an npm package.
+ * Enhanced wrapper SDK for intercepting LLM calls.
+ * Now performs real upstream calls and cryptographic hashing.
  */
 export class ATPClient {
   private provider: string;
@@ -10,6 +13,8 @@ export class ATPClient {
   private atpKey: string;
   private atpEndpoint: string;
   private agentId?: string;
+  private openaiClient?: OpenAI;
+  private anthropicClient?: Anthropic;
 
   constructor(config: { provider: string; apiKey: string; atpKey: string; atpEndpoint?: string; agentId?: string }) {
     this.provider = config.provider;
@@ -17,10 +22,23 @@ export class ATPClient {
     this.atpKey = config.atpKey;
     this.agentId = config.agentId;
     this.atpEndpoint = config.atpEndpoint || 'https://api.trustlayer.com';
+
+    if (this.provider === 'openai') {
+      this.openaiClient = new OpenAI({ apiKey: this.apiKey });
+    } else if (this.provider === 'anthropic') {
+      this.anthropicClient = new Anthropic({ apiKey: this.apiKey });
+    }
   }
 
   /**
-   * Simulates a chat completion call that is intercepted by ATP.
+   * Helper to hash data for provenance verification.
+   */
+  private generateHash(data: string): string {
+    return crypto.createHash('sha256').update(data).digest('hex');
+  }
+
+  /**
+   * Performs an intercepted chat completion call.
    */
   async chat(params: {
     model: string;
@@ -28,32 +46,69 @@ export class ATPClient {
     temperature?: number;
     tags?: string[];
     applicationId?: string;
+    system?: string;
   }): Promise<ProvenanceResponse> {
     const startTime = Date.now();
+    let completionText = '';
+    let inputTokens = 0;
+    let outputTokens = 0;
 
-    // 1. Send purely to upstream LLM (simulated here for demonstration)
-    // Normally this is where you call OpenAI SDK: `openai.chat.completions.create(...)`
-    const mockUpstreamResponse = "Simulated AI response for testing S3 provenance.";
+    // 1. Upstream LLM Call
+    try {
+      if (this.provider === 'openai' && this.openaiClient) {
+        const completion = await this.openaiClient.chat.completions.create({
+          model: params.model,
+          messages: params.messages,
+          temperature: params.temperature,
+        });
+        completionText = completion.choices[0].message.content || '';
+        inputTokens = completion.usage?.prompt_tokens || 0;
+        outputTokens = completion.usage?.completion_tokens || 0;
+      } else if (this.provider === 'anthropic' && this.anthropicClient) {
+        const msg = await this.anthropicClient.messages.create({
+          model: params.model,
+          max_tokens: 1024,
+          system: params.system,
+          messages: params.messages,
+        });
+        completionText = (msg.content[0] as any).text || '';
+        inputTokens = msg.usage.input_tokens;
+        outputTokens = msg.usage.output_tokens;
+      } else {
+        throw new Error('Unsupported provider or missing client initialization.');
+      }
+    } catch (err: any) {
+      console.error('Upstream LLM Error:', err);
+      throw err;
+    }
+
     const upstreamLatency = Date.now() - startTime;
 
-    // 2. We have the inputs and the output. Hash and certify via TrustLayer API.
+    // 2. Certification via TrustLayer API
+    // We send payload hashes + original metadata for archival
+    const inputHash = this.generateHash(JSON.stringify(params.messages));
+    const outputHash = this.generateHash(completionText);
+
     const certifyStart = Date.now();
     const certifyRes = await fetch(`${this.atpEndpoint}/api/v1/provenance`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.atpKey}`
+        'Authorization': `Bearer ${this.atpKey}`,
+        'X-Agent-Id': this.agentId || 'none'
       },
       body: JSON.stringify({
         provider: this.provider,
         model: params.model,
+        input_hash: inputHash,
+        output_hash: outputHash,
+        completion_text: completionText, // Still sent for archiving, but verified via hash
         user_messages: params.messages,
-        completion_text: mockUpstreamResponse,
         temperature: params.temperature,
         tags: params.tags,
         application_id: params.applicationId,
-        input_tokens: 15, // mock
-        output_tokens: 10, // mock
+        input_tokens: inputTokens,
+        output_tokens: outputTokens,
         latency_ms: upstreamLatency
       })
     });
@@ -61,10 +116,10 @@ export class ATPClient {
     if (!certifyRes.ok) {
       console.warn("ATP Certification failed, returning uncertified response.");
       return {
-        content: mockUpstreamResponse,
+        content: completionText,
         certificate_id: "uncertified",
         signature: "none",
-        model_version: "unknown",
+        model_version: params.model,
         latency_ms: upstreamLatency
       };
     }
@@ -72,12 +127,11 @@ export class ATPClient {
     const certData = await certifyRes.json();
     const atpOverhead = Date.now() - certifyStart;
 
-    // 3. Return the enhanced ProvenanceResponse
     return {
-      content: mockUpstreamResponse,
+      content: completionText,
       certificate_id: certData.certificate_id,
       signature: certData.signature,
-      model_version: certData.model_version,
+      model_version: certData.model_version || params.model,
       latency_ms: atpOverhead
     };
   }

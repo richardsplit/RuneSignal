@@ -23,7 +23,8 @@ export class IdentityService {
         framework: request.framework,
         public_key: request.public_key,
         created_by: createdBy,
-        status: 'active'
+        status: 'active',
+        metadata: request.metadata || {}
       })
       .select()
       .single();
@@ -135,5 +136,20 @@ export class IdentityService {
     });
 
     return { allowed: true, reason: 'Permission granted' };
+  }
+
+  /**
+   * Directly checks the status of an agent.
+   */
+  static async checkAgentStatus(agentId: string): Promise<'active' | 'suspended' | 'revoked' | 'unknown'> {
+    const supabase = createAdminClient();
+    const { data, error } = await supabase
+      .from('agent_credentials')
+      .select('status')
+      .eq('id', agentId)
+      .single();
+
+    if (error || !data) return 'unknown';
+    return data.status as any;
   }
 }

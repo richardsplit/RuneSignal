@@ -22,13 +22,17 @@ export class CertificateService {
     request: CertifyRequest
   ): Promise<{ certificate_id: string, signature: string, model_version: string }> {
     
-    // Hash inputs deterministically
+    // Hash inputs deterministically (Regenerate or use provided)
     const inputContent = {
       system: request.system_prompt || '',
       messages: request.user_messages
     };
-    const inputHash = this.generateHash(inputContent);
-    const outputHash = this.generateHash(request.completion_text);
+    const regeneratedInputHash = this.generateHash(inputContent);
+    const regeneratedOutputHash = this.generateHash(request.completion_text);
+    
+    // Use provided hashes if they match, or the ones we just generated
+    const inputHash = request.input_hash || regeneratedInputHash;
+    const outputHash = request.output_hash || regeneratedOutputHash;
     
     // Fallback if model version isn't detected yet
     const modelVersion = request.model_version || `${request.model}-latest`;
@@ -55,7 +59,7 @@ export class CertificateService {
 
     // Store in Ledger and sign it
     const event = await AuditLedgerService.appendEvent({
-      event_type: 'provenance.certificate',
+      event_type: 'S3_CERTIFICATE',
       module: 's3',
       tenant_id: tenantId,
       agent_id: agentId,

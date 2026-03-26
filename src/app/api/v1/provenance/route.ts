@@ -18,7 +18,7 @@ export async function GET(request: Request) {
       .from('audit_events')
       .select('payload->model, payload->model_version, created_at')
       .eq('tenant_id', tenantId)
-      .eq('event_type', 'provenance.certificate')
+      .in('event_type', ['provenance.certificate', 'S3_CERTIFICATE'])
       .order('created_at', { ascending: false });
 
     if (error) return NextResponse.json({ error: 'Query failed' }, { status: 500 });
@@ -45,7 +45,7 @@ export async function GET(request: Request) {
     .from('audit_events')
     .select('request_id, event_type, agent_id, payload, created_at')
     .eq('tenant_id', tenantId)
-    .eq('event_type', 'provenance.certificate')
+    .in('event_type', ['provenance.certificate', 'S3_CERTIFICATE'])
     .order('created_at', { ascending: false })
     .limit(limit);
 

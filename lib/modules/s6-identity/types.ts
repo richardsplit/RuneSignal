@@ -9,6 +9,7 @@ export interface AgentCredential {
   created_by?: string;
   created_at: string;
   last_seen_at?: string;
+  metadata?: Record<string, any>;
 }
 
 export interface PermissionScope {
@@ -32,6 +33,7 @@ export interface RegisterAgentRequest {
     actions: string[];
     conditions?: Record<string, any>;
   }[];
+  metadata?: Record<string, any>;
 }
 
 export interface EnforceToolCallRequest {

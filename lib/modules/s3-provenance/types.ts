@@ -11,6 +11,8 @@ export interface CertifyRequest {
   temperature?: number;
   application_id?: string;
   tags?: string[];
+  input_hash?: string;
+  output_hash?: string;
 }
 
 export interface CertificatePayload {

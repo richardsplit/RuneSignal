@@ -101,20 +101,21 @@
 
 ## Phase 8.1: Platform Refinement & Fixes [NEW]
 ### Part 1: Security & Identity Sync
-- [ ] Enforce `X-Agent-Id` header validation in middleware
-- [ ] Connect real Supabase `agent_credentials` table for status checks
-- [ ] Implement rate limiting using Upstash Redis per tenant
-- [ ] Fix Agent Registration payload handling (scopes/metadata)
-- [ ] Switch Identity dashboard to real DB data
+- [x] Enforce `X-Agent-Id` header validation in middleware
+- [x] Connect real Supabase `agent_credentials` table for status checks
+- [x] Implement rate limiting using Upstash Redis per tenant
+- [x] Fix Agent Registration payload handling (scopes/metadata)
+- [x] Switch Identity dashboard to real DB data
 - [ ] Build S6 unit tests for registration & enforcement
 
 ### Part 2: S3 Provenance - Real LLM Certification
-- [ ] Install `openai` and `@anthropic-ai/sdk`
-- [ ] Update `ATPClient` for real upstream LLM calls
-- [ ] Implement SHA-256 hashing pipeline for I/O
-- [ ] Persist certified outputs to `audit_events` ledger
-- [ ] Switch Provenance dashboard to real DB data
-- [ ] Build S3 unit tests for signature integrity
+- [x] Install `openai` and `@anthropic-ai/sdk`
+- [x] Update `ATPClient` for real upstream LLM calls
+- [x] Implement SHA-256 hashing pipeline for I/O
+- [x] Persist certified outputs to `audit_events` ledger
+- [x] Switch Provenance dashboard to real DB data
+- [x] Build S3 unit tests for signature integrity
+- [x] Fix Next.js 15+ dynamic route params (Vercel Build Fix)
 
 ### Part 3: S1 Conflict - Real-time Arbiter
 - [ ] Implement `pgvector` distance calculation for intents
