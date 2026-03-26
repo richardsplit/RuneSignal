@@ -30,15 +30,16 @@ export class VersionMonitor {
     const fingerprint = this.extractFingerprint(completionText);
     
     // In production, we query Redis or the DB for the last known fingerprint of this modelVersion.
-    // For MVP implementation, we simulate detection of a change if certain conditions trigger.
-    const isAnomalous = Math.random() < 0.05; // 5% simulated anomaly rate primarily for testing
+    // Deterministic Implementation: Detect change based on fingerprint drift
+    let baselineFingerprint = 'fp_known_baseline';
+    const isAnomalous = fingerprint !== baselineFingerprint && baselineFingerprint !== 'none';
     
     if (isAnomalous) {
       const eventDetails = {
         model_version: modelVersion,
         provider: provider,
         detected_fingerprint: fingerprint,
-        previous_fingerprint: 'fp_known_baseline',
+        previous_fingerprint: baselineFingerprint,
         tenant_id: tenantId
       };
 

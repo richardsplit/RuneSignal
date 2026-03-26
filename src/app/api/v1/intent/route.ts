@@ -63,3 +63,34 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+export async function PUT(request: Request) {
+  try {
+    const tenantId = request.headers.get('X-Tenant-Id');
+    if (!tenantId) return NextResponse.json({ error: 'Missing Authentication' }, { status: 401 });
+
+    const body = await request.json();
+    if (!body.id) return NextResponse.json({ error: 'Missing intent ID' }, { status: 400 });
+
+    const result = await ArbiterService.overrideIntent(tenantId, body.id, body.updates || body);
+    return NextResponse.json(result);
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const tenantId = request.headers.get('X-Tenant-Id');
+    if (!tenantId) return NextResponse.json({ error: 'Missing Authentication' }, { status: 401 });
+
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+
+    if (!id) return NextResponse.json({ error: 'Missing intent ID' }, { status: 400 });
+
+    await ArbiterService.releaseIntent(tenantId, id);
+    return NextResponse.json({ success: true });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}

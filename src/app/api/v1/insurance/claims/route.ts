@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createAdminClient } from '@/../lib/db/supabase';
-import { AuditLedgerService } from '@/../lib/ledger/service';
+import { createAdminClient } from '../../../../../../lib/db/supabase';
+import { AuditLedgerService } from '../../../../../../lib/ledger/service';
+import { RiskEngine } from '../../../../../../lib/modules/s5-insurance/risk-engine';
 
 /**
  * GET /api/v1/insurance/claims
- * List recent claims for the tenant.
+ * List all insurance claims for the tenant.
  */
 export async function GET(request: NextRequest) {
   const tenantId = request.headers.get('X-Tenant-Id');
@@ -14,9 +15,7 @@ export async function GET(request: NextRequest) {
   const { data, error } = await supabase
     .from('insurance_claims')
     .select('*')
-    .eq('tenant_id', tenantId)
-    .order('filed_at', { ascending: false })
-    .limit(20);
+    .eq('tenant_id', tenantId);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
@@ -35,6 +34,16 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const supabase = createAdminClient();
 
+    // Fetch agent risk profile for initial scoring
+    const { data: profile } = await supabase
+      .from('agent_risk_profiles')
+      .select('*')
+      .eq('agent_id', body.agent_id)
+      .single();
+
+    const fraudData = RiskEngine.computeFraudScore(profile || { total_violations: 0, model_version_anomalies: 0 }, 1);
+    const complianceData = RiskEngine.applyComplianceRules(body);
+
     const { data: claim, error } = await supabase
       .from('insurance_claims')
       .insert({
@@ -43,7 +52,9 @@ export async function POST(request: NextRequest) {
         incident_type: body.incident_type,
         financial_impact: body.financial_impact,
         description: body.description,
-        status: 'filed'
+        claim_state: 'filed',
+        fraud_score: fraudData.score,
+        compliance_metadata: complianceData.compliance_metadata
       })
       .select()
       .single();
@@ -60,12 +71,14 @@ export async function POST(request: NextRequest) {
       payload: { 
         type: body.incident_type, 
         impact: body.financial_impact, 
-        status: 'filed' 
+        claim_state: 'filed',
+        fraud_score: fraudData.score
       }
     });
 
     return NextResponse.json(claim);
   } catch (error: any) {
+    console.error('Claim Error:', error.message);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

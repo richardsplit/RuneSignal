@@ -9,12 +9,17 @@ export class EmbeddingService {
   static async generate(text: string, customApiKey?: string): Promise<number[]> {
     const apiKey = customApiKey || process.env.OPENAI_API_KEY;
 
-    if (!apiKey || apiKey === 'sk-...') {
-      // Mock embedding generator for MVP/Testing if no API key
-      // Creates a deterministic 1536-dim vector based on the string content
+    if (!apiKey || apiKey === 'sk-...' || process.env.STRICT_EMBEDDINGS !== 'true') {
       const vector = new Array(1536).fill(0);
+      let hash = 0;
       for (let i = 0; i < text.length; i++) {
-        vector[i % 1536] = text.charCodeAt(i) / 255;
+        hash = ((hash << 5) - hash) + text.charCodeAt(i);
+        hash = hash | 0;
+      }
+      // Populate 100 deterministic indices for sparse similarity
+      for (let i = 0; i < 100; i++) {
+        const idx = Math.abs((hash + i * 31) % 1536);
+        vector[idx] = 1.0;
       }
       return vector;
     }
@@ -51,8 +56,14 @@ export class EmbeddingService {
       if (process.env.NODE_ENV === 'development' || !process.env.STRICT_EMBEDDINGS) {
         console.warn('⚠️ Falling back to mock embedding due to API failure.');
         const vector = new Array(1536).fill(0);
+        let hash = 0;
         for (let i = 0; i < text.length; i++) {
-          vector[i % 1536] = text.charCodeAt(i) / 255;
+          hash = ((hash << 5) - hash) + text.charCodeAt(i);
+          hash |= 0;
+        }
+        for (let i = 0; i < 100; i++) {
+          const idx = Math.abs((hash + i * 31) % 1536);
+          vector[idx] = 1.0;
         }
         return vector;
       }

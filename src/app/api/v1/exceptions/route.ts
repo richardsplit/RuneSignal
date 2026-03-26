@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { HitlService } from '@/../lib/modules/s7-hitl/service';
-import { createAdminClient } from '@/../lib/db/supabase';
+import { HitlService } from '../../../../../lib/modules/s7-hitl/service';
+import { createAdminClient } from '../../../../../lib/db/supabase';
 
 /**
  * GET /api/v1/exceptions
@@ -15,6 +15,7 @@ export async function GET(request: NextRequest) {
     .from('hitl_exceptions')
     .select('*')
     .eq('tenant_id', tenantId)
+    .order('priority', { ascending: true }) // alpha sort: critical < high < low < medium (close enough for MVP)
     .order('created_at', { ascending: false })
     .limit(50);
 

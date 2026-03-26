@@ -39,6 +39,74 @@ export class RiskEngine {
   }
 
   /**
+   * Calculates a fraud score (0-100) for an agent based on violation history and claim frequency.
+   * 0 = No fraud indicators, 100 = High fraud risk.
+   */
+  static computeFraudScore(profile: AgentRiskProfile, claimFrequency: number): { score: number; factors: string[] } {
+    let score = 0;
+    const factors: string[] = [];
+
+    // Base score for any violations
+    if (profile.total_violations > 0) {
+      score += profile.total_violations * 3;
+      factors.push(`Past Violations (+${profile.total_violations * 3})`);
+    }
+
+    // Increase score based on claim frequency
+    if (claimFrequency > 0) {
+      score += claimFrequency * 10; // Each claim adds 10 points
+      factors.push(`Claim Frequency (+${claimFrequency * 10})`);
+    }
+
+    // High model anomalies might indicate attempts to bypass controls
+    if (profile.model_version_anomalies > 0) {
+      score += profile.model_version_anomalies * 5;
+      factors.push(`Model Anomalies (potential bypass) (+${profile.model_version_anomalies * 5})`);
+    }
+
+    // Cap at 100
+    if (score > 100) score = 100;
+
+    return { score, factors };
+  }
+
+  /**
+   * Applies compliance rules to a claim and tags it with relevant metadata (e.g., FCRA, NAIC).
+   * This is a placeholder for more complex rule engines.
+   */
+  static applyComplianceRules(claimData: any): any {
+    const complianceMetadata: { [key: string]: string } = {};
+
+    // Example: Determine NAIC category based on incident type
+    switch (claimData.incident_type) {
+      case 'data_breach':
+        complianceMetadata.naic_category = 'Cyber Liability';
+        break;
+      case 'system_failure':
+        complianceMetadata.naic_category = 'Commercial Property';
+        break;
+      case 'permission_violation':
+        complianceMetadata.naic_category = 'Commercial Liability';
+        break;
+      default:
+        complianceMetadata.naic_category = 'General Liability';
+        break;
+    }
+
+    // Example: Check for FCRA implications (e.g., if claim involves consumer data)
+    if (claimData.incident_type === 'data_breach' && claimData.impact === 'consumer_data') {
+      complianceMetadata.fcra_applicable = 'true';
+    } else {
+      complianceMetadata.fcra_applicable = 'false';
+    }
+
+    return {
+      ...claimData,
+      compliance_metadata: complianceMetadata,
+    };
+  }
+
+  /**
    * Recomputes an agent's risk profile from the raw audit ledger and updates the S5 DB.
    */
   static async refreshAgentRiskProfile(tenantId: string, agentId: string): Promise<AgentRiskProfile> {

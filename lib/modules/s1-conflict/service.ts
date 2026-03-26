@@ -31,6 +31,8 @@ export class ArbiterService {
       // OpenAI Default Path: Embedding + Vector Similarity
       const embedding = await EmbeddingService.generate(request.intent_description, apiKey);
       const policyResult = await PolicyEngine.evaluatePolicy(tenantId, embedding, apiKey);
+      console.log(`[S1 DEBUG] Intent: "${request.intent_description}" | Blocked: ${policyResult.blocked} | Reason: ${policyResult.reason}`);
+      
       if (policyResult.blocked) {
         await this.logArbiterEvent(tenantId, agentId, request.intent_description, 'block', policyResult.reason!, vendor);
         return { decision: 'block', reason: policyResult.reason!, suggested_action: 'Modify intent to comply with corporate policy.' };
@@ -71,6 +73,56 @@ export class ArbiterService {
     await this.logArbiterEvent(tenantId, agentId, request.intent_description, 'allow', 'No conflicts detected.', vendor);
     
     return { decision: 'allow', reason: 'Intent meditated and allowed.' };
+  }
+
+  /**
+   * Releases/Deletes a specifically registered intent.
+   */
+  static async releaseIntent(tenantId: string, intentId: string): Promise<boolean> {
+    const supabase = createAdminClient();
+    const { error } = await supabase
+      .from('agent_intents')
+      .delete()
+      .eq('id', intentId)
+      .eq('tenant_id', tenantId);
+
+    if (error) throw new Error(`Failed to release intent: ${error.message}`);
+    
+    await AuditLedgerService.appendEvent({
+      event_type: 'arbiter.intent_released',
+      module: 's1',
+      tenant_id: tenantId,
+      request_id: intentId,
+      payload: { status: 'released' }
+    });
+
+    return true;
+  }
+
+  /**
+   * Overrides/Updates an existing intent (e.g. extending TTL).
+   */
+  static async overrideIntent(tenantId: string, intentId: string, updates: any): Promise<any> {
+    const supabase = createAdminClient();
+    const { data, error } = await supabase
+      .from('agent_intents')
+      .update(updates)
+      .eq('id', intentId)
+      .eq('tenant_id', tenantId)
+      .select()
+      .single();
+
+    if (error) throw new Error(`Failed to override intent: ${error.message}`);
+
+    await AuditLedgerService.appendEvent({
+      event_type: 'arbiter.intent_override',
+      module: 's1',
+      tenant_id: tenantId,
+      request_id: intentId,
+      payload: { updates }
+    });
+
+    return data;
   }
 
   private static async logArbiterEvent(tenantId: string, agentId: string, intent: string, decision: string, reason: string, vendor: string = 'openai') {

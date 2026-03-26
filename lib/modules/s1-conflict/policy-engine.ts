@@ -5,25 +5,46 @@ export class PolicyEngine {
   /**
    * Checks if an intent violates any established semantic policies.
    */
-  static async evaluatePolicy(tenantId: string, embedding: number[], customApiKey?: string): Promise<{ blocked: boolean; policyName?: string; reason?: string }> {
+  static async evaluatePolicy(tenantId: string, embedding: number[], apiKey?: string, threshold?: number): Promise<{ blocked: boolean; policyName?: string; reason?: string }> {
     const supabase = createAdminClient();
+    const matchThreshold = threshold || parseFloat(process.env.S1_POLICY_THRESHOLD || '0.85');
 
-    // Semantic search for matching "block" policies in arbiter_policies
-    // Using a simple cosine similarity threshold (0.8+)
     const { data: matches, error } = await supabase.rpc('match_policies', {
         query_embedding: embedding,
-        match_threshold: 0.85, 
-        match_count: 1,
+        match_threshold: matchThreshold, 
+        match_count: 5,
         p_tenant_id: tenantId
     });
 
-    if (error) {
-      console.error('Policy evaluation RPC failed:', error);
-      return { blocked: false }; // Fail open for MVP, log error
+    console.log(`[S1 RPC DEBUG] Threshold: ${matchThreshold} | Tenant: ${tenantId} | Matches: ${matches?.length || 0}`);
+    
+    // Fallback: Client-side similarity if RPC fails or returns 0
+    let finalMatches = matches || [];
+    if (finalMatches.length === 0) {
+        console.log('[S1] RPC returned 0 matches, attempting client-side fallback...');
+        const { data: allPolicies } = await supabase
+            .from('arbiter_policies')
+            .select('*')
+            .eq('tenant_id', tenantId);
+        
+        if (allPolicies) {
+            finalMatches = allPolicies.map(p => {
+                const similarity = this.calculateCosineSimilarity(embedding, p.embedding);
+                return { ...p, similarity };
+            }).filter(p => p.similarity > matchThreshold)
+              .sort((a, b) => b.similarity - a.similarity);
+            
+            console.log(`[S1 Fallback] Found ${finalMatches.length} matches via JS.`);
+        }
     }
 
-    if (matches && matches.length > 0) {
-      const policy = matches[0];
+    if (error && finalMatches.length === 0) {
+      console.error('Policy evaluation RPC failed:', error);
+      return { blocked: false };
+    }
+
+    if (finalMatches.length > 0) {
+      const policy = finalMatches[0];
       return { 
         blocked: true, 
         policyName: policy.name, 
@@ -35,8 +56,23 @@ export class PolicyEngine {
   }
 
   /**
+   * Helper for client-side vector similarity.
+   */
+  private static calculateCosineSimilarity(a: number[], b: number[]): number {
+    let dotProduct = 0;
+    let normA = 0;
+    let normB = 0;
+    for (let i = 0; i < a.length; i++) {
+        dotProduct += (a[i] || 0) * (b[i] || 0);
+        normA += (a[i] || 0) * (a[i] || 0);
+        normB += (b[i] || 0) * (b[i] || 0);
+    }
+    if (normA === 0 || normB === 0) return 0;
+    return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
+  }
+
+  /**
    * Performs deep semantic mediation using Claude (Anthropic).
-   * This reasons about the intent against a provided list of policies.
    */
   static async evaluateWithClaude(intent: string, policies: any[], apiKey?: string): Promise<{ blocked: boolean; reason?: string }> {
     const apiToken = apiKey || process.env.ANTHROPIC_API_KEY;
@@ -83,20 +119,20 @@ export class PolicyEngine {
       };
     } catch (error) {
       console.error('Claude Mediation Failed:', error);
-      return { blocked: false }; // Fail open or return error
+      return { blocked: false };
     }
   }
 
   /**
    * Detects semantic overlap with other active agent intents in the registry.
    */
-  static async checkConcurrentConflicts(tenantId: string, agentId: string, embedding: number[], customApiKey?: string): Promise<{ conflict: boolean; conflictingAgentId?: string; reason?: string }> {
+  static async checkConcurrentConflicts(tenantId: string, agentId: string, embedding: number[], apiKey?: string, threshold?: number): Promise<{ conflict: boolean; conflictingAgentId?: string; reason?: string }> {
     const supabase = createAdminClient();
+    const matchThreshold = threshold || parseFloat(process.env.S1_CONCURRENT_THRESHOLD || '0.9');
 
-    // Query active intents from other agents that haven't expired
     const { data: conflicts, error } = await supabase.rpc('match_active_intents', {
         query_embedding: embedding,
-        match_threshold: 0.9, // High similarity indicates likely collision
+        match_threshold: matchThreshold, 
         match_count: 1,
         p_tenant_id: tenantId,
         p_exclude_agent_id: agentId
@@ -109,7 +145,7 @@ export class PolicyEngine {
       return { 
         conflict: true, 
         conflictingAgentId: collision.agent_id,
-        reason: `Collision detected with active agent ${collision.agent_id}: "${collision.intent_description}"`
+        reason: collision.intent_description
       };
     }
 

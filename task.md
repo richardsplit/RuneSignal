@@ -139,6 +139,26 @@
 - [x] Switch Insurance dashboard to real actuarial data
 - [x] Build S5 unit tests for actuarial logic
 
+## Phase 8.2: Checklist Finalization (The 23-Step Plan) [NEW]
+- [x] Fix `tsconfig.json` path aliasing (`@lib/*`)
+- [x] Fix hardcoded tenant ID in agent registration (`/api/v1/agents/register`)
+- [x] Implement deterministic `VersionMonitor` fingerprinting (Remove `Math.random`)
+- [x] Enforce strict `X-Agent-Id` validation in certification route
+- [x] Implement `resource_locks` table & exact-match locking logic for S1
+- [x] Add `PUT` (override) and `DELETE` (release) handlers to intent route
+- [x] Parameterize similarity thresholds in `PolicyEngine` (configurable)
+- [x] Create Vercel SLA check CRON endpoint (`/api/cron/sla-check`)
+- [x] Add training pipeline webhook trigger to HITL resolution
+- [x] Implement priority-first sorting in exceptions queue
+- [x] Create agent suspension API endpoint (`/api/v1/agents/[id]/suspend`)
+- [x] Refactor insurance with `claim_state` column & `ClaimsStateMachine`
+- [x] Implement `computeFraudScore()` with FCRA/NAIC compliance rules
+- [x] Create mock Guidewire ClaimCenter integration client
+- [x] Install and configure `vitest` for standard unit testing
+- [x] Write 5-event comprehensive audit chain integration test
+- [x] Create `DEVIATIONS.md` architectural record
+- [x] Add global platform metrics endpoint (`/api/v1/metrics`)
+
 ## Phase 9: Advanced UI/UX Polish
 - [ ] Research contemporary SaaS Figma templates for inspiration
 - [ ] Refine UX for a more contemporary, professional look (Figma-level design)

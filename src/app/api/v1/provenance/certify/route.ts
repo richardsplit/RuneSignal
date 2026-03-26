@@ -7,8 +7,8 @@ export async function POST(request: Request) {
     const tenantId = request.headers.get('X-Tenant-Id');
     const agentId = request.headers.get('X-Agent-Id');
 
-    if (!tenantId) {
-      return NextResponse.json({ error: 'Missing Tenant Authentication' }, { status: 401 });
+    if (!tenantId || !agentId || agentId === 'none') {
+      return NextResponse.json({ error: 'Missing Tenant or Agent Identification' }, { status: 401 });
     }
 
     const body = await request.json();

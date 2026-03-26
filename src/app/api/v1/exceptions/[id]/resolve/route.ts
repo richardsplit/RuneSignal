@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { HitlService } from '@/../lib/modules/s7-hitl/service';
+import { HitlService } from '../../../../../../../lib/modules/s7-hitl/service';
+import { createAdminClient } from '../../../../../../../lib/db/supabase';
 
 /**
  * POST /api/v1/exceptions/[id]/resolve

@@ -1,13 +1,15 @@
+import { IdentityService } from '../../../../../../lib/modules/s6-identity/service';
 import { NextResponse } from 'next/server';
-import { IdentityService } from '@/../lib/modules/s6-identity/service';
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
     const { name, type, description } = body;
 
-    // Hardcoded tenant for local dev / MVP
-    const tenantId = '11111111-1111-1111-1111-111111111111';
+    const tenantId = req.headers.get('X-Tenant-Id');
+    if (!tenantId) {
+      return NextResponse.json({ error: 'Missing X-Tenant-Id header' }, { status: 400 });
+    }
 
     const result = await IdentityService.registerAgent(tenantId, {
       agent_name: name,
