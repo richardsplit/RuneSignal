@@ -48,20 +48,26 @@ export class RiskEngine {
 
     // Base score for any violations
     if (profile.total_violations > 0) {
-      score += profile.total_violations * 3;
-      factors.push(`Past Violations (+${profile.total_violations * 3})`);
+      score += profile.total_violations * 4;
+      factors.push(`Security Violations Index (+${profile.total_violations * 4})`);
+    }
+
+    // High frequency of SLA breaches (negligence/evasion indicator)
+    if (profile.hitl_escalations > 2) {
+      score += 15;
+      factors.push('High SLA Breach Patterns (+15)');
     }
 
     // Increase score based on claim frequency
     if (claimFrequency > 0) {
-      score += claimFrequency * 10; // Each claim adds 10 points
-      factors.push(`Claim Frequency (+${claimFrequency * 10})`);
+      score += claimFrequency * 12;
+      factors.push(`Frequent Claim Activity (+${claimFrequency * 12})`);
     }
 
-    // High model anomalies might indicate attempts to bypass controls
-    if (profile.model_version_anomalies > 0) {
-      score += profile.model_version_anomalies * 5;
-      factors.push(`Model Anomalies (potential bypass) (+${profile.model_version_anomalies * 5})`);
+    // High model anomalies (obfuscation indicator)
+    if (profile.model_version_anomalies > 1) {
+      score += profile.model_version_anomalies * 8;
+      factors.push(`Persistent Model Anomalies (+${profile.model_version_anomalies * 8})`);
     }
 
     // Cap at 100

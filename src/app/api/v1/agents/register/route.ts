@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server';
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { name, type, description } = body;
+    const { name, type, description, public_key } = body;
 
     const tenantId = req.headers.get('X-Tenant-Id');
     if (!tenantId) {
@@ -15,7 +15,7 @@ export async function POST(req: Request) {
       agent_name: name,
       agent_type: type,
       framework: type,   // simplfying for mvp
-      public_key: 'mock-pub-key-not-provided' // simple mock key
+      public_key: public_key || 'not-provided'
     });
 
     return NextResponse.json({ success: true, agent: result.agent, token: result.token });

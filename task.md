@@ -165,6 +165,15 @@
 - [x] Wire S1 `resource_locks` into `ArbiterService.mediateIntent()` (collision fix)
 - [x] Verify Phase 8.3 fixes with full integration suite
 
+## Phase 8.4: Closing Gaps in Implementation [x]
+- [x] Update `.env.local.example` with missing variables
+- [x] Configure `vercel.json` for SLA cron jobs
+- [x] Fix hardcoded `public_key` in agent registration route
+- [x] Parameterize training pipeline webhook in `HitlService`
+- [x] Initialize Vitest infrastructure (`vitest.config.ts` + `package.json`)
+- [x] Migrate 5-event audit chain script to `audit-chain.test.ts` (Vitest)
+- [x] Create unit tests for `IdentityService` and `CertificateService`
+
 ## Phase 9: Advanced UI/UX Polish
 - [ ] Research contemporary SaaS Figma templates for inspiration
 - [ ] Refine UX for a more contemporary, professional look (Figma-level design)

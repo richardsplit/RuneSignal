@@ -109,12 +109,18 @@ export class HitlService {
 
     // 2. Mock Training Pipeline Webhook (Item 11)
     if (newStatus === 'approved') {
-       console.log(`[TRAINING] Triggering pipeline update for ticket ${ticketId}...`);
-       // In production, we'd fetch the original context and pass it to an fine-tuning endpoint
-       await fetch('https://api.trustlayer.com/v1/training/webhook', {
+       const trainingWebhook = process.env.TENANT_TRAINING_WEBHOOK || 'https://api.trustlayer.com/v1/training/webhook';
+       console.log(`[TRAINING] Triggering pipeline update for ticket ${ticketId} via ${trainingWebhook}...`);
+       
+       await fetch(trainingWebhook, {
          method: 'POST',
          headers: { 'Content-Type': 'application/json' },
-         body: JSON.stringify({ ticket_id: ticketId, action: 'fine-tune', agent_id: currentTicket.agent_id })
+         body: JSON.stringify({ 
+           ticket_id: ticketId, 
+           action: 'fine-tune', 
+           agent_id: currentTicket.agent_id,
+           tenant_id: tenantId
+         })
        }).catch(e => console.warn("Training webhook failed (intended for mock/integration):", e.message));
     }
 
