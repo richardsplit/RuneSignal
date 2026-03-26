@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server';
 import { createAdminClient } from '../../../../../../../lib/db/supabase';
 import { LedgerSigner } from '../../../../../../../lib/ledger/signer';
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const supabase = createAdminClient();
   
   // Notice: Independent verification path does not necessarily require tenant auth,
@@ -12,8 +13,8 @@ export async function GET(request: Request, { params }: { params: { id: string }
   const { data, error } = await supabase
     .from('audit_events')
     .select('*')
-    .eq('request_id', params.id)
-    .eq('event_type', 'provenance.certificate')
+    .eq('request_id', id)
+    .in('event_type', ['provenance.certificate', 'S3_CERTIFICATE'])
     .single();
 
   if (error || !data) {

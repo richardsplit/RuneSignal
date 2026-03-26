@@ -116,6 +116,7 @@
 - [x] Switch Provenance dashboard to real DB data
 - [x] Build S3 unit tests for signature integrity
 - [x] Fix Next.js 15+ dynamic route params (Vercel Build Fix)
+- [x] Pushed all Phase 8.1 Parts 1-2 changes to `dev` branch
 
 ### Part 3: S1 Conflict - Real-time Arbiter
 - [ ] Implement `pgvector` distance calculation for intents
