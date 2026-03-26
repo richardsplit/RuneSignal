@@ -163,7 +163,7 @@
 - [x] Fix Middleware: Filter `agent_id` requirement by route (dashboard fix)
 - [x] Fix VersionMonitor: Normalize baseline to `'none'` (ledger cleanup)
 - [x] Wire S1 `resource_locks` into `ArbiterService.mediateIntent()` (collision fix)
-- [ ] Verify Phase 8.3 fixes with full integration suite
+- [x] Verify Phase 8.3 fixes with full integration suite
 
 ## Phase 9: Advanced UI/UX Polish
 - [ ] Research contemporary SaaS Figma templates for inspiration
