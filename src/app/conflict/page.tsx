@@ -1,8 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useToast } from '@/components/ToastProvider';
 
 export default function ConflictDashboard() {
+  const { showToast } = useToast();
   const [activeIntents] = useState([
     { id: 'int-992', agent: 'SDR_Bot', intent: 'Update billing address for Acme Corp', similarity: '0.94', status: 'queue', reason: 'Collision with FinanceBot intent' },
     { id: 'int-991', agent: 'SupportAgent', intent: 'Close ticket #4021', similarity: '0.12', status: 'allow', reason: 'No overlap detected' },
@@ -21,8 +23,19 @@ export default function ConflictDashboard() {
           <p style={{ color: 'var(--color-text-muted)' }}>Semantic collision detection and real-time intent mediation.</p>
         </div>
         <div style={{ display: 'flex', gap: '0.75rem' }}>
-          <button className="btn btn-outline">Policy Config</button>
-          <button className="btn btn-primary" style={{ background: 'var(--color-accent-amber)', borderColor: 'var(--color-accent-amber)' }}>Add Policy</button>
+          <button 
+            className="btn btn-outline"
+            onClick={() => showToast('Syncing global policy configuration to vector DB...')}
+          >
+            Policy Config
+          </button>
+          <button 
+            className="btn btn-primary" 
+            style={{ background: 'var(--color-accent-amber)', borderColor: 'var(--color-accent-amber)' }}
+            onClick={() => showToast('Opening Semantic Policy Creator...')}
+          >
+            Add Policy
+          </button>
         </div>
       </div>
 

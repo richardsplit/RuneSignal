@@ -1,8 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useToast } from '@/components/ToastProvider';
 
 export default function ExceptionsDashboard() {
+  const { showToast } = useToast();
   const [exceptions] = useState([
     { id: 'exc-5091', agent: 'FinanceBot', priority: 'critical', title: 'Unrecognized Wire Transfer Schema', status: 'open', sla: '12 mins', created: '3 mins ago' },
     { id: 'exc-5088', agent: 'SupportAgent', priority: 'high', title: 'Refund Exceeds Authorized Limit ($5,000)', status: 'open', sla: '45 mins', created: '15 mins ago' },
@@ -30,8 +32,18 @@ export default function ExceptionsDashboard() {
           <p style={{ color: 'var(--color-text-muted)' }}>Manage exception tickets, SLA deadlines, and manual agent approvals.</p>
         </div>
         <div style={{ display: 'flex', gap: '0.75rem' }}>
-          <button className="btn btn-outline">SLA Settings</button>
-          <button className="btn btn-primary">Integrations (Slack/Jira)</button>
+          <button 
+            className="btn btn-outline"
+            onClick={() => showToast('Syncing global SLA configuration...')}
+          >
+            SLA Settings
+          </button>
+          <button 
+            className="btn btn-primary"
+            onClick={() => showToast('Opening Slack integration settings...')}
+          >
+            Integrations (Slack/Jira)
+          </button>
         </div>
       </div>
 
@@ -91,8 +103,20 @@ export default function ExceptionsDashboard() {
                 <td style={{ padding: '1rem 1.5rem', color: exc.priority === 'critical' ? 'var(--color-error-rose)' : 'var(--color-text-main)', fontWeight: exc.priority === 'critical' ? 700 : 400 }}>{exc.sla}</td>
                 <td style={{ padding: '1rem 1.5rem', textAlign: 'right' }}>
                   <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-                     <button className="btn btn-primary" style={{ fontSize: '0.75rem', padding: '0.25rem 0.75rem', background: 'var(--color-primary-emerald)' }}>Approve</button>
-                     <button className="btn btn-outline" style={{ fontSize: '0.75rem', padding: '0.25rem 0.75rem', color: 'var(--color-error-rose)', borderColor: 'var(--color-error-rose)' }}>Reject</button>
+                     <button 
+                       className="btn btn-primary" 
+                       style={{ fontSize: '0.75rem', padding: '0.25rem 0.75rem', background: 'var(--color-primary-emerald)' }}
+                       onClick={() => showToast(`Successfully APPROVED exception ${exc.id}. Logged to ledger.`)}
+                     >
+                       Approve
+                     </button>
+                     <button 
+                       className="btn btn-outline" 
+                       style={{ fontSize: '0.75rem', padding: '0.25rem 0.75rem', color: 'var(--color-error-rose)', borderColor: 'var(--color-error-rose)' }}
+                       onClick={() => showToast(`REJECTED exception ${exc.id}. Agent notification sent.`, 'error')}
+                     >
+                       Reject
+                     </button>
                   </div>
                 </td>
               </tr>

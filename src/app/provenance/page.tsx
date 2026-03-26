@@ -1,8 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useToast } from '@/components/ToastProvider';
 
 export default function ProvenanceDashboard() {
+  const { showToast } = useToast();
   // Mock data for initial MVP view
   const [certs] = useState([
     { id: '1a3f-8c2d', agent: 'LegalReviewBot', tags: ['contract-review', 'eu-ai-act'], hash: 'f4e2...89a1', time: '10 mins ago', status: 'verified' },
@@ -17,7 +19,12 @@ export default function ProvenanceDashboard() {
           <h1 className="gradient-text" style={{ fontSize: '2rem', marginBottom: '0.25rem' }}>AI Output Provenance</h1>
           <p style={{ color: 'var(--color-text-muted)' }}>Cryptographically verify LLM outputs against the immutable ledger.</p>
         </div>
-        <button className="btn btn-primary">Generate Certificate</button>
+        <button 
+          className="btn btn-primary" 
+          onClick={() => showToast('Generating cryptographic certificate for last trace...')}
+        >
+          Generate Certificate
+        </button>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem', marginBottom: '2.5rem' }}>

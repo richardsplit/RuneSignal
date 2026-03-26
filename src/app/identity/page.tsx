@@ -1,8 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useToast } from '@/components/ToastProvider';
 
 export default function IdentityDashboard() {
+  const { showToast } = useToast();
   const [agents] = useState([
     { id: 'agt-001', name: 'InventoryManager', type: 'langgraph', status: 'active', violations: 0, lastSeen: '2 mins ago' },
     { id: 'agt-002', name: 'ContractAnalyst', type: 'crewai', status: 'active', violations: 0, lastSeen: '1 hour ago' },
@@ -16,7 +18,12 @@ export default function IdentityDashboard() {
           <h1 className="gradient-text" style={{ fontSize: '2rem', marginBottom: '0.25rem' }}>Agent Identity & Permissions</h1>
           <p style={{ color: 'var(--color-text-muted)' }}>Manage registered AI agents, scoped credentials, and security manifests.</p>
         </div>
-        <button className="btn btn-primary">Register New Agent</button>
+        <button 
+          className="btn btn-primary"
+          onClick={() => showToast('Redirecting to Agent Registration Wizard...')}
+        >
+          Register New Agent
+        </button>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem', marginBottom: '2.5rem' }}>
@@ -85,7 +92,13 @@ export default function IdentityDashboard() {
                 </td>
                 <td style={{ padding: '1rem 1.5rem', color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>{a.lastSeen}</td>
                 <td style={{ padding: '1rem 1.5rem' }}>
-                   <button className="btn btn-outline" style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}>Manage Scopes</button>
+                   <button 
+                     className="btn btn-outline" 
+                     style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}
+                     onClick={() => showToast(`Opening permission scope editor for ${a.name}...`)}
+                   >
+                     Manage Scopes
+                   </button>
                 </td>
               </tr>
             ))}

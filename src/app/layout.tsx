@@ -8,6 +8,8 @@ export const metadata: Metadata = {
   description: 'Provide governance, accountability, and operational control over AI agent fleets in production.',
 };
 
+import { ToastProvider } from '@/components/ToastProvider';
+
 export default function RootLayout({
   children,
 }: {
@@ -16,15 +18,17 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <div className="app-layout">
-          <Sidebar />
-          <div className="main-content">
-            <Header />
-            <main className="animate-fade-in" style={{ flex: 1, marginTop: '2rem' }}>
-              {children}
-            </main>
+        <ToastProvider>
+          <div className="app-layout">
+            <Sidebar />
+            <div className="main-content">
+              <Header />
+              <main className="animate-fade-in" style={{ flex: 1, marginTop: '2rem' }}>
+                {children}
+              </main>
+            </div>
           </div>
-        </div>
+        </ToastProvider>
       </body>
     </html>
   );

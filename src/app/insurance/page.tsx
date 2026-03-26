@@ -1,8 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useToast } from '@/components/ToastProvider';
 
 export default function InsuranceDashboard() {
+  const { showToast } = useToast();
   const [profiles] = useState([
     { id: 'agt-001', agent: 'InventoryManager', score: 0, violations: 0, hitl: 0, anomalies: 0, premium: '$500.00' },
     { id: 'agt-002', agent: 'ContractAnalyst', score: 25, violations: 2, hitl: 7, anomalies: 0, premium: '$600.00' },
@@ -29,8 +31,19 @@ export default function InsuranceDashboard() {
           <p style={{ color: 'var(--color-text-muted)' }}>Actuarial risk modeling, dynamic premiums, and liability coverage.</p>
         </div>
         <div style={{ display: 'flex', gap: '0.75rem' }}>
-          <button className="btn btn-outline">Coverage Policy</button>
-          <button className="btn btn-primary" style={{ background: 'var(--color-info-cyan)', borderColor: 'var(--color-info-cyan)' }}>File Claim</button>
+          <button 
+            className="btn btn-outline"
+            onClick={() => showToast('Opening Coverage Policy details (PDF)...')}
+          >
+            Coverage Policy
+          </button>
+          <button 
+            className="btn btn-primary" 
+            style={{ background: 'var(--color-info-cyan)', borderColor: 'var(--color-info-cyan)' }}
+            onClick={() => showToast('Redirecting to Claims Filing Portal...', 'info')}
+          >
+            File Claim
+          </button>
         </div>
       </div>
 
@@ -61,7 +74,13 @@ export default function InsuranceDashboard() {
         <div className="glass-panel" style={{ overflow: 'hidden' }}>
           <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-glass)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h3 style={{ fontSize: '1.1rem', fontWeight: 600 }}>Agent Risk Profiles</h3>
-            <button className="btn btn-outline" style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}>Recalculate All</button>
+            <button 
+              className="btn btn-outline" 
+              style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}
+              onClick={() => showToast('Triggering actuarial risk recalculation for entire fleet...')}
+            >
+              Recalculate All
+            </button>
           </div>
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
             <thead>
