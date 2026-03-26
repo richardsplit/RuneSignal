@@ -1,8 +1,13 @@
+'use client';
+
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 export default function Sidebar() {
+  const pathname = usePathname();
+  
   const navItems = [
     { name: 'Overview', href: '/' },
     { name: 'S3 Provenance', href: '/provenance' },
@@ -37,26 +42,32 @@ export default function Sidebar() {
       {/* Navigation */}
       <nav style={{ flex: 1, padding: '0 1rem' }}>
         <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-          {navItems.map(item => (
-            <li key={item.name}>
-              <Link 
-                href={item.href}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  padding: '0.75rem 1rem',
-                  borderRadius: 'var(--radius-md)',
-                  color: 'var(--color-text-muted)',
-                  textDecoration: 'none',
-                  fontWeight: 500,
-                  transition: 'all 0.2s',
-                  background: item.name === 'Overview' ? 'rgba(255,255,255,0.05)' : 'transparent',
-                }}
-              >
-                {item.name}
-              </Link>
-            </li>
-          ))}
+          {navItems.map(item => {
+            const isActive = pathname === item.href;
+            return (
+              <li key={item.name}>
+                <Link 
+                  href={item.href}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    padding: '0.75rem 1rem',
+                    borderRadius: 'var(--radius-md)',
+                    color: isActive ? 'var(--color-text-main)' : 'var(--color-text-muted)',
+                    textDecoration: 'none',
+                    fontWeight: isActive ? 600 : 500,
+                    transition: 'all 0.2s',
+                    background: isActive ? 'rgba(255,255,255,0.08)' : 'transparent',
+                    boxShadow: isActive ? '0 4px 12px rgba(0,0,0,0.1)' : 'none',
+                    border: isActive ? '1px solid var(--border-glass)' : '1px solid transparent'
+                  }}
+                  className={!isActive ? "hover-highlight" : ""}
+                >
+                  {item.name}
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       </nav>
 

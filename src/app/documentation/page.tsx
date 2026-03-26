@@ -1,6 +1,42 @@
-import React from 'react';
+'use client';
+
+import React, { useState, useEffect, useRef } from 'react';
 
 export default function DocumentationPage() {
+  const [activeSection, setActiveSection] = useState('getting-started');
+  const sectionRefs = useRef<{ [key: string]: HTMLElement | null }>({});
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveSection(entry.target.id);
+          }
+        });
+      },
+      { threshold: 0.5 }
+    );
+
+    const sections = ['getting-started', 'architecture', 's3-provenance', 's6-identity', 's1-conflict', 's7-hitl', 's5-insurance'];
+    sections.forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  const navItems = [
+    { id: 'getting-started', label: 'Getting Started' },
+    { id: 'architecture', label: 'Architecture' },
+    { id: 's3-provenance', label: 'S3 Provenance Engine' },
+    { id: 's6-identity', label: 'S6 Identity & Permissions' },
+    { id: 's1-conflict', label: 'S1 Conflict Arbiter' },
+    { id: 's7-hitl', label: 'S7 HITL Routing' },
+    { id: 's5-insurance', label: 'S5 Insurance Micro-OS' },
+  ];
+
   return (
     <div style={{ padding: '0 2rem' }}>
       <div style={{ marginBottom: '2rem' }}>
@@ -8,50 +44,109 @@ export default function DocumentationPage() {
         <p style={{ color: 'var(--color-text-muted)' }}>Guides, API references, and architectural overviews for the Enterprise AI Governance platform.</p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(250px, 1fr) 3fr', gap: '2rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(250px, 1fr) 3fr', gap: '2rem', alignItems: 'start' }}>
         {/* Sidebar Nav */}
-        <div className="glass-panel" style={{ padding: '1.5rem', alignSelf: 'start', position: 'sticky', top: '2rem' }}>
+        <div className="glass-panel" style={{ padding: '1.5rem', position: 'sticky', top: '2rem' }}>
           <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '1rem', color: 'var(--color-text-main)' }}>Contents</h3>
-          <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            <li><a href="#getting-started" style={{ color: 'var(--color-primary-emerald)', textDecoration: 'none', fontSize: '0.9rem' }}>Getting Started</a></li>
-            <li><a href="#architecture" style={{ color: 'var(--color-text-muted)', textDecoration: 'none', fontSize: '0.9rem' }}>Architecture</a></li>
-            <li><a href="#s3-provenance" style={{ color: 'var(--color-text-muted)', textDecoration: 'none', fontSize: '0.9rem' }}>S3 Provenance Engine</a></li>
-            <li><a href="#s6-identity" style={{ color: 'var(--color-text-muted)', textDecoration: 'none', fontSize: '0.9rem' }}>S6 Identity & Permissions</a></li>
-            <li><a href="#s1-conflict" style={{ color: 'var(--color-text-muted)', textDecoration: 'none', fontSize: '0.9rem' }}>S1 Conflict Arbiter</a></li>
-            <li><a href="#s7-hitl" style={{ color: 'var(--color-text-muted)', textDecoration: 'none', fontSize: '0.9rem' }}>S7 HITL Routing</a></li>
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.1rem' }}>
+            {navItems.map((item) => (
+              <li key={item.id}>
+                <a 
+                  href={`#${item.id}`} 
+                  style={{ 
+                    display: 'block',
+                    padding: '0.5rem 1rem',
+                    borderRadius: 'var(--radius-sm)',
+                    color: activeSection === item.id ? 'var(--color-primary-emerald)' : 'var(--color-text-muted)', 
+                    background: activeSection === item.id ? 'rgba(16, 185, 129, 0.08)' : 'transparent',
+                    textDecoration: 'none', 
+                    fontSize: '0.9rem',
+                    fontWeight: activeSection === item.id ? 600 : 400,
+                    transition: 'all 0.2s',
+                    borderLeft: `2px solid ${activeSection === item.id ? 'var(--color-primary-emerald)' : 'transparent'}`
+                  }}
+                >
+                  {item.label}
+                </a>
+              </li>
+            ))}
           </ul>
         </div>
 
         {/* Main Doc Content */}
         <div className="glass-panel" style={{ padding: '2rem' }}>
           
-          <section id="getting-started" style={{ marginBottom: '3rem' }}>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 600, marginBottom: '1rem', color: 'var(--color-text-main)' }}>Getting Started</h2>
-            <p style={{ color: 'var(--color-text-muted)', lineHeight: '1.6', marginBottom: '1rem' }}>
+          <section id="getting-started" style={{ marginBottom: '4rem' }}>
+            <h2 style={{ fontSize: '1.75rem', fontWeight: 600, marginBottom: '1.5rem', color: 'var(--color-text-main)', borderBottom: '1px solid var(--border-glass)', paddingBottom: '0.5rem' }}>Getting Started</h2>
+            <p style={{ color: 'var(--color-text-muted)', lineHeight: '1.6', marginBottom: '1.5rem' }}>
               TrustLayer provides an immutable, cryptographically verifiable ledger for autonomous AI agent fleets. 
               By integrating the TrustLayer SDK, you gain zero-trust observability into all inputs, outputs, and internal semantic intents generated by your agents.
             </p>
-            <div style={{ background: 'rgba(0,0,0,0.3)', padding: '1rem', borderRadius: '4px', fontFamily: 'monospace', color: 'var(--color-info-cyan)', fontSize: '0.85rem' }}>
+            <div style={{ background: 'rgba(0,0,0,0.3)', padding: '1.25rem', borderRadius: '8px', border: '1px solid var(--border-glass)', fontFamily: 'monospace', color: 'var(--color-info-cyan)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
+              <div style={{ color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}># Install the SDK</div>
               npm install @trustlayer/sdk
+            </div>
+            <p style={{ color: 'var(--color-text-muted)', lineHeight: '1.6' }}>
+              Initialize the client with your <code>API_KEY</code> and start certifying agent interactions in minutes.
+            </p>
+          </section>
+
+          <section id="architecture" style={{ marginBottom: '4rem' }}>
+            <h2 style={{ fontSize: '1.75rem', fontWeight: 600, marginBottom: '1.5rem', color: 'var(--color-text-main)', borderBottom: '1px solid var(--border-glass)', paddingBottom: '0.5rem' }}>Platform Architecture</h2>
+            <p style={{ color: 'var(--color-text-muted)', lineHeight: '1.6', marginBottom: '1.5rem' }}>
+              The platform is composed of 5 loosely-coupled modules running on top of a Supabase Postgres foundation with Ed25519 payload signatures.
+            </p>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
+              <div className="glass-panel" style={{ padding: '1rem', background: 'rgba(255,255,255,0.02)' }}>
+                <h4 style={{ color: 'var(--color-text-main)', marginBottom: '0.5rem' }}>Edge Functions</h4>
+                <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>Intercept and hash all external MCP (Model Context Protocol) tool calls in sub-10ms latency.</p>
+              </div>
+              <div className="glass-panel" style={{ padding: '1rem', background: 'rgba(255,255,255,0.02)' }}>
+                <h4 style={{ color: 'var(--color-text-main)', marginBottom: '0.5rem' }}>Vector DB</h4>
+                <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>Stores semantic embeddings for sub-second intent overlap detection and collision prevention.</p>
+              </div>
             </div>
           </section>
 
-          <section id="architecture" style={{ marginBottom: '3rem' }}>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 600, marginBottom: '1rem', color: 'var(--color-text-main)' }}>Platform Architecture</h2>
+          <section id="s3-provenance" style={{ marginBottom: '4rem' }}>
+            <h2 style={{ fontSize: '1.75rem', fontWeight: 600, marginBottom: '1.5rem', color: 'var(--color-text-main)', borderBottom: '1px solid var(--border-glass)', paddingBottom: '0.5rem' }}>S3 Provenance Engine</h2>
             <p style={{ color: 'var(--color-text-muted)', lineHeight: '1.6', marginBottom: '1rem' }}>
-              The platform is composed of 5 loosely-coupled modules running on top of a Supabase Postgres foundation with Ed25519 payload signatures.
+              Every token generated by an agent is hashed alongside its input prompt and active context window. This creates a cryptographically secure <code>Certificate of Provenance</code>.
             </p>
             <ul style={{ color: 'var(--color-text-muted)', lineHeight: '1.6', paddingLeft: '1.5rem' }}>
-              <li style={{ marginBottom: '0.5rem' }}><strong>Edge Functions:</strong> Intercept and hash all external MCP (Model Context Protocol) tool calls.</li>
-              <li style={{ marginBottom: '0.5rem' }}><strong>Vector DB:</strong> Stores semantic embeddings for intent overlap detection.</li>
-              <li style={{ marginBottom: '0.5rem' }}><strong>Audit Ledger:</strong> Append-only table enforced via Row Level Security (RLS).</li>
+              <li><strong>Zero-Knowledge Verification:</strong> Verify AI origin without exposing the full prompt data.</li>
+              <li><strong>Model Checksums:</strong> Detect if models have been silently updated or swapped by providers.</li>
             </ul>
           </section>
 
-          <section id="s3-provenance" style={{ marginBottom: '3rem' }}>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 600, marginBottom: '1rem', color: 'var(--color-text-main)' }}>S3 Provenance Engine</h2>
+          <section id="s6-identity" style={{ marginBottom: '4rem' }}>
+            <h2 style={{ fontSize: '1.75rem', fontWeight: 600, marginBottom: '1.5rem', color: 'var(--color-text-main)', borderBottom: '1px solid var(--border-glass)', paddingBottom: '0.5rem' }}>S6 Identity & Permissions</h2>
+            <p style={{ color: 'var(--color-text-muted)', lineHeight: '1.6', marginBottom: '1rem' }}>
+              Manage autonomous agent credentials and their granular access to corporate data stores and tools.
+            </p>
             <p style={{ color: 'var(--color-text-muted)', lineHeight: '1.6' }}>
-              Every token generated by an agent is hashed alongside its input prompt and active context window. This creates a cryptographically secure <code>Certificate of Provenance</code> that can be verified externally to prove an AI generated a specific payload without human tampering.
+              Agents are issued unique cryptographic IDs. Permissions are enforced at the network layer, preventing unauthorized tool calls even if the agent is compromised.
+            </p>
+          </section>
+
+          <section id="s1-conflict" style={{ marginBottom: '4rem' }}>
+            <h2 style={{ fontSize: '1.75rem', fontWeight: 600, marginBottom: '1.5rem', color: 'var(--color-text-main)', borderBottom: '1px solid var(--border-glass)', paddingBottom: '0.5rem' }}>S1 Conflict Arbiter</h2>
+            <p style={{ color: 'var(--color-text-muted)', lineHeight: '1.6' }}>
+              Prevents "Agency Drift" and overlapping autonomous actions. Before an agent executes a plan, it must register its <code>Intent</code>. If two agents intend to modify the same resource (e.g., the same customer record), the Arbiter pauses the lower-priority agent and triggers a resolution workflow.
+            </p>
+          </section>
+
+          <section id="s7-hitl" style={{ marginBottom: '4rem' }}>
+            <h2 style={{ fontSize: '1.75rem', fontWeight: 600, marginBottom: '1.5rem', color: 'var(--color-text-main)', borderBottom: '1px solid var(--border-glass)', paddingBottom: '0.5rem' }}>S7 HITL Routing</h2>
+            <p style={{ color: 'var(--color-text-muted)', lineHeight: '1.6' }}>
+              Standardizes Human-In-The-Loop (HITL) handovers. When an agent encounters an edge case or lacks required permissions, the S7 module routes the request to a human operator via Slack, MS Teams, or the TrustLayer dashboard.
+            </p>
+          </section>
+
+          <section id="s5-insurance" style={{ marginBottom: '4rem' }}>
+            <h2 style={{ fontSize: '1.75rem', fontWeight: 600, marginBottom: '1.5rem', color: 'var(--color-text-main)', borderBottom: '1px solid var(--border-glass)', paddingBottom: '0.5rem' }}>S5 Insurance Micro-OS</h2>
+            <p style={{ color: 'var(--color-text-muted)', lineHeight: '1.6' }}>
+              Autonomous liability protection. Provides dynamic risk-based coverage for agent errors and omissions. Premiums fluctuate in real-time based on the agent's historical reliability and the sensitivity of the actions it is performing.
             </p>
           </section>
 
