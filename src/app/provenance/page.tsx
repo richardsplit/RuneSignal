@@ -1,8 +1,10 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useToast } from '@/components/ToastProvider';
+import React, { useState } from 'react';
 import CertificateModal from '@/components/features/provenance/CertificateModal';
+import EvidenceTable from '@/components/features/provenance/EvidenceTable';
+import ProvenanceMetrics from '@/components/features/provenance/ProvenanceMetrics';
+import { useLocalStorage } from '@/hooks/useLocalStorage';
 
 const DEFAULT_CERTS = [
   { id: '1a3f-8c2d', agent: 'LegalReviewBot', tags: ['contract-review', 'eu-ai-act'], hash: 'f4e2...89a1', time: '10 mins ago', status: 'verified' },
@@ -11,22 +13,8 @@ const DEFAULT_CERTS = [
 ];
 
 export default function ProvenanceDashboard() {
-  const { showToast } = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [certs, setCerts] = useState<any[]>(DEFAULT_CERTS);
-
-  // Load from local storage on mount
-  useEffect(() => {
-    const saved = localStorage.getItem('trustlayer_certs');
-    if (saved) {
-      setCerts(JSON.parse(saved));
-    }
-  }, []);
-
-  // Save to local storage on change
-  useEffect(() => {
-    localStorage.setItem('trustlayer_certs', JSON.stringify(certs));
-  }, [certs]);
+  const [certs, setCerts] = useLocalStorage<any[]>('trustlayer_certs', DEFAULT_CERTS);
 
   return (
     <>
@@ -44,64 +32,19 @@ export default function ProvenanceDashboard() {
           </button>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem', marginBottom: '2.5rem' }}>
-          <div className="glass-panel" style={{ padding: '1.5rem' }}>
-            <h3 style={{ fontSize: '1rem', color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>Total Certificates</h3>
-            <p style={{ fontSize: '2.25rem', fontWeight: 700, color: 'var(--color-text-main)' }}>{14201 + certs.length}</p>
-          </div>
-          <div className="glass-panel" style={{ padding: '1.5rem' }}>
-            <h3 style={{ fontSize: '1rem', color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>Detection Rate</h3>
-            <p style={{ fontSize: '2.25rem', fontWeight: 700, color: 'var(--color-primary-emerald)' }}>100%</p>
-          </div>
-          <div className="glass-panel" style={{ padding: '1.5rem' }}>
-            <h3 style={{ fontSize: '1rem', color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>Model Version Anomalies</h3>
-            <p style={{ fontSize: '2.25rem', fontWeight: 700, color: 'var(--color-accent-amber)' }}>2</p>
-          </div>
-        </div>
+        <ProvenanceMetrics 
+          totalCerts={14201 + certs.length}
+          detectionRate="100%"
+          anomalies={2}
+        />
 
-        <div className="glass-panel" style={{ overflow: 'hidden' }}>
-          <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-glass)' }}>
-            <h3 style={{ fontSize: '1.1rem', fontWeight: 600 }}>Recent Certificates</h3>
-          </div>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-            <thead>
-              <tr style={{ background: 'rgba(255,255,255,0.02)' }}>
-                <th style={{ padding: '1rem 1.5rem', color: 'var(--color-text-muted)', fontWeight: 500, fontSize: '0.875rem' }}>Certificate ID</th>
-                <th style={{ padding: '1rem 1.5rem', color: 'var(--color-text-muted)', fontWeight: 500, fontSize: '0.875rem' }}>Agent</th>
-                <th style={{ padding: '1rem 1.5rem', color: 'var(--color-text-muted)', fontWeight: 500, fontSize: '0.875rem' }}>Tags</th>
-                <th style={{ padding: '1rem 1.5rem', color: 'var(--color-text-muted)', fontWeight: 500, fontSize: '0.875rem' }}>Output Hash</th>
-                <th style={{ padding: '1rem 1.5rem', color: 'var(--color-text-muted)', fontWeight: 500, fontSize: '0.875rem' }}>Verified</th>
-                <th style={{ padding: '1rem 1.5rem', color: 'var(--color-text-muted)', fontWeight: 500, fontSize: '0.875rem' }}>Time</th>
-              </tr>
-            </thead>
-            <tbody>
-              {certs.map(c => (
-                <tr key={c.id} style={{ borderBottom: '1px solid var(--border-glass)' }}>
-                  <td style={{ padding: '1rem 1.5rem', fontFamily: 'monospace', color: 'var(--color-info-cyan)' }}>{c.id}</td>
-                  <td style={{ padding: '1rem 1.5rem' }}>{c.agent}</td>
-                  <td style={{ padding: '1rem 1.5rem' }}>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                      {c.tags.map(t => (
-                        <span key={t} style={{ padding: '0.2rem 0.5rem', borderRadius: '4px', background: 'rgba(255,255,255,0.05)', fontSize: '0.75rem' }}>{t}</span>
-                      ))}
-                    </div>
-                  </td>
-                  <td style={{ padding: '1rem 1.5rem', fontFamily: 'monospace', color: 'var(--color-text-muted)' }}>{c.hash}</td>
-                  <td style={{ padding: '1rem 1.5rem' }}>
-                    <span style={{ color: 'var(--color-primary-emerald)' }}>✓ Valid</span>
-                  </td>
-                  <td style={{ padding: '1rem 1.5rem', color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>{c.time}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <EvidenceTable certs={certs} />
       </div>
 
       <CertificateModal 
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSuccess={(cert: any) => setCerts(prev => [cert, ...prev])}
+        onSuccess={(cert: any) => setCerts([cert, ...certs])}
       />
     </>
   );
