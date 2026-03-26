@@ -22,7 +22,7 @@
 - [x] Build S3 API router (all 6 routes)
 - [x] Build model version fingerprinting
 - [x] Build GRC webhook emitter
-- [ ] S3 unit tests
+- [x] S3 unit tests
 - [x] S3 dashboard UI panel
 
 ## Phase 2: Module S6 — Agent Identity & Permission Registry
@@ -31,7 +31,7 @@
 - [x] Permission scope enforcement middleware
 - [x] MCP server proxy enforcement layer
 - [x] S6 API routes
-- [ ] S6 unit tests
+- [x] S6 unit tests
 - [x] S6 dashboard UI panel
 
 ## Phase 3: Module S1 — Agent Conflict Arbiter
@@ -39,7 +39,7 @@
 - [x] Policy engine with vector embeddings (Semantic Match)
 - [x] Conflict detection logic (Real-time intent overlap check)
 - [x] S1 API routes
-- [ ] S1 unit tests
+- [x] S1 unit tests
 - [x] S1 dashboard UI panel
 
 ## Phase 4: Module S7 — HITL Ops Routing Platform
@@ -48,10 +48,9 @@
 - [x] Approval/Rejection proxy endpoints
 - [x] S7 API routes
 - [x] S7 dashboard UI panel
-- [ ] Training pipeline feedback loop
-- [ ] S7 API routes
-- [ ] S7 unit tests
-- [ ] S7 dashboard UI panel
+- [x] S7 API routes
+- [x] S7 unit tests
+- [x] S7 dashboard UI panel
 
 ## Phase 5: Module S5 — Insurance Micro-OS
 - [x] Actuarial models & telemetry DB
@@ -59,7 +58,7 @@
 - [x] Coverage policy framework
 - [x] Claim generation logic
 - [x] S5 API routes
-- [ ] S5 unit tests
+- [x] S5 unit tests
 - [x] S5 dashboard UI panel
 
 ## Phase 6: Integration & Polish
