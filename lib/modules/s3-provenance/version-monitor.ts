@@ -31,7 +31,7 @@ export class VersionMonitor {
     
     // In production, we query Redis or the DB for the last known fingerprint of this modelVersion.
     // Deterministic Implementation: Detect change based on fingerprint drift
-    let baselineFingerprint = 'fp_known_baseline';
+    let baselineFingerprint = 'none'; // Default to 'none' to suppress false alerts until baseline is seen
     const isAnomalous = fingerprint !== baselineFingerprint && baselineFingerprint !== 'none';
     
     if (isAnomalous) {

@@ -14,6 +14,67 @@ export class ArbiterService {
     const vendor = request.vendor || 'openai';
     const apiKey = request.apiKey;
     
+    // 0. Resource Lock Check (Exact-match protection for high-value resources)
+    if (request.resource_name) {
+      console.log(`[S1 LOCK DEBUG] Checking locks for ${request.resource_name} (Tenant: ${tenantId}, Agent: ${agentId})`);
+      
+      const checkLock = async () => {
+         return await supabase
+            .from('resource_locks' as any) // Type cast if needed
+            .select('agent_id, expires_at')
+            .eq('tenant_id', tenantId)
+            .eq('resource_name', request.resource_name)
+            .gt('expires_at', new Date().toISOString())
+            .neq('agent_id', agentId)
+            .maybeSingle();
+      };
+
+      let { data: existingLock, error: lockError } = await checkLock();
+
+      // Fallback: Check agent_intents metadata if resource_locks is missing from cache
+      if (!existingLock && lockError && (lockError as any).code === 'PGRST205') {
+          const { data: metadataLock } = await supabase
+            .from('agent_intents')
+            .select('agent_id')
+            .eq('tenant_id', tenantId)
+            .neq('agent_id', agentId)
+            .gt('expires_at', new Date().toISOString())
+            .filter('metadata->>resource_name', 'eq', request.resource_name)
+            .maybeSingle();
+          
+          if (metadataLock) {
+              existingLock = { agent_id: metadataLock.agent_id } as any;
+              console.log(`[S1 LOCK] Found lock in metadata fallback for ${request.resource_name}`);
+          }
+      }
+
+      if (existingLock) {
+        console.log(`[S1 LOCK DEBUG] Conflict found with agent ${existingLock.agent_id}`);
+        await this.logArbiterEvent(tenantId, agentId, `Lock Conflict: ${request.resource_name}`, 'block', `Resource '${request.resource_name}' is currently locked.`, vendor);
+        return { 
+          decision: 'block', 
+          reason: `Resource Conflict: The requested resource '${request.resource_name}' is currently being accessed by another agent.`,
+          suggested_action: 'Retry after the target resource is released or its lock expires.' 
+        };
+      }
+
+      // 0b. Register the lock if allowed (try dedicated table first)
+      const lockExpiresAt = new Date();
+      lockExpiresAt.setSeconds(lockExpiresAt.getSeconds() + (request.ttl_seconds || 60));
+      const { error: insertLockError } = await supabase
+        .from('resource_locks' as any)
+        .insert({
+          tenant_id: tenantId,
+          agent_id: agentId,
+          resource_name: request.resource_name,
+          expires_at: lockExpiresAt.toISOString()
+        });
+      
+      if (insertLockError) {
+        console.warn("[S1 LOCK] Failed to insert dedicated lock row, relying on metadata intent fallback.", insertLockError.message);
+      }
+    }
+
     // 1. Policy Evaluation
     if (vendor === 'claude') {
       // For Claude, we fetch All policies for this tenant to provide as context
@@ -64,7 +125,7 @@ export class ArbiterService {
         intent_description: request.intent_description,
         embedding: finalEmbedding,
         status: 'allowed',
-        metadata: { ...request.metadata || {}, vendor },
+        metadata: { ...request.metadata || {}, vendor, resource_name: request.resource_name },
         expires_at: expiresAt.toISOString()
       });
 

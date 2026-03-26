@@ -23,6 +23,7 @@ export interface ConflictPolicy {
 
 export interface RegisterIntentRequest {
   intent_description: string;
+  resource_name?: string; // Optional: Exact-match resource identifier for locking
   metadata?: Record<string, any>;
   ttl_seconds?: number;
   vendor?: 'openai' | 'claude';

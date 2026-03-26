@@ -69,16 +69,23 @@ export async function middleware(request: NextRequest) {
         );
       }
 
-      // 3. X-Agent-Id Enforcement for v1 routes
+      // 3. X-Agent-Id Enforcement (Scoped to sensitive agent-only routes)
       if (url.startsWith('/api/v1/')) {
+        const sensitiveRoutes = ['/api/v1/provenance/certify', '/api/v1/intent', '/api/v1/enforce/tool-call'];
+        const isSensitive = sensitiveRoutes.some(route => url.startsWith(route));
+
         const agentId = (decoded as any).agent_id;
-        if (!agentId) {
+        
+        if (isSensitive && !agentId) {
           return NextResponse.json(
-            { error: 'Forbidden', message: 'Agent ID missing in token. All v1 calls must be made by a registered agent.' },
+            { error: 'Forbidden', message: 'Agent ID missing in token. This security route requires a registered agent identity.' },
             { status: 403, headers: response.headers }
           );
         }
-        response.headers.set('X-Agent-Id', agentId);
+
+        if (agentId) {
+          response.headers.set('X-Agent-Id', agentId);
+        }
       }
     }
   } catch (err: any) {

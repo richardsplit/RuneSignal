@@ -159,6 +159,12 @@
 - [x] Create `DEVIATIONS.md` architectural record
 - [x] Add global platform metrics endpoint (`/api/v1/metrics`)
 
+## Phase 8.3: Critical Regression Fixes [x]
+- [x] Fix Middleware: Filter `agent_id` requirement by route (dashboard fix)
+- [x] Fix VersionMonitor: Normalize baseline to `'none'` (ledger cleanup)
+- [x] Wire S1 `resource_locks` into `ArbiterService.mediateIntent()` (collision fix)
+- [ ] Verify Phase 8.3 fixes with full integration suite
+
 ## Phase 9: Advanced UI/UX Polish
 - [ ] Research contemporary SaaS Figma templates for inspiration
 - [ ] Refine UX for a more contemporary, professional look (Figma-level design)
