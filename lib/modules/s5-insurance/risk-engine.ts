@@ -26,6 +26,13 @@ export class RiskEngine {
       factors.push(`Human Escalations (+${profile.hitl_escalations * 2})`);
     }
 
+    // S8 Moral conflict rate contribution (up to 25 points)
+    if (profile.moral_conflicts && profile.moral_conflicts > 0) {
+      const moralContribution = Math.min(profile.moral_conflicts * 2, 25);
+      score += moralContribution;
+      factors.push(`Moral Conflict Rate (+${moralContribution})`);
+    }
+
     // Cap at 100
     if (score > 100) score = 100;
     
@@ -139,6 +146,24 @@ export class RiskEngine {
       .eq('agent_id', agentId)
       .eq('event_type', 'model.version_anomaly_detected');
 
+    // S8: Count moral conflicts (block counts as 3x pause) over last 30 days
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+    const { count: moralPauses } = await supabase
+      .from('moral_events')
+      .select('*', { count: 'exact', head: true })
+      .eq('agent_id', agentId)
+      .eq('verdict', 'pause')
+      .gte('created_at', thirtyDaysAgo);
+
+    const { count: moralBlocks } = await supabase
+      .from('moral_events')
+      .select('*', { count: 'exact', head: true })
+      .eq('agent_id', agentId)
+      .eq('verdict', 'block')
+      .gte('created_at', thirtyDaysAgo);
+
+    const moralConflictRate = (moralPauses || 0) + (moralBlocks || 0) * 3;
+
     const profileData = {
       tenant_id: tenantId,
       agent_id: agentId,
@@ -146,6 +171,7 @@ export class RiskEngine {
       total_violations: violations || 0,
       hitl_escalations: hitl || 0,
       model_version_anomalies: anomalies || 0,
+      moral_conflicts: moralConflictRate,
       last_computed_at: new Date().toISOString()
     };
 

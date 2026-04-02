@@ -10,13 +10,14 @@ export interface CoveragePolicy {
 }
 
 export interface AgentRiskProfile {
-  id: string;
+  id?: string;
   tenant_id: string;
   agent_id: string;
   risk_score: number; // 0-100
   total_violations: number;
   hitl_escalations: number;
   model_version_anomalies: number;
+  moral_conflicts?: number;
   last_computed_at: string;
 }
 

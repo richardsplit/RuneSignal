@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 export interface AuditEventInput {
   event_type: string;
-  module: 's3' | 's1' | 's6' | 's7' | 's5';
+  module: 's3' | 's1' | 's6' | 's7' | 's5' | 's8';
   tenant_id: string;
   agent_id?: string | null;
   request_id: string;

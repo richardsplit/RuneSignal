@@ -1,4 +1,7 @@
 import { IdentityService } from './service';
+import { ConscienceEngine } from '../s8-moralos/conscience';
+import { ROBO_DOMAIN_MAP } from '../s8-moralos/types';
+import { createAdminClient } from '../../db/supabase';
 
 /**
  * MCP Proxy Enforcement logic.
@@ -6,16 +9,50 @@ import { IdentityService } from './service';
  */
 export class McpEnforcementProxy {
   /**
-   * Enforces a tool call based on the agent's permission manifest.
-   * Logic:
-   * 1. Extracts the agent's identity.
-   * 2. Checks if the specific 'tool_name' is allowed for this agent.
-   * 3. Blocks/Allows and writes to the sacred audit ledger.
+   * Enforces a tool call based on the agent's permission manifest AND Corporate SOUL.
+   * 1. S6 Permission check
+   * 2. S8 Moral check (ConscienceEngine)
    */
-  static async enforceToolCall(agentId: string, toolName: string): Promise<{ allowed: boolean; reason: string }> {
-    const resource = `tool:${toolName}`;
-    const action = 'execute';
+  static async enforceToolCall(agentId: string, toolName: string, tenantId?: string): Promise<{ allowed: boolean; reason: string; moral_verdict?: string }> {
+    // Step 1: S6 Permission check
+    const permResult = await IdentityService.validatePermission(agentId, `tool:${toolName}`, 'execute');
+    if (!permResult.allowed) {
+      return permResult;
+    }
 
-    return IdentityService.validatePermission(agentId, resource, action);
+    // Step 2: S8 Moral check (if tenantId available)
+    if (tenantId) {
+      try {
+        // Look up agent to determine domain
+        const supabase = createAdminClient();
+        const { data: agent } = await supabase
+          .from('agent_credentials')
+          .select('agent_type, metadata')
+          .eq('id', agentId)
+          .single();
+
+        const domain = (agent?.metadata?.moral_domain as string) || ROBO_DOMAIN_MAP[agent?.agent_type as string] || 'ops';
+
+        const moral = await ConscienceEngine.evaluate(tenantId, {
+          agent_id: agentId,
+          action_description: `Tool call: ${toolName}`,
+          domain,
+          action_metadata: { tool_name: toolName }
+        });
+
+        if (moral.verdict !== 'clear') {
+          return {
+            allowed: false,
+            reason: `Moral conflict: ${moral.conflict_reason || 'Action blocked by Corporate SOUL'}`,
+            moral_verdict: moral.verdict
+          };
+        }
+      } catch (e) {
+        // If conscience check fails, allow (fail-open for tool calls)
+        console.warn('ConscienceEngine check failed, allowing tool call:', e);
+      }
+    }
+
+    return { allowed: true, reason: 'Permission granted and moral check passed' };
   }
 }

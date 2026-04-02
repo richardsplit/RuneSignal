@@ -15,6 +15,7 @@ export default function Sidebar() {
     { name: 'S1 Conflict', href: '/conflict' },
     { name: 'S7 Exceptions', href: '/exceptions' },
     { name: 'S5 Insurance', href: '/insurance' },
+    { name: 'S8 MoralOS', href: '/moral' },
   ];
 
   return (

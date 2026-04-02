@@ -71,7 +71,7 @@ export async function middleware(request: NextRequest) {
 
       // 3. X-Agent-Id Enforcement (Scoped to sensitive agent-only routes)
       if (url.startsWith('/api/v1/')) {
-        const sensitiveRoutes = ['/api/v1/provenance/certify', '/api/v1/intent', '/api/v1/enforce/tool-call'];
+        const sensitiveRoutes = ['/api/v1/provenance/certify', '/api/v1/intent', '/api/v1/enforce/tool-call', '/api/v1/moral/evaluate'];
         const isSensitive = sensitiveRoutes.some(route => url.startsWith(route));
 
         const agentId = (decoded as any).agent_id;
