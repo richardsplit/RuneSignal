@@ -53,7 +53,8 @@ export class VersionMonitor {
       });
 
       // 2. GRC Webhook Alert
-      await WebhookEmitter.notifySlack(
+      await WebhookEmitter.notifyTenant(
+        tenantId,
         `🚨 Model Version Anomaly Detected: ${provider}/${modelVersion} appears to have silently updated`,
         eventDetails
       );

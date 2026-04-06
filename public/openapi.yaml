@@ -1,0 +1,142 @@
+openapi: 3.1.0
+info:
+  title: TrustLayer API Docs
+  description: |
+    TrustLayer provides a set of powerful APIs to certify LLM provenance, monitor agent intent, 
+    enforce moral alignment (Corporate SOUL), and manage human-in-the-loop governance.
+    
+    All requests require either a valid User Session (Internal Dashboard) 
+    or a Bearer Token (External Agents).
+  version: 1.0.0
+servers:
+  - url: https://api.trustlayer.com/api/v1
+    description: Production API
+  - url: http://localhost:3000/api/v1
+    description: Local Development
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: tl_prod_...
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Invalid Request"
+    
+    MoralVerdict:
+      type: object
+      properties:
+        verdict:
+          type: string
+          enum: [pass, pause, block]
+        domain:
+          type: string
+          example: "finance"
+        score:
+          type: number
+          example: 0.95
+        conflict_reason:
+          type: string
+          nullable: true
+        escalate_to:
+          type: string
+          nullable: true
+
+paths:
+  /provenance:
+    get:
+      summary: Query Audit Certificates or Model Versions
+      description: Returns a list of cryptographic certificates for a tenant or a list of detected model versions.
+      parameters:
+        - name: action
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [model-versions, query]
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+  
+  /intent:
+    post:
+      summary: Mediate Agent Intent
+      description: Evaluates an agent's intended action against existing locks and policy constraints.
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [intent_description]
+              properties:
+                intent_description:
+                  type: string
+                  example: "Executing a financial transfer to vendor X"
+                vendor:
+                  type: string
+                  enum: [openai, claude]
+    responses:
+      '200':
+        description: Intent mediation result
+      '403':
+        description: Intent blocked
+  
+  /moral:
+    post:
+      summary: Evaluate Moral Alignment
+      description: Evaluates an action against the Corporate SOUL (Governance Policy).
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action_description, domain]
+              properties:
+                action_description:
+                  type: string
+                  example: "Sharing sensitive customer data with external vendor"
+                domain:
+                  type: string
+                  example: "privacy"
+      responses:
+        '200':
+          description: Moral verdict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MoralVerdict'
+
+  /keys:
+    get:
+      summary: List API Keys
+      description: Secured with User Session (Dashboard).
+    post:
+      summary: Generate New API Key
+      responses:
+        '201':
+          description: Key created (Raw key shown once)

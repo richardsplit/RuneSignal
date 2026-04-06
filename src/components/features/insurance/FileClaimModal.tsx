@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Modal from '@/components/ui/Modal';
 import { useToast } from '@/components/ToastProvider';
+import { useTenant } from '@lib/contexts/TenantContext';
 
 interface FileClaimModalProps {
   isOpen: boolean;
@@ -11,6 +12,7 @@ interface FileClaimModalProps {
 
 export default function FileClaimModal({ isOpen, onClose, onSuccess, profiles }: FileClaimModalProps) {
   const { showToast } = useToast();
+  const { tenantId } = useTenant();
   const [formData, setFormData] = useState({
     agentId: profiles[0]?.agent_id || '',
     incidentType: 'data-exfiltration',
@@ -20,10 +22,13 @@ export default function FileClaimModal({ isOpen, onClose, onSuccess, profiles }:
   const [isSubmitting, setIsSubmitting] = useState(false);
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!tenantId) {
+      showToast('No active tenant context found.', 'error');
+      return;
+    }
     setIsSubmitting(true);
     
     try {
-      const tenantId = localStorage.getItem('tl_tenant_id') || '7da27c93-6889-4fda-8b22-df4689fbbcd6';
       const res = await fetch('/api/v1/insurance/claims', {
         method: 'POST',
         headers: { 

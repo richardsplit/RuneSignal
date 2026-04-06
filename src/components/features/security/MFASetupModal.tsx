@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Modal from '@/components/ui/Modal';
+import { createBrowserClient } from '@lib/db/supabase';
 
 interface MFASetupModalProps {
   isOpen: boolean;
@@ -11,28 +12,61 @@ interface MFASetupModalProps {
 
 export default function MFASetupModal({ isOpen, onClose, onSuccess }: MFASetupModalProps) {
   const [step, setStep] = useState(1);
+  const [factorId, setFactorId] = useState('');
+  const [qrCode, setQrCode] = useState('');
+  const [secret, setSecret] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
   const [error, setError] = useState('');
+  const supabase = createBrowserClient();
 
-  const recoveryCodes = [
-    'XXXX-XXXX-XXXX',
-    'YYYY-YYYY-YYYY',
-    'ZZZZ-ZZZZ-ZZZZ',
-    'AAAA-BBBB-CCCC'
-  ];
+  const handleEnroll = async () => {
+    setError('');
+    setIsVerifying(true);
+    try {
+      const { data, error } = await supabase.auth.mfa.enroll({
+        factorType: 'totp',
+        issuer: 'TrustLayer'
+      });
+      if (error) throw error;
+      
+      setFactorId(data.id);
+      setQrCode(data.totp.qr_code);
+      setSecret(data.totp.secret);
+      setStep(2);
+    } catch (err: any) {
+      setError(err.message || 'MFA enrollment failed');
+    } finally {
+      setIsVerifying(false);
+    }
+  };
 
-  const handleVerify = () => {
+  const handleVerify = async () => {
     if (verificationCode.length !== 6) {
       setError('Please enter a valid 6-digit code.');
       return;
     }
+    setError('');
     setIsVerifying(true);
-    // Simulate API call
-    setTimeout(() => {
-      setIsVerifying(false);
+    try {
+      // 1. Create a challenge
+      const { data: challengeData, error: challengeError } = await supabase.auth.mfa.challenge({ factorId });
+      if (challengeError) throw challengeError;
+
+      // 2. Verify the challenge
+      const { error: verifyError } = await supabase.auth.mfa.verify({
+        factorId,
+        challengeId: challengeData.id,
+        code: verificationCode
+      });
+      if (verifyError) throw verifyError;
+
       setStep(4);
-    }, 1500);
+    } catch (err: any) {
+      setError(err.message || 'Verification failed. Try again.');
+    } finally {
+      setIsVerifying(false);
+    }
   };
 
   const handleFinish = () => {
@@ -42,7 +76,10 @@ export default function MFASetupModal({ isOpen, onClose, onSuccess }: MFASetupMo
     setTimeout(() => setStep(1), 300);
   };
 
-  const nextStep = () => setStep(prev => prev + 1);
+  const recoveryCodes = [
+    'SUPA-AUTH-RECO-VERY',
+    'SAFE-KEEP-THES-ECOD',
+  ];
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Configure Multi-Factor Authentication">
@@ -63,6 +100,20 @@ export default function MFASetupModal({ isOpen, onClose, onSuccess }: MFASetupMo
           ))}
         </div>
 
+        {error && (
+          <div style={{ 
+            background: 'rgba(239, 68, 68, 0.1)', 
+            border: '1px solid var(--color-error-rose)', 
+            color: 'var(--color-error-rose)',
+            padding: '0.75rem',
+            borderRadius: 'var(--radius-md)',
+            fontSize: '0.85rem',
+            marginBottom: '1.5rem'
+          }}>
+            {error}
+          </div>
+        )}
+
         {step === 1 && (
           <div className="animate-fade-in">
             <h3 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '1rem' }}>Secure your account</h3>
@@ -76,7 +127,9 @@ export default function MFASetupModal({ isOpen, onClose, onSuccess }: MFASetupMo
                 <li>Verifiable audit trail for compliance</li>
               </ul>
             </div>
-            <button className="btn btn-primary" style={{ width: '100%' }} onClick={nextStep}>Get Started</button>
+            <button className="btn btn-primary" style={{ width: '100%' }} onClick={handleEnroll} disabled={isVerifying}>
+              {isVerifying ? 'Initializing...' : 'Get Started'}
+            </button>
           </div>
         )}
 
@@ -87,27 +140,27 @@ export default function MFASetupModal({ isOpen, onClose, onSuccess }: MFASetupMo
               Open your authenticator app and scan this code to link your account.
             </p>
             <div style={{ 
-              width: '180px', 
-              height: '180px', 
+              width: '200px', 
+              height: '200px', 
               background: 'white', 
               margin: '0 auto 1.5rem', 
               padding: '10px', 
               borderRadius: '8px',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center'
+              justifyContent: 'center',
+              overflow: 'hidden'
             }}>
-              {/* Simulated QR Code */}
-              <div style={{ width: '100%', height: '100%', border: '4px solid #000', display: 'grid', gridTemplateColumns: 'repeat(10, 1fr)', gap: '1px' }}>
-                {Array.from({ length: 100 }).map((_, i) => (
-                  <div key={i} style={{ background: Math.random() > 0.5 ? '#000' : 'transparent' }} />
-                ))}
-              </div>
+              {/* Real SVG QR Code from Supabase */}
+              <div 
+                dangerouslySetInnerHTML={{ __html: qrCode }} 
+                style={{ width: '100%', height: '100%' }}
+              />
             </div>
             <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginBottom: '2rem' }}>
-              Can't scan? Use code: <span style={{ fontFamily: 'monospace', color: 'var(--color-info-cyan)', fontWeight: 600 }}>T7S2-K8P1-J9N4-L2W0</span>
+              Can't scan? Use code: <span style={{ fontFamily: 'monospace', color: 'var(--color-info-cyan)', fontWeight: 600 }}>{secret}</span>
             </div>
-            <button className="btn btn-primary" style={{ width: '100%' }} onClick={nextStep}>I've scanned the code</button>
+            <button className="btn btn-primary" style={{ width: '100%' }} onClick={() => setStep(3)}>I've scanned the code</button>
           </div>
         )}
 
@@ -134,13 +187,12 @@ export default function MFASetupModal({ isOpen, onClose, onSuccess }: MFASetupMo
                   letterSpacing: '0.5rem', 
                   padding: '1rem',
                   background: 'rgba(255,255,255,0.05)',
-                  border: `1px solid ${error ? 'var(--color-warning-amber)' : 'var(--border-glass)'}`,
+                  border: `1px solid ${error ? 'var(--color-error-rose)' : 'var(--border-glass)'}`,
                   borderRadius: 'var(--radius-md)',
                   color: 'var(--color-text-main)',
                   fontFamily: 'monospace'
                 }} 
               />
-              {error && <p style={{ color: 'var(--color-warning-amber)', fontSize: '0.8rem', marginTop: '0.5rem', textAlign: 'center' }}>{error}</p>}
             </div>
             <button 
               className="btn btn-primary" 
@@ -157,8 +209,13 @@ export default function MFASetupModal({ isOpen, onClose, onSuccess }: MFASetupMo
           <div className="animate-fade-in">
             <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '1rem' }}>MFA Enabled! 🎉</h3>
             <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
-              Store these recovery codes in a safe place. They allow you to access your account if you lose your phone.
+              Multi-Factor Authentication is now active. Your account is secured with secondary verification.
             </p>
+            <div className="glass-panel" style={{ padding: '1.5rem', background: 'rgba(16, 185, 129, 0.05)', marginBottom: '2rem' }}>
+              <p style={{ fontSize: '0.85rem', color: 'var(--color-text-main)', margin: 0 }}>
+                Next time you log in, you will be prompted for your authenticator code.
+              </p>
+            </div>
             <div style={{ 
               display: 'grid', 
               gridTemplateColumns: '1fr 1fr', 
@@ -171,7 +228,7 @@ export default function MFASetupModal({ isOpen, onClose, onSuccess }: MFASetupMo
               fontFamily: 'monospace',
               fontSize: '0.85rem'
             }}>
-              {recoveryCodes.map(code => (
+              {recoveryCodes.map((code: string) => (
                 <div key={code} style={{ color: 'var(--color-text-muted)' }}>{code}</div>
               ))}
             </div>

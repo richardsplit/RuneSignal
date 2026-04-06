@@ -1,0 +1,54 @@
+name: TrustLayer CI/CD
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    services:
+      # In a real enterprise app, we might spin up a Supabase local stack here
+      # For now, we focus on static analysis and build verification
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Linting
+        run: npm run lint
+        continue-on-error: true # Don't block build for minor lint warnings in MVP
+
+      - name: Build Project
+        run: npm run build
+        env:
+          # Mock env vars for build-time static analysis
+          NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-key
+          SUPABASE_SERVICE_ROLE_KEY: placeholder-secret
+          STRIPE_SECRET_KEY: sk_test_placeholder
+          NEXT_PUBLIC_STRIPE_PRO_PRICE_ID: price_placeholder
+          NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID: price_placeholder
+
+      - name: Run Unit Tests
+        run: npm test
+        if: always()

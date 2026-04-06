@@ -6,20 +6,20 @@ import FileClaimModal from '@/components/features/insurance/FileClaimModal';
 import RiskProfilesTable from '@/components/features/insurance/RiskProfilesTable';
 import ClaimsLedger from '@/components/features/insurance/ClaimsLedger';
 import InsuranceMetrics from '@/components/features/insurance/InsuranceMetrics';
-import { useLocalStorage } from '@/hooks/useLocalStorage';
+import { useTenant } from '@lib/contexts/TenantContext';
 
 export default function InsuranceDashboard() {
   const { showToast } = useToast();
+  const { tenantId, loading: tenantLoading } = useTenant();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [profiles, setProfiles] = useState<any[]>([]);
   const [claims, setClaims] = useState<any[]>([]);
 
   const fetchInsuranceData = async () => {
+    if (!tenantId) return;
     setLoading(true);
     try {
-      const tenantId = localStorage.getItem('tl_tenant_id') || '7da27c93-6889-4fda-8b22-df4689fbbcd6';
-      
       const [riskRes, claimsRes] = await Promise.all([
         fetch('/api/v1/insurance/risk', { headers: { 'X-Tenant-Id': tenantId } }),
         fetch('/api/v1/insurance/claims', { headers: { 'X-Tenant-Id': tenantId } })
@@ -41,8 +41,12 @@ export default function InsuranceDashboard() {
   };
 
   useEffect(() => {
-    fetchInsuranceData();
-  }, []);
+    if (tenantId) {
+      fetchInsuranceData();
+    } else if (!tenantLoading) {
+      setLoading(false);
+    }
+  }, [tenantId, tenantLoading]);
 
   const getRiskColor = (score: number) => {
     if (score < 10) return 'var(--color-primary-emerald)';
@@ -52,7 +56,7 @@ export default function InsuranceDashboard() {
   };
 
   const handleRecalculate = async () => {
-    const tenantId = localStorage.getItem('tl_tenant_id') || '7da27c93-6889-4fda-8b22-df4689fbbcd6';
+    if (!tenantId) return;
     showToast('Triggering fleet-wide risk recalculation...', 'info');
     
     try {

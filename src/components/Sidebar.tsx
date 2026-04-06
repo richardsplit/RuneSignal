@@ -16,6 +16,8 @@ export default function Sidebar() {
     { name: 'S7 Exceptions', href: '/exceptions' },
     { name: 'S5 Insurance', href: '/insurance' },
     { name: 'S8 MoralOS', href: '/moral' },
+    { name: 'API Documentation', href: '/documentation' },
+    { name: 'Billing & Usage', href: '/billing' },
   ];
 
   return (

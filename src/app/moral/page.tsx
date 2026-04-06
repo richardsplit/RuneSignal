@@ -6,19 +6,18 @@ import SoulStatusCard from '@/components/features/moral/SoulStatusCard';
 import MoralEventFeed from '@/components/features/moral/MoralEventFeed';
 import DomainHeatMap from '@/components/features/moral/DomainHeatMap';
 import SOULEditorModal from '@/components/features/moral/SOULEditorModal';
+import { useTenant } from '@lib/contexts/TenantContext';
 
 export default function MoralOSDashboard() {
   const { showToast } = useToast();
+  const { tenantId, loading: tenantLoading } = useTenant();
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [soulData, setSoulData] = useState<any>(null);
   const [events, setEvents] = useState<any[]>([]);
 
-  const tenantId = typeof window !== 'undefined'
-    ? localStorage.getItem('tl_tenant_id') || '7da27c93-6889-4fda-8b22-df4689fbbcd6'
-    : '7da27c93-6889-4fda-8b22-df4689fbbcd6';
-
   const fetchData = async (domainFilter?: string, verdictFilter?: string) => {
+    if (!tenantId) return;
     setLoading(true);
     try {
       // Fetch SOUL
@@ -46,8 +45,12 @@ export default function MoralOSDashboard() {
   };
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (tenantId) {
+      fetchData();
+    } else if (!tenantLoading) {
+      setLoading(false);
+    }
+  }, [tenantId, tenantLoading]);
 
   const handleFilterChange = (domain: string, verdict: string) => {
     fetchData(domain, verdict);

@@ -11,7 +11,8 @@ export class MoralOOBService {
    * Thin adapter over existing S7 WebhookEmitter.
    */
   static async requestMoralApproval(ticket: any, verdict: MoralVerdict): Promise<void> {
-    await WebhookEmitter.notifySlack(
+    await WebhookEmitter.notifyTenant(
+      ticket.tenant_id,
       `🧠 [MORAL CONFLICT] ${verdict.conflict_reason || 'Action requires moral review'}`,
       {
         Domain: verdict.domain,

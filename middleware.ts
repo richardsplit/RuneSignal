@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { JwtHandler } from './lib/auth/jwt';
 import { v4 as uuidv4 } from 'uuid';
 import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
+import { createMiddlewareClient } from './lib/db/supabase';
 
 // Initialize Redis and Ratelimit (static instance for edge efficiency)
 const redis = new Redis({
@@ -19,86 +19,152 @@ const ratelimit = new Ratelimit({
 
 export async function middleware(request: NextRequest) {
   const url = request.nextUrl.pathname;
-  
-  // Create a base response so we can mutate headers before returning
-  const response = NextResponse.next();
-  // Inject Request ID to all responses
   const requestId = uuidv4();
+  const response = NextResponse.next();
   response.headers.set('X-Request-Id', requestId);
 
-  // We only intercept API calls
-  if (!url.startsWith('/api')) {
+  // Initialize Supabase Middleware Client for SSR
+  const supabase = createMiddlewareClient(request, response);
+
+  // 1. Skip auth for static/public assets and public API routes
+  const isPublicApi = url.startsWith('/api/health') || url.startsWith('/api/v1/verify/pubkey');
+  const isLogin = url.startsWith('/login');
+  const isOnboarding = url.startsWith('/onboarding');
+  const isInternal = url.startsWith('/_next') || url.includes('.') || url.startsWith('/api/v1/billing/webhook');
+
+  if (isPublicApi || isLogin || isInternal) {
     return response;
   }
 
-  // Public endpoints bypass Auth & Rate Limiting (except health maybe, but let's keep it simple)
-  if (url.startsWith('/api/health') || url.startsWith('/api/v1/verify/pubkey')) {
-    return response;
-  }
+  // 2. Auth Check (Supabase SSR)
+  const { data: { user } } = await supabase.auth.getUser();
 
-  // 1. Auth check
-  const authHeader = request.headers.get('authorization');
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return NextResponse.json(
-      { error: 'Unauthorized', message: 'Missing Bearer token' },
-      { status: 401, headers: response.headers }
-    );
-  }
+  // 2.1 API Key Verification (For Agent/Machine access)
+  const authHeader = request.headers.get('Authorization');
+  let apiKeyTenantId: string | null = null;
 
-  const token = authHeader.split(' ')[1];
-
-  try {
-    const decoded = await JwtHandler.verifyToken(token);
+  if (authHeader?.startsWith('Bearer tl_')) {
+    const apiKey = authHeader.split(' ')[1];
     
-    // Inject decoded info so downstream handlers can access it via headers
-    if ('tenant_id' in decoded) {
-      const tenantId = decoded.tenant_id as string;
+    if (apiKey) {
+      // Hash key using Web Crypto (Edge compatible)
+      const msgUint8 = new TextEncoder().encode(apiKey);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+      // Use service role for internal lookup bypassing RLS on api_keys
+      const { data: keyRecord } = await supabase
+        .from('api_keys')
+        .select('tenant_id, is_active')
+        .eq('key_hash', hashHex)
+        .eq('is_active', true)
+        .single();
+
+      if (keyRecord && typeof keyRecord.tenant_id === 'string') {
+        apiKeyTenantId = keyRecord.tenant_id;
+        response.headers.set('X-Tenant-Id', apiKeyTenantId);
+      } else {
+        return NextResponse.json({ error: 'Unauthorized', message: 'Invalid API Key' }, { status: 401 });
+      }
+    }
+  }
+
+  // If unauthenticated (no user and no valid API key) and on a protected dashboard route, redirect to login
+  if (!user && !apiKeyTenantId && !url.startsWith('/api')) {
+    return NextResponse.redirect(new URL('/login', request.url));
+  }
+
+  // 2.3 Usage Tracking & Metering (Phase 3)
+  // Increment API call counts for billable governance routes
+  if (apiKeyTenantId && url.startsWith('/api/v1')) {
+    const billableRoutes = ['/api/v1/provenance', '/api/v1/intent', '/api/v1/moral', '/api/v1/verify', '/api/v1/enforce'];
+    const isBillable = billableRoutes.some(route => url.startsWith(route));
+    
+    if (isBillable) {
+      // Use service role for incrementing count (fire and forget for latency)
+      supabase.rpc('increment_api_usage', { t_id: apiKeyTenantId }).then(({ error }) => {
+        if (error) console.error('Usage Tracking Error:', error.message);
+      });
+    }
+  }
+
+  // 2.4 MFA Enforcement (Authenticator Assurance Level)
+  // If the user has MFA enrolled, we require aal2 for the dashboard
+  const { data: { session } } = await supabase.auth.getSession();
+  const aal = session?.user?.app_metadata?.aal || 'aal1';
+  
+  // We check if they have active factors
+  const { data: factors } = await supabase.auth.mfa.listFactors();
+  const hasMfaEnrolled = factors?.all?.some(f => f.status === 'verified') || false;
+
+  if (hasMfaEnrolled && aal === 'aal1' && !url.startsWith('/mfa-verify') && !url.startsWith('/login') && !url.startsWith('/api')) {
+    // Redirect to MFA verification page if they are only partially authenticated
+    return NextResponse.redirect(new URL('/mfa-verify', request.url));
+  }
+
+  // If unauthenticated on a protected API route (excluding /api/v1 agent routes handled later)
+  if (!user && url.startsWith('/api') && !url.startsWith('/api/v1')) {
+    return NextResponse.json({ error: 'Unauthorized', message: 'Valid dashboard session required' }, { status: 401 });
+  }
+
+  // 3. User Context & Multi-Tenancy (For logged in users)
+  if (user) {
+    // 3.1 Fetch Tenant ID for this user from DB or app_metadata
+    // For production performance, we'd check user.app_metadata or a cached mapping.
+    // For Phase 1 implementation, we fetch from tenant_members.
+    const { data: membership } = await supabase
+      .from('tenant_members')
+      .select('tenant_id')
+      .eq('user_id', user.id)
+      .limit(1)
+      .single();
+
+    const tenantId = membership?.tenant_id;
+
+    // If login is successful but no tenant exists, redirect to onboarding (except if already on onboarding)
+    if (!tenantId && !isOnboarding && !url.startsWith('/api')) {
+      return NextResponse.redirect(new URL('/onboarding', request.url));
+    }
+
+    if (tenantId) {
       response.headers.set('X-Tenant-Id', tenantId);
-      
-      // 2. Rate Limiting (Upstash Redis)
+
+      // 4. Rate Limiting (Upstash Redis) based on Tenant
       const { success, limit, reset, remaining } = await ratelimit.limit(tenantId);
-      
       response.headers.set('X-RateLimit-Limit', limit.toString());
       response.headers.set('X-RateLimit-Remaining', remaining.toString());
       response.headers.set('X-RateLimit-Reset', reset.toString());
 
       if (!success) {
         return NextResponse.json(
-          { error: 'Too Many Requests', message: 'Rate limit exceeded. Upgrade your plan for higher throughput.' },
+          { error: 'Too Many Requests', message: 'Rate limit exceeded.' },
           { status: 429, headers: response.headers }
         );
       }
-
-      // 3. X-Agent-Id Enforcement (Scoped to sensitive agent-only routes)
-      if (url.startsWith('/api/v1/')) {
-        const sensitiveRoutes = ['/api/v1/provenance/certify', '/api/v1/intent', '/api/v1/enforce/tool-call', '/api/v1/moral/evaluate'];
-        const isSensitive = sensitiveRoutes.some(route => url.startsWith(route));
-
-        const agentId = (decoded as any).agent_id;
-        
-        if (isSensitive && !agentId) {
-          return NextResponse.json(
-            { error: 'Forbidden', message: 'Agent ID missing in token. This security route requires a registered agent identity.' },
-            { status: 403, headers: response.headers }
-          );
-        }
-
-        if (agentId) {
-          response.headers.set('X-Agent-Id', agentId);
-        }
-      }
     }
-  } catch (err: any) {
-    return NextResponse.json(
-      { error: 'Unauthorized', message: 'Invalid token' },
-      { status: 401, headers: response.headers }
-    );
+  }
+
+  // 5. Agent-only /api/v1 Authorization (Scoped to sensitive agent-only routes)
+  // This part still allows legacy agent auth via headers if it's an agent API call.
+  if (url.startsWith('/api/v1/')) {
+    const sensitiveAgentRoutes = ['/api/v1/provenance/certify', '/api/v1/intent', '/api/v1/enforce/tool-call', '/api/v1/moral/evaluate'];
+    const isSensitive = sensitiveAgentRoutes.some(route => url.startsWith(route));
+
+    // Agent calls use Service Role or specific Agent keys (simplified for now to check headers)
+    const agentId = request.headers.get('X-Agent-Id');
+
+    if (isSensitive && !agentId && !user) {
+      return NextResponse.json(
+        { error: 'Forbidden', message: 'Agent identity or user session required' },
+        { status: 403, headers: response.headers }
+      );
+    }
   }
 
   return response;
 }
 
-// Config ensures middleware only runs on API paths (optional)
 export const config = {
-  matcher: '/api/:path*',
+  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
 };

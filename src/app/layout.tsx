@@ -1,33 +1,45 @@
-import type { Metadata } from 'next';
+'use client';
+
 import './globals.css';
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
-
-export const metadata: Metadata = {
-  title: 'TrustLayer | Enterprise AI Governance',
-  description: 'Provide governance, accountability, and operational control over AI agent fleets in production.',
-};
-
+import { usePathname } from 'next/navigation';
 import { ToastProvider } from '@/components/ToastProvider';
+import { TenantProvider } from '@lib/contexts/TenantContext';
 
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+  const isAuthPage = pathname === '/login' || pathname === '/onboarding';
+
   return (
     <html lang="en">
+      <head>
+        <title>TrustLayer | Enterprise AI Governance</title>
+        <meta name="description" content="Provide governance, accountability, and operational control over AI agent fleets in production." />
+      </head>
       <body>
         <ToastProvider>
-          <div className="app-layout">
-            <Sidebar />
-            <div className="main-content">
-              <Header />
-              <main className="animate-fade-in" style={{ flex: 1, marginTop: '2rem' }}>
+          <TenantProvider>
+            {isAuthPage ? (
+              <main style={{ minHeight: '100vh' }}>
                 {children}
               </main>
-            </div>
-          </div>
+            ) : (
+              <div className="app-layout">
+                <Sidebar />
+                <div className="main-content">
+                  <Header />
+                  <main className="animate-fade-in" style={{ flex: 1, marginTop: '2rem' }}>
+                    {children}
+                  </main>
+                </div>
+              </div>
+            )}
+          </TenantProvider>
         </ToastProvider>
       </body>
     </html>

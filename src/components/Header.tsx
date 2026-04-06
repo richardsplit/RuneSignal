@@ -2,10 +2,25 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
+import { createBrowserClient } from '@lib/db/supabase';
+import { useRouter } from 'next/navigation';
 
 export default function Header() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const supabase = createBrowserClient();
+  const router = useRouter();
+
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUserEmail(user.email || null);
+      }
+    };
+    getUser();
+  }, [supabase]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -19,6 +34,15 @@ export default function Header() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [dropdownRef]);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    setIsProfileOpen(false);
+    router.push('/login');
+    router.refresh();
+  };
+
+  const userInitial = userEmail ? userEmail.charAt(0).toUpperCase() : 'U';
 
   return (
     <header style={{
@@ -66,7 +90,7 @@ export default function Header() {
               ...(isProfileOpen ? { borderColor: 'var(--color-primary-emerald)' } : {})
             }}
           >
-            A
+            {userInitial}
           </div>
 
           {/* Profile Dropdown Menu */}
@@ -81,8 +105,10 @@ export default function Header() {
               boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
             }}>
               <div style={{ padding: '0.5rem 1rem', borderBottom: '1px solid var(--border-glass)', marginBottom: '0.5rem' }}>
-                <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>Admin User</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>admin@trustlayer.dev</div>
+                <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>User Profile</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', wordBreak: 'break-all' }}>
+                  {userEmail || 'Loading...'}
+                </div>
               </div>
               <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                 <li>
@@ -101,33 +127,21 @@ export default function Header() {
                     </button>
                   </Link>
                 </li>
-                <li>
-                  <Link href="/tenant-management" style={{ textDecoration: 'none' }}>
-                    <button style={{
+                <li style={{ borderTop: '1px solid var(--border-glass)', marginTop: '0.5rem', paddingTop: '0.5rem' }}>
+                  <button 
+                    onClick={handleSignOut}
+                    style={{
                       width: '100%',
                       textAlign: 'left',
                       padding: '0.5rem 1rem',
                       background: 'transparent',
                       border: 'none',
-                      color: 'var(--color-text-main)',
+                      color: 'var(--color-error-rose)',
                       fontSize: '0.85rem',
                       cursor: 'pointer'
-                    }} className="hover-highlight" onClick={() => setIsProfileOpen(false)}>
-                      Tenant Management
-                    </button>
-                  </Link>
-                </li>
-                <li style={{ borderTop: '1px solid var(--border-glass)', marginTop: '0.5rem', paddingTop: '0.5rem' }}>
-                  <button style={{
-                    width: '100%',
-                    textAlign: 'left',
-                    padding: '0.5rem 1rem',
-                    background: 'transparent',
-                    border: 'none',
-                    color: 'var(--color-error-rose)',
-                    fontSize: '0.85rem',
-                    cursor: 'pointer'
-                  }} className="hover-highlight">
+                    }} 
+                    className="hover-highlight"
+                  >
                     Sign Out
                   </button>
                 </li>

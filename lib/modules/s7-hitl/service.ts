@@ -51,7 +51,7 @@ export class HitlService {
       payload: { title: request.title, priority, sla_deadline: slaDeadline.toISOString() }
     });
 
-    await WebhookEmitter.notifySlack(`⚠️ HITL Request [${priority.toUpperCase()}]: ${request.title}`, {
+    await WebhookEmitter.notifyTenant(tenantId, `⚠️ HITL Request [${priority.toUpperCase()}]: ${request.title}`, {
       Agent: agentId,
       Description: request.description,
       TicketID: ticketId
@@ -103,7 +103,7 @@ export class HitlService {
       payload: { decision: newStatus, reason: request.reason, reviewer: request.reviewer_id }
     });
 
-    await WebhookEmitter.notifySlack(`✅ HITL Resolved: ${ticketId.split('-')[0]} was ${newStatus.toUpperCase()}`, {
+    await WebhookEmitter.notifyTenant(tenantId, `✅ HITL Resolved: ${ticketId.split('-')[0]} was ${newStatus.toUpperCase()}`, {
       Reason: request.reason
     });
 
@@ -161,7 +161,7 @@ export class HitlService {
           payload: { title: ticket.title, status: 'escalated' }
         });
 
-        await WebhookEmitter.notifySlack(`🚨 SLA BREACH: Ticket ${ticket.id.split('-')[0]} [${ticket.title}] has been escalated!`, {
+        await WebhookEmitter.notifyTenant(ticket.tenant_id, `🚨 SLA BREACH: Ticket ${ticket.id.split('-')[0]} [${ticket.title}] has been escalated!`, {
           Status: 'ESCALATED',
           Original_Title: ticket.title
         });

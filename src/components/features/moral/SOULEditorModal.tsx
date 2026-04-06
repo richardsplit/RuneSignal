@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Modal from '@/components/ui/Modal';
 import { useToast } from '@/components/ToastProvider';
+import { useTenant } from '@lib/contexts/TenantContext';
 
 interface SOULEditorModalProps {
   isOpen: boolean;
@@ -21,6 +22,7 @@ const DEFAULT_SOUL = {
 
 export default function SOULEditorModal({ isOpen, onClose, onSuccess, currentSoul }: SOULEditorModalProps) {
   const { showToast } = useToast();
+  const { tenantId } = useTenant();
   const [activeTab, setActiveTab] = useState('financial');
   const [soul, setSoul] = useState(currentSoul || DEFAULT_SOUL);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -39,9 +41,12 @@ export default function SOULEditorModal({ isOpen, onClose, onSuccess, currentSou
   };
 
   const handleSubmit = async () => {
+    if (!tenantId) {
+      showToast('No active tenant context found.', 'error');
+      return;
+    }
     setIsSubmitting(true);
     try {
-      const tenantId = localStorage.getItem('tl_tenant_id') || '7da27c93-6889-4fda-8b22-df4689fbbcd6';
       const res = await fetch('/api/v1/moral', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-Tenant-Id': tenantId },
