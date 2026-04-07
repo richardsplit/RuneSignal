@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { createBrowserClient } from '@lib/db/supabase';
 import { useRouter } from 'next/navigation';
 
-export default function Header() {
+export default function Header({ title }: { title?: string }) {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);

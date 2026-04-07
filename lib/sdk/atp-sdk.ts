@@ -53,7 +53,28 @@ export class ATPClient {
     let inputTokens = 0;
     let outputTokens = 0;
 
-    // 1. Upstream LLM Call
+    // 1. FinOps Pre-execution check
+    const estimatedTokens = params.messages.reduce((acc, m) => acc + (m.content?.length || 0) / 4, 0) + 1000;
+    const checkStart = Date.now();
+    const checkRes = await fetch(`${this.atpEndpoint}/api/v1/finops/check`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${this.atpKey}`,
+            'X-Agent-Id': this.agentId || 'none'
+        },
+        body: JSON.stringify({
+            model: params.model,
+            estimated_tokens: estimatedTokens
+        })
+    });
+    const atpPreOverhead = Date.now() - checkStart;
+
+    if (checkRes.status === 402) {
+       throw new Error('TrustLayer FinOps Error: Budget Exceeded. Call blocked prior to execution.');
+    }
+
+    // 2. Upstream LLM Call
     try {
       if (this.provider === 'openai' && this.openaiClient) {
         const completion = await this.openaiClient.chat.completions.create({
@@ -82,9 +103,9 @@ export class ATPClient {
       throw err;
     }
 
-    const upstreamLatency = Date.now() - startTime;
+    const upstreamLatency = Date.now() - startTime - atpPreOverhead;
 
-    // 2. Certification via TrustLayer API
+    // 3. Certification via TrustLayer API
     // We send payload hashes + original metadata for archival
     const inputHash = this.generateHash(JSON.stringify(params.messages));
     const outputHash = this.generateHash(completionText);
@@ -113,26 +134,43 @@ export class ATPClient {
       })
     });
 
+    let certificateId = "uncertified";
+    let signature = "none";
+    let modelVersion = params.model;
+    
     if (!certifyRes.ok) {
       console.warn("ATP Certification failed, returning uncertified response.");
-      return {
-        content: completionText,
-        certificate_id: "uncertified",
-        signature: "none",
-        model_version: params.model,
-        latency_ms: upstreamLatency
-      };
+    } else {
+      const certData = await certifyRes.json();
+      certificateId = certData.certificate_id;
+      signature = certData.signature;
+      modelVersion = certData.model_version || params.model;
     }
+    
+    // 4. FinOps Post-execution record (Fire and forget locally, though awaited here)
+    fetch(`${this.atpEndpoint}/api/v1/finops/record`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${this.atpKey}`,
+        'X-Agent-Id': this.agentId || 'none'
+      },
+      body: JSON.stringify({
+         model: params.model,
+         input_tokens: inputTokens,
+         output_tokens: outputTokens,
+         certificate_id: certificateId !== "uncertified" ? certificateId : undefined
+      })
+    }).catch(e => console.error("Failed to record FinOps cost:", e));
 
-    const certData = await certifyRes.json();
-    const atpOverhead = Date.now() - certifyStart;
+    const atpPostOverhead = Date.now() - certifyStart;
 
     return {
       content: completionText,
-      certificate_id: certData.certificate_id,
-      signature: certData.signature,
-      model_version: certData.model_version || params.model,
-      latency_ms: atpOverhead
+      certificate_id: certificateId,
+      signature: signature,
+      model_version: modelVersion,
+      latency_ms: atpPreOverhead + atpPostOverhead
     };
   }
 }

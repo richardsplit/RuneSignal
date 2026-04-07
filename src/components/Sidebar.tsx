@@ -9,15 +9,29 @@ export default function Sidebar() {
   const pathname = usePathname();
   
   const navItems = [
-    { name: 'Overview', href: '/' },
-    { name: 'S3 Provenance', href: '/provenance' },
-    { name: 'S6 Identity', href: '/identity' },
-    { name: 'S1 Conflict', href: '/conflict' },
-    { name: 'S7 Exceptions', href: '/exceptions' },
-    { name: 'S5 Insurance', href: '/insurance' },
-    { name: 'S8 MoralOS', href: '/moral' },
-    { name: 'API Documentation', href: '/documentation' },
-    { name: 'Billing & Usage', href: '/billing' },
+    // Core
+    { name: 'Overview', href: '/', group: 'Core' },
+    { name: 'S3 Provenance', href: '/provenance', group: 'Core' },
+    { name: 'S6 Identity', href: '/identity', group: 'Core' },
+    { name: 'S1 Conflict', href: '/conflict', group: 'Core' },
+    { name: 'S7 Exceptions', href: '/exceptions', group: 'Core' },
+    { name: 'S5 Insurance', href: '/insurance', group: 'Core' },
+    { name: 'S8 MoralOS', href: '/moral', group: 'Core' },
+    // Intelligence & Compliance
+    { name: 'S11 Explainability', href: '/explain', group: 'Intel' },
+    { name: 'S13 Governance', href: '/compliance', group: 'Intel' },
+    { name: 'S14 Anomaly Detector', href: '/anomaly', group: 'Intel' },
+    // Operations
+    { name: 'S9 FinOps', href: '/finops', group: 'Ops' },
+    { name: 'S10 Sovereign Export', href: '/account-settings', group: 'Ops' },
+    { name: 'S12 NHI Lifecycle', href: '/nhi', group: 'Ops' },
+    // Advanced
+    { name: 'S15 Physical AI', href: '/physical', group: 'Advanced' },
+    { name: 'S16 A2A Gateway', href: '/a2a', group: 'Advanced' },
+    { name: 'S17 Red Teaming', href: '/red-team', group: 'Advanced' },
+    // Platform
+    { name: 'API Documentation', href: '/documentation', group: 'Platform' },
+    { name: 'Billing & Usage', href: '/billing', group: 'Platform' },
   ];
 
   return (
@@ -43,35 +57,46 @@ export default function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav style={{ flex: 1, padding: '0 1rem' }}>
-        <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-          {navItems.map(item => {
-            const isActive = pathname === item.href;
-            return (
-              <li key={item.name}>
-                <Link 
-                  href={item.href}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    padding: '0.75rem 1rem',
-                    borderRadius: 'var(--radius-md)',
-                    color: isActive ? 'var(--color-text-main)' : 'var(--color-text-muted)',
-                    textDecoration: 'none',
-                    fontWeight: isActive ? 600 : 500,
-                    transition: 'all 0.2s',
-                    background: isActive ? 'rgba(255,255,255,0.08)' : 'transparent',
-                    boxShadow: isActive ? '0 4px 12px rgba(0,0,0,0.1)' : 'none',
-                    border: isActive ? '1px solid var(--border-glass)' : '1px solid transparent'
-                  }}
-                  className={!isActive ? "hover-highlight" : ""}
-                >
-                  {item.name}
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
+      <nav style={{ flex: 1, padding: '0 1rem', overflowY: 'auto' }}>
+        {(['Core', 'Intel', 'Ops', 'Advanced', 'Platform'] as const).map(group => {
+          const items = navItems.filter(i => i.group === group);
+          return (
+            <div key={group} style={{ marginBottom: '1.25rem' }}>
+              <div style={{ padding: '0 0.5rem 0.4rem', fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-text-muted)', opacity: 0.5 }}>
+                {group === 'Intel' ? 'Intelligence' : group}
+              </div>
+              <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                {items.map(item => {
+                  const isActive = pathname === item.href;
+                  return (
+                    <li key={item.name}>
+                      <Link
+                        href={item.href}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          padding: '0.6rem 1rem',
+                          borderRadius: 'var(--radius-md)',
+                          color: isActive ? 'var(--color-text-main)' : 'var(--color-text-muted)',
+                          textDecoration: 'none',
+                          fontSize: '0.875rem',
+                          fontWeight: isActive ? 600 : 400,
+                          transition: 'all 0.2s',
+                          background: isActive ? 'rgba(255,255,255,0.08)' : 'transparent',
+                          boxShadow: isActive ? '0 4px 12px rgba(0,0,0,0.1)' : 'none',
+                          border: isActive ? '1px solid var(--border-glass)' : '1px solid transparent'
+                        }}
+                        className={!isActive ? "hover-highlight" : ""}
+                      >
+                        {item.name}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          );
+        })}
       </nav>
 
       {/* Bottom info */}

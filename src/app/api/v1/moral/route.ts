@@ -5,7 +5,7 @@ import { createAdminClient } from '../../../../../lib/db/supabase';
 
 /**
  * POST /api/v1/moral
- * Evaluate an agent action against the Corporate SOUL or upsert SOUL.
+ * Evaluate an agent action against the Corporate SOUL.
  */
 export async function POST(request: NextRequest) {
   const tenantId = request.headers.get('X-Tenant-Id');
@@ -16,17 +16,28 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
-    // If this is a SOUL upsert (check for soul field in body)
-    if (body.soul) {
-      const adminId = body.admin_id || 'system';
-      const result = await SoulService.upsertSoul(tenantId, body.soul, adminId);
-      return NextResponse.json(result);
+    if (!agentId) return NextResponse.json({ error: 'Missing X-Agent-Id for evaluation' }, { status: 400 });
+    if (!body.action_description) {
+      return NextResponse.json({ error: 'Missing action_description' }, { status: 400 });
     }
 
-    // Otherwise it's a moral evaluation
-    if (!agentId) return NextResponse.json({ error: 'Missing X-Agent-Id for evaluation' }, { status: 400 });
-    if (!body.action_description || !body.domain) {
-      return NextResponse.json({ error: 'Missing action_description or domain' }, { status: 400 });
+    if (!body.domain || body.domain === 'auto') {
+      const supabase = createAdminClient();
+      const { data: agent } = await supabase
+        .from('agent_credentials')
+        .select('agent_type')
+        .eq('id', agentId)
+        .single();
+        
+      const ROBO_DOMAIN_MAP: Record<string, string> = {
+          'robot_arm': 'physical',
+          'drone': 'physical',
+          'surgical_robot': 'physical',
+          'vehicle': 'physical',
+          'finance': 'finance',
+          'orchestrator': 'core',
+      };
+      body.domain = ROBO_DOMAIN_MAP[agent?.agent_type || ''] || 'ops';
     }
 
     const verdict = await ConscienceEngine.evaluate(tenantId, {

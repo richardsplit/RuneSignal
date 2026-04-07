@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
   }
 
   // Use service role to bypass RLS for background updates
-  const supabase = createServerClient();
+  const supabase = await createServerClient();
 
   try {
     switch (event.type) {
@@ -78,6 +78,30 @@ export async function POST(request: NextRequest) {
 
         if (error) throw error;
         console.log(`Downgraded tenant for subscription ${subscription.id} to free`);
+        break;
+      }
+
+      case 'invoice.payment_failed': {
+        const invoice = event.data.object as Stripe.Invoice;
+        const subscriptionIdStr = (invoice as any).subscription as string;
+        
+        if (subscriptionIdStr) {
+          const { data: updatedTenants } = await supabase
+            .from('tenants')
+            .update({ plan_tier: 'past_due' })
+            .eq('stripe_subscription_id', subscriptionIdStr)
+            .select('id');
+            
+          if (updatedTenants && updatedTenants.length > 0) {
+            const tenantId = updatedTenants[0].id;
+            const { WebhookEmitter } = await import('@lib/webhooks/emitter');
+            await WebhookEmitter.notifyTenant(
+              tenantId,
+              `⚠️ Payment failed — tenant on past_due plan`,
+              { customer: invoice.customer, amount: invoice.amount_due }
+            );
+          }
+        }
         break;
       }
 

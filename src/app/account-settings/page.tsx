@@ -7,6 +7,7 @@ import SecurityTab from '@/components/features/settings/SecurityTab';
 import ApiKeysTab from '@/components/features/settings/ApiKeysTab';
 import WebhooksTab from '@/components/features/settings/WebhooksTab';
 import NotificationsTab from '@/components/features/settings/NotificationsTab';
+import SovereignExportPanel from '@/components/features/settings/SovereignExportPanel';
 import { createBrowserClient } from '@lib/db/supabase';
 
 export default function AccountSettingsPage() {
@@ -97,6 +98,7 @@ export default function AccountSettingsPage() {
     { id: 'security', label: 'Security & MFA' },
     { id: 'apikeys', label: 'Developer API Keys' },
     { id: 'webhooks', label: 'Governance Webhooks' },
+    { id: 'sovereign', label: 'Sovereign Exports (S10)' },
     { id: 'notifications', label: 'Notification Settings' },
   ];
 
@@ -176,6 +178,10 @@ export default function AccountSettingsPage() {
 
           {activeTab === 'webhooks' && (
             <WebhooksTab />
+          )}
+
+          {activeTab === 'sovereign' && (
+            <SovereignExportPanel />
           )}
 
           {activeTab === 'notifications' && (

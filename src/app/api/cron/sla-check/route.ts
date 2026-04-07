@@ -19,9 +19,24 @@ export async function GET(request: Request) {
     const escalatedCount = await HitlService.checkSlas();
     console.log(`[SLA CRON] Successfully processed. Escalated ${escalatedCount} tickets.`);
     
+    const { SovereignExporterService } = await import('../../../../../lib/modules/s10-sovereign/exporter');
+    const syncCount = await SovereignExporterService.runGlobalCron();
+    console.log(`[Sovereign CRON] Globally checked sync limits. Successful exports: ${syncCount}`);
+
+    const { AnomalyDetectorService } = await import('../../../../../lib/modules/s14-anomaly/service');
+    const supabase = (await import('../../../../../lib/db/supabase')).createAdminClient();
+    const { data: tenants } = await supabase.from('tenants').select('id');
+    let totalAnomalies = 0;
+    for (const tenant of (tenants || [])) {
+      totalAnomalies += await AnomalyDetectorService.runScanForTenant(tenant.id);
+    }
+    console.log(`[Anomaly CRON] S14 scan complete. Anomalies detected: ${totalAnomalies}`);
+
     return NextResponse.json({ 
       success: true, 
       escalated_count: escalatedCount,
+      sovereign_exports: syncCount,
+      anomalies_detected: totalAnomalies,
       timestamp: new Date().toISOString()
     });
   } catch (error: any) {

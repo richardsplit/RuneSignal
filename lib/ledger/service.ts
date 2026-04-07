@@ -4,10 +4,10 @@ import { v4 as uuidv4 } from 'uuid';
 
 export interface AuditEventInput {
   event_type: string;
-  module: 's3' | 's1' | 's6' | 's7' | 's5' | 's8';
+  module: 's1' | 's3' | 's5' | 's6' | 's7' | 's8' | 's9' | 's10' | 's11' | 's12' | 's13' | 's14' | 's15' | 's16' | 's17' | 'system';
   tenant_id: string;
   agent_id?: string | null;
-  request_id: string;
+  request_id?: string;
   payload: Record<string, any>;
 }
 
@@ -36,7 +36,7 @@ export class AuditLedgerService {
         module: input.module,
         tenant_id: input.tenant_id,
         agent_id: input.agent_id || null,
-        request_id: input.request_id,
+        request_id: input.request_id || uuidv4(),
         payload: input.payload,
         signature,
         created_at

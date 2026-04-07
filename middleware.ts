@@ -162,6 +162,24 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // Protect all dashboard routes — require Supabase session
+  if (
+    !url.startsWith('/api') &&
+    !url.startsWith('/login') &&
+    !url.startsWith('/onboarding') &&
+    !url.startsWith('/_next') &&
+    !url.startsWith('/public')
+  ) {
+    const { createServerClient } = await import('./lib/db/supabase');
+    const supabaseSessionClient = await createServerClient();
+    const { data: { session: dashboardSession } } = await supabaseSessionClient.auth.getSession();
+    if (!dashboardSession) {
+      const loginUrl = new URL('/login', request.url);
+      loginUrl.searchParams.set('redirect', url);
+      return NextResponse.redirect(loginUrl);
+    }
+  }
+
   return response;
 }
 
