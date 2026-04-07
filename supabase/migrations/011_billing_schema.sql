@@ -32,6 +32,7 @@ CREATE INDEX IF NOT EXISTS idx_api_keys_tenant ON api_keys (tenant_id);
 -- Enable RLS
 ALTER TABLE api_keys ENABLE ROW LEVEL SECURITY;
 
--- Tenants can only see their own API keys
+DROP POLICY IF EXISTS api_keys_tenant_isolation ON api_keys;
+DROP POLICY IF EXISTS api_keys_tenant_isolation ON api_keys;
 CREATE POLICY api_keys_tenant_isolation ON api_keys
     FOR ALL USING (tenant_id = (SELECT tenant_id FROM tenant_members WHERE user_id = auth.uid()));

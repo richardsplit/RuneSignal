@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS webhook_settings (
 -- Enable RLS
 ALTER TABLE webhook_settings ENABLE ROW LEVEL SECURITY;
 
--- Tenants can read/write their own settings
+DROP POLICY IF EXISTS webhook_settings_tenant_isolation ON webhook_settings;
 CREATE POLICY webhook_settings_tenant_isolation ON webhook_settings
     FOR ALL USING (tenant_id = (SELECT tenant_id FROM tenant_members WHERE user_id = auth.uid()));
 
@@ -26,6 +26,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS tr_webhook_settings_updated ON webhook_settings;
 CREATE TRIGGER tr_webhook_settings_updated
 BEFORE UPDATE ON webhook_settings
 FOR EACH ROW EXECUTE FUNCTION update_webhook_settings_timestamp();

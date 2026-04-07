@@ -39,6 +39,7 @@
     "dotenv": "^17.3.1",
     "eslint": "^9",
     "eslint-config-next": "16.2.1",
+    "supabase": "^2.86.0",
     "typescript": "^5",
     "vitest": "^3.0.0"
   }

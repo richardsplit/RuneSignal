@@ -2,7 +2,7 @@
 -- Phase 1: Core Authentication & Multi-Tenancy
 
 -- 1. Tenant Members Table (Linking Supabase Users to Tenants)
-CREATE TABLE tenant_members (
+CREATE TABLE IF NOT EXISTS tenant_members (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
     user_id UUID NOT NULL, -- References auth.users(id)
@@ -12,35 +12,53 @@ CREATE TABLE tenant_members (
 );
 
 -- 2. Add email column to tenants (for easier management, optional)
-ALTER TABLE tenants ADD COLUMN owner_id UUID;
+ALTER TABLE tenants ADD COLUMN IF NOT EXISTS owner_id UUID;
 
 -- 3. Update RLS for tenants
 -- Users can only see tenants they are members of
-DROP POLICY IF EXISTS tenant_isolation_policy ON tenants;
-CREATE POLICY tenant_membership_policy ON tenants
-    FOR SELECT USING (
-        id IN (SELECT tenant_id FROM tenant_members WHERE user_id = auth.uid())
-    );
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'tenant_membership_policy' AND tablename = 'tenants') THEN
+        CREATE POLICY tenant_membership_policy ON tenants
+            FOR SELECT USING (
+                id IN (SELECT tenant_id FROM tenant_members WHERE user_id = auth.uid())
+            );
+    END IF;
 
--- Allow users to create tenants
-CREATE POLICY tenant_creation_policy ON tenants
-    FOR INSERT WITH CHECK (true);
+    -- Allow users to create tenants
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'tenant_creation_policy' AND tablename = 'tenants') THEN
+        CREATE POLICY tenant_creation_policy ON tenants
+            FOR INSERT WITH CHECK (true);
+    END IF;
+END $$;
 
 -- 4. Update RLS for tenant_members
 ALTER TABLE tenant_members ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY tenant_members_read_policy ON tenant_members
-    FOR SELECT USING (user_id = auth.uid());
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'tenant_members_read_policy' AND tablename = 'tenant_members') THEN
+        CREATE POLICY tenant_members_read_policy ON tenant_members
+            FOR SELECT USING (user_id = auth.uid());
+    END IF;
 
-CREATE POLICY tenant_members_insert_policy ON tenant_members
-    FOR INSERT WITH CHECK (user_id = auth.uid());
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'tenant_members_insert_policy' AND tablename = 'tenant_members') THEN
+        CREATE POLICY tenant_members_insert_policy ON tenant_members
+            FOR INSERT WITH CHECK (user_id = auth.uid());
+    END IF;
+END $$;
 
 -- 5. Update RLS for audit_events (and others) to use tenant_members
-DROP POLICY IF EXISTS audit_tenant_isolation_policy ON audit_events;
-CREATE POLICY audit_membership_policy ON audit_events
-    FOR ALL USING (
-        tenant_id IN (SELECT tenant_id FROM tenant_members WHERE user_id = auth.uid())
-    );
+DO $$ 
+BEGIN
+    DROP POLICY IF EXISTS audit_tenant_isolation_policy ON audit_events;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'audit_membership_policy' AND tablename = 'audit_events') THEN
+        CREATE POLICY audit_membership_policy ON audit_events
+            FOR ALL USING (
+                tenant_id IN (SELECT tenant_id FROM tenant_members WHERE user_id = auth.uid())
+            );
+    END IF;
+END $$;
 
 -- 6. Grant permissions (all authenticated users can read/write their own memberships)
 GRANT ALL ON tenant_members TO authenticated;
