@@ -16,14 +16,19 @@ export class ExplainabilityService {
     return expl;
   }
 
+  private static COUNTERFACTUAL_TEMPLATES: Record<string, string> = {
+    'blocked': 'If the agent intent had not matched a known risk pattern, the action would have been permitted.',
+    'filtered': 'If the PII scrubbing module was disabled, the sensitive data would have reached the upstream provider.',
+    'suspended': 'If the anomaly detector (S14) thresholds were higher, the agent would still be operational.',
+  };
+
+  /**
+   * Generates a regulatory-compliant explanation including counterfactual analysis.
+   */
   static async generateExplanation(tenantId: string, certificateId: string) {
     const supabase = createAdminClient();
     
-    // First check if an explanation already exists to save costs
-    const existing = await this.getExplanation(tenantId, certificateId);
-    if (existing) return existing;
-
-    // Retrieve the raw cryptographic ledger record
+    // 1. Retrieve the raw cryptographic ledger record
     const { data: event } = await supabase.from('audit_events')
       .select('*')
       .eq('request_id', certificateId)
@@ -32,49 +37,70 @@ export class ExplainabilityService {
 
     if (!event) throw new Error('Certificate not found in immutable ledger.');
 
+    // 2. Fetch regulatory context mapping for the module
+    const { data: regMap } = await supabase
+      .from('explainability_regulatory_map')
+      .select('framework, requirement_code, explanation_template')
+      .eq('module_code', event.module || 'core')
+      .limit(1)
+      .single();
+
+    // 3. Formulate Counterfactual ("What if?")
+    let counterfactual = 'No significant deviations simulated.';
+    if (event.event_type.includes('block') || event.event_type.includes('conflict')) {
+      counterfactual = this.COUNTERFACTUAL_TEMPLATES['blocked'];
+    } else if (event.event_type.includes('anomaly')) {
+      counterfactual = this.COUNTERFACTUAL_TEMPLATES['suspended'];
+    }
+
     let summary = '';
     let causalFactors: string[] = [];
-    let regulatoryMapping = { "EU_AI_Act": "Compliant", "Reason": "Transparency baseline met." };
-
-    // In a live production environment we use OpenAI to parse the payload payload.
-    // Assuming process.env.OPENAI_API_KEY exists. 
+    
     try {
-        if (process.env.OPENAI_API_KEY) {
-            const openai = new OpenAI();
-            const prompt = `
-            Analyze the following agent execution telemetry and provide a regulatory-compliant explanation of its logic, 
-            focusing on causality and decision formulation. Format as JSON.
-            Payload: ${JSON.stringify(event.payload)}
-            Expected JSON: { "summary": "Text", "factors": ["Factor 1", "Factor 2"] }
-            `;
-            
-            const completion = await openai.chat.completions.create({
-                model: 'gpt-4o-mini',
-                response_format: { type: "json_object" },
-                messages: [{ role: 'system', content: prompt }]
-            });
+      if (process.env.OPENAI_API_KEY) {
+        const openai = new OpenAI();
+        const prompt = `
+        Analyze this AI governance event for a regulatory audit under ${regMap?.framework || 'General AI Ethics'}.
+        Requirement: ${regMap?.requirement_code || 'Transparency'}.
+        Event: ${event.event_type}
+        Payload: ${JSON.stringify(event.payload)}
+        
+        Provide a JSON response with:
+        {
+          "summary": "Plain language explanation of why the AI behaved this way",
+          "factors": ["List of core decision drivers"],
+          "causality_chain": "Step-by-step logic flow"
+        }`;
+        
+        const completion = await openai.chat.completions.create({
+          model: 'gpt-4o-mini',
+          response_format: { type: "json_object" },
+          messages: [{ role: 'system', content: prompt }]
+        });
 
-            const result = JSON.parse(completion.choices[0].message.content || '{}');
-            summary = result.summary || 'Summary generation failed structurally.';
-            causalFactors = result.factors || ['Context processing', 'Rule evaluation'];
-        } else {
-            // Mock Fallback if no API key is present for the environment
-            summary = `This decision was formulated automatically by the ${event.module || 'system'} module. The agent processed the inputs and adhered to active guardrails to arrive at its conclusion.`;
-            causalFactors = ["Evaluated system prompt constraints", "Matched intent against whitelist"];
-        }
+        const result = JSON.parse(completion.choices[0].message.content || '{}');
+        summary = result.summary || 'Summary generation failed structurally.';
+        causalFactors = result.factors || ['Context processing'];
+      } else {
+        summary = regMap?.explanation_template || `Decision formulated by ${event.module} based on active security policy.`;
+        causalFactors = ['Policy evaluation', 'Input sanitization'];
+      }
     } catch (e) {
-        console.warn('Explainability LLM call failed, falling back to basic templating.');
-        summary = "An error occurred while generating the highly-complex explanation map. The record is intact.";
-        causalFactors = ["System fault during explanation parsing"];
+      summary = 'Manual audit required. Automated explanation engine encountered a processing error.';
+      causalFactors = ['System error'];
     }
 
     const { data: newExpl } = await supabase.from('certificate_explanations').insert({
-        tenant_id: tenantId,
-        certificate_id: certificateId,
-        decision_summary: summary,
-        causal_factors: causalFactors,
-        regulatory_mapping: regulatoryMapping,
-        model_used: process.env.OPENAI_API_KEY ? 'gpt-4o-mini' : 'fallback-template'
+      tenant_id: tenantId,
+      certificate_id: certificateId,
+      decision_summary: summary,
+      causal_factors: causalFactors,
+      counterfactual_analysis: counterfactual,
+      regulatory_mapping: {
+        framework: regMap?.framework || 'Internal Governance',
+        requirement: regMap?.requirement_code || 'Standard'
+      },
+      model_used: process.env.OPENAI_API_KEY ? 'gpt-4o-mini' : 'deterministic-template'
     }).select().single();
 
     return newExpl;

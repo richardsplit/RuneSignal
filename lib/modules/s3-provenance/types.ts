@@ -1,5 +1,5 @@
 export interface CertifyRequest {
-  provider: 'openai' | 'anthropic' | 'azure';
+  provider: 'openai' | 'anthropic' | 'azure' | 'system';
   model: string;
   model_version?: string;
   system_prompt?: string;

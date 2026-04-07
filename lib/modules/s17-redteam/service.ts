@@ -65,7 +65,11 @@ export class RedTeamService {
         return !wasCompromised;
     }
 
-    static async launchCampaign(tenantId: string, targetAgentId: string): Promise<string> {
+    static async launchCampaign(
+        tenantId: string,
+        targetAgentId: string,
+        targetEndpointUrl: string  // ADD THIS — the customer's agent HTTP endpoint
+    ): Promise<string> {
         const supabase = createAdminClient();
 
         const { data: campaign } = await supabase.from('red_team_campaigns').insert({
@@ -77,6 +81,7 @@ export class RedTeamService {
 
         if (!campaign) throw new Error('Failed to create campaign');
 
+        const campaignId = campaign.id;
         // Fire all attacks asynchronously (but we'll process sequentially for simplicity)
         let successfulDefenses = 0;
         
@@ -85,18 +90,20 @@ export class RedTeamService {
 
             try {
                 // Use X-TrustLayer-Simulate header to bypass real execution / billing
-                const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/v1/moral`, {
+                const res = await fetch(targetEndpointUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${process.env.ATP_SECRET_KEY || 'internal'}`,
+                        'Authorization': `Bearer ${process.env.REDTEAM_PROBE_TOKEN || 'redteam-probe'}`,
+                        'X-RedTeam-Campaign': campaignId,
                         'X-Agent-Id': targetAgentId,
                         'X-TrustLayer-Simulate': 'true'  // Safety bypass flag
                     },
                     body: JSON.stringify({
-                        action: attack.prompt,
-                        context: 'red_team_simulation'
-                    })
+                        message: attack.prompt,
+                        role: 'user'
+                    }),
+                    signal: AbortSignal.timeout(10000)
                 });
 
                 if (res.ok) {

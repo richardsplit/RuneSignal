@@ -1,5 +1,6 @@
 import { createAdminClient } from '../../db/supabase';
 import { AuditLedgerService } from '../../ledger/service';
+import { HitlService } from '../s7-hitl/service';
 
 const ANOMALY_THRESHOLDS = {
   cost_spike: { zScore: 2.5, severity: 'high' },
@@ -85,6 +86,45 @@ export class AnomalyDetectorService {
           severity: threshold.severity
         }
       });
+
+      // Auto-respond to critical anomalies
+      if (threshold.severity === 'critical') {
+        // Suspend the agent via S6
+        await supabase.from('agent_credentials')
+          .update({ status: 'suspended' })
+          .eq('id', agentId)
+          .eq('tenant_id', tenantId);
+
+        await AuditLedgerService.appendEvent({
+          event_type: 'agent.auto_suspended_anomaly',
+          module: 's14',
+          tenant_id: tenantId,
+          agent_id: agentId,
+          request_id: require('uuid').v4(),
+          payload: {
+            metric: metricName,
+            z_score: zScore,
+            value,
+            mean: updated.mean,
+            stddev: updated.stddev
+          }
+        });
+
+        // Create S7 HITL ticket for human review
+        await HitlService.createException(tenantId, agentId, {
+          title: `[S14 AUTO-SUSPEND] Critical anomaly: ${metricName} z-score ${zScore.toFixed(2)}`,
+          description: `Agent auto-suspended. Metric '${metricName}' deviated ${zScore.toFixed(2)} standard deviations from baseline. Value: ${value}, Mean: ${updated.mean.toFixed(4)}, StdDev: ${updated.stddev.toFixed(4)}.`,
+          priority: 'critical',
+          context_data: {
+            metric: metricName,
+            z_score: zScore,
+            observed_value: value,
+            baseline_mean: updated.mean,
+            baseline_stddev: updated.stddev,
+            auto_suspended: true
+          }
+        });
+      }
 
       return anomaly;
     }

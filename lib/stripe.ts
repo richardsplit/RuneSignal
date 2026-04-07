@@ -1,6 +1,6 @@
 import Stripe from 'stripe';
 
-const apiKey = process.env.STRIPE_SECRET_KEY || 'sk_test_1234567890';
+const apiKey = process.env.STRIPE_SECRET_KEY || '';
 
 export const stripe = new Stripe(apiKey, {
   apiVersion: '2025-01-27.acacia' as any,

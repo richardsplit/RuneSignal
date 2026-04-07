@@ -86,6 +86,37 @@ export async function middleware(request: NextRequest) {
       supabase.rpc('increment_api_usage', { t_id: apiKeyTenantId }).then(({ error }) => {
         if (error) console.error('Usage Tracking Error:', error.message);
       });
+
+      const PLAN_LIMITS: Record<string, number> = {
+        free: 1000,
+        starter: 50000,
+        pro: 500000,
+        enterprise: Infinity,
+        past_due: 0,
+      };
+
+      // Check plan limits (non-blocking read, cached for 60s via Supabase)
+      const { data: tenantUsage } = await supabase
+        .from('tenants')
+        .select('plan_tier, api_requests_monthly')
+        .eq('id', apiKeyTenantId)
+        .single();
+
+      if (tenantUsage) {
+        const limit = PLAN_LIMITS[tenantUsage.plan_tier || 'free'] ?? 1000;
+        if ((tenantUsage.api_requests_monthly || 0) >= limit) {
+          return NextResponse.json(
+            {
+              error: 'Monthly API limit reached',
+              plan: tenantUsage.plan_tier,
+              limit,
+              used: tenantUsage.api_requests_monthly,
+              upgrade_url: `${request.nextUrl.origin}/billing`
+            },
+            { status: 429 }
+          );
+        }
+      }
     }
   }
 

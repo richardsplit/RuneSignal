@@ -43,12 +43,21 @@ export class FinOpsService {
 
     // Optionally check if expected cost surpasses remaining
     const rates = MODEL_PRICING[model] || MODEL_PRICING['default'];
-    // In pre-execution we don't know the exact split of input/output tokens, estimating half and half
-    const expectedCost = (estimatedTokens / 1000) * ((rates.input + rates.output) / 2);
+    // Conservative estimate: assume output-heavy (worst case cost)
+    const expectedCost = (estimatedTokens / 1000) * rates.output;
 
-    if (minRemaining - expectedCost <= 0) {
-       // Only block if we expect to surpass? The prompt focuses on simple checks
-       // Return allowed but close
+    // Block if the expected cost would exceed remaining budget on any hard-block budget
+    const wouldExceed = budgets?.some(
+      (b: any) => b.hard_block && (Number(b.budget_usd) - Number(b.spent_usd)) < expectedCost
+    );
+
+    if (wouldExceed) {
+      return {
+        allowed: false,
+        remainingUsd: minRemaining,
+        pctUsed: maxPctUsed,
+        reason: `Pre-execution budget check failed. Expected cost $${expectedCost.toFixed(4)} exceeds remaining budget $${minRemaining.toFixed(4)}.`
+      };
     }
 
     return { allowed: true, remainingUsd: minRemaining, pctUsed: maxPctUsed };

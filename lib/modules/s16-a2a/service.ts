@@ -1,6 +1,8 @@
 import { createAdminClient } from '../../db/supabase';
 import { AuditLedgerService } from '../../ledger/service';
 import crypto from 'crypto';
+import { ArbiterService } from '../s1-conflict/service';
+import { ConscienceEngine } from '../s8-moralos/conscience';
 
 export class A2AGatewayService {
     
@@ -61,13 +63,61 @@ export class A2AGatewayService {
         const hasResponder = sigs?.some(s => s.agent_id === handshake.responder_id);
 
         if (hasInitiator && hasResponder) {
-            await supabase.from('a2a_handshakes').update({ status: 'accepted', updated_at: new Date().toISOString() }).eq('id', handshakeId);
+            // 1. S1 Conflict check — does this task conflict with any active intent?
+            const arbiterResult = await ArbiterService.mediateIntent(
+              tenantId,
+              handshake.initiator_id,
+              {
+                intent_description: `A2A Task: ${JSON.stringify(handshake.terms_payload).slice(0, 200)}`,
+                metadata: { handshake_id: handshakeId, a2a: true }
+              }
+            );
+
+            if (arbiterResult.decision === 'block') {
+              await supabase.from('a2a_handshakes')
+                .update({ status: 'governance_blocked', updated_at: new Date().toISOString() })
+                .eq('id', handshakeId);
+
+              await AuditLedgerService.appendEvent({
+                event_type: 'a2a.handshake.blocked_by_s1',
+                module: 's16',
+                tenant_id: tenantId,
+                agent_id: handshake.initiator_id,
+                payload: { handshake_id: handshakeId, reason: arbiterResult.reason }
+              });
+              return { status: 'blocked', reason: `S1 Arbiter: ${arbiterResult.reason}` };
+            }
+
+            // 2. S8 SOUL check — does this task violate the Corporate SOUL?
+            let soulVerdict: any = { verdict: 'clear' };
+            try {
+              soulVerdict = await ConscienceEngine.evaluate(tenantId, {
+                agent_id: handshake.initiator_id,
+                action_description: `A2A task delegation: ${JSON.stringify(handshake.terms_payload).slice(0, 200)}`,
+                domain: 'ops',
+                action_metadata: { handshake_id: handshakeId, responder: handshake.responder_id }
+              });
+            } catch {
+              // No SOUL configured — proceed (evaluate() already returns 'clear' when no SOUL exists)
+            }
+
+            if (soulVerdict.verdict === 'block') {
+              await supabase.from('a2a_handshakes')
+                .update({ status: 'governance_blocked', updated_at: new Date().toISOString() })
+                .eq('id', handshakeId);
+              return { status: 'blocked', reason: `S8 SOUL: ${soulVerdict.conflict_reason}` };
+            }
+
+            // All governance checks passed — finalise the handshake
+            await supabase.from('a2a_handshakes')
+              .update({ status: 'accepted', updated_at: new Date().toISOString() })
+              .eq('id', handshakeId);
             
             await AuditLedgerService.appendEvent({
                 event_type: 'a2a.handshake.accepted',
                 module: 's16',
                 tenant_id: tenantId,
-                agent_id: 'S16_ESCROW_NODE',
+                agent_id: handshake.initiator_id,
                 payload: {
                     handshake_id: handshakeId,
                     initiator: handshake.initiator_id,

@@ -47,11 +47,41 @@ export class ATPClient {
     tags?: string[];
     applicationId?: string;
     system?: string;
+    dataClassification?: string; // ADD THIS
   }): Promise<ProvenanceResponse> {
     const startTime = Date.now();
     let completionText = '';
     let inputTokens = 0;
     let outputTokens = 0;
+
+    // 0. S10 Data Residency check — Only run for non-PUBLIC data
+    if (params.dataClassification && params.dataClassification !== 'PUBLIC') {
+      const residencyRes = await fetch(`${this.atpEndpoint}/api/v1/sovereign/validate`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json', 
+          'Authorization': `Bearer ${this.atpKey}`,
+          'X-Agent-Id': this.agentId || 'none'
+        },
+        body: JSON.stringify({
+          provider: this.provider,
+          model: params.model,
+          data_classification: params.dataClassification
+        })
+      });
+      
+      const residencyData = await residencyRes.json();
+      if (!residencyRes.ok) {
+        console.warn(`[TrustLayer S10] Data residency violation: ${residencyData.violation_reason}`);
+        if (residencyData.alternative_provider) {
+          console.info(`[TrustLayer S10] Suggested compliant alternative: ${residencyData.alternative_provider.provider}/${residencyData.alternative_provider.model}`);
+        }
+        // Throw if hard-blocked (451), warn and continue otherwise
+        if (residencyRes.status === 451) {
+          throw new Error(`Data residency policy violation: ${residencyData.violation_reason}`);
+        }
+      }
+    }
 
     // 1. FinOps Pre-execution check
     const estimatedTokens = params.messages.reduce((acc, m) => acc + (m.content?.length || 0) / 4, 0) + 1000;

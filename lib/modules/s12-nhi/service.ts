@@ -2,8 +2,89 @@ import { createAdminClient } from '../../db/supabase';
 import { CertificateService } from '../s3-provenance/certificate';
 import { AuditLedgerService } from '../../ledger/service';
 import { v4 as uuidv4 } from 'uuid';
+import crypto from 'crypto';
 
 export class NHIService {
+
+  /**
+   * Issues a time-bounded ephemeral credential for a child agent.
+   * Enforces a maximum delegation depth of 3 to prevent runaway spawning chains.
+   */
+  static async issueEphemeral(
+    tenantId: string,
+    parentAgentId: string,
+    purpose: string,
+    maxMinutes: number = 60,
+    scopes: string[] = ['read']
+  ): Promise<{ api_key: string; key_id: string; expires_at: string }> {
+    const supabase = createAdminClient();
+
+    // Check parent's delegation depth
+    const { data: parentKey } = await supabase
+      .from('api_keys')
+      .select('delegation_depth')
+      .eq('agent_id', parentAgentId)
+      .eq('is_active', true)
+      .single();
+
+    const parentDepth = parentKey?.delegation_depth || 0;
+    if (parentDepth >= 3) {
+      throw new Error(`Delegation depth limit reached (3). Agent ${parentAgentId} cannot spawn further sub-agents.`);
+    }
+
+    // Generate the ephemeral key
+    const rawKey = `tl_eph_${uuidv4().replace(/-/g, '')}`;
+    const keyHash = crypto.createHash('sha256').update(rawKey).digest('hex');
+
+    const expiresAt = new Date(Date.now() + maxMinutes * 60 * 1000);
+
+    const { data: newKey, error } = await supabase.from('api_keys').insert({
+      tenant_id: tenantId,
+      agent_id: parentAgentId,
+      key_hash: keyHash,
+      key_prefix: rawKey.substring(0, 12),
+      name: `Ephemeral: ${purpose}`,
+      scopes,
+      is_active: true,
+      expires_at: expiresAt.toISOString(),
+      parent_agent_id: parentAgentId,
+      delegation_depth: parentDepth + 1
+    }).select().single();
+
+    if (error) throw new Error(`Failed to issue ephemeral credential: ${error.message}`);
+
+    // Record in spawn graph
+    await supabase.from('agent_spawn_graph').insert({
+      tenant_id: tenantId,
+      parent_agent_id: parentAgentId,
+      child_key_id: newKey.id,
+      purpose,
+      max_minutes: maxMinutes,
+      delegation_depth: parentDepth + 1,
+      expires_at: expiresAt.toISOString()
+    });
+
+    await AuditLedgerService.appendEvent({
+      event_type: 'nhi.ephemeral_issued',
+      module: 's12',
+      tenant_id: tenantId,
+      agent_id: parentAgentId,
+      request_id: uuidv4(),
+      payload: {
+        purpose,
+        max_minutes: maxMinutes,
+        delegation_depth: parentDepth + 1,
+        expires_at: expiresAt.toISOString()
+      }
+    });
+
+    // Return the plaintext key ONCE — it is never stored in plaintext
+    return {
+      api_key: rawKey,
+      key_id: newKey.id,
+      expires_at: expiresAt.toISOString()
+    };
+  }
 
   /**
    * Fetches all API keys for a tenant, calculating their time-to-live.

@@ -7,12 +7,17 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { target_agent_id } = body;
+    const { target_agent_id, target_endpoint_url } = body;
 
-    if (!target_agent_id) return NextResponse.json({ error: 'target_agent_id required' }, { status: 400 });
+    if (!target_agent_id || !target_endpoint_url) {
+      return NextResponse.json(
+        { error: 'target_agent_id and target_endpoint_url are required' },
+        { status: 400 }
+      );
+    }
 
     // Launch campaign asynchronously — respond immediately with campaign ID
-    const campaignId = await RedTeamService.launchCampaign(tenantId, target_agent_id);
+    const campaignId = await RedTeamService.launchCampaign(tenantId, target_agent_id, target_endpoint_url);
 
     return NextResponse.json({ success: true, campaign_id: campaignId });
   } catch (error: unknown) {

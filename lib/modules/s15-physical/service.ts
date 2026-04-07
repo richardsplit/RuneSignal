@@ -1,6 +1,7 @@
 import { createAdminClient } from '../../db/supabase';
 import { NHIService } from '../s12-nhi/service';
 import { AuditLedgerService } from '../../ledger/service';
+import { ConscienceEngine } from '../s8-moralos/conscience';
 
 export interface KineticVector {
   velocity_ms: number;
@@ -28,6 +29,37 @@ export class PhysicalAIService {
 
     if (policy.is_estop_active) {
         return { allowed: false, reason: 'E-STOP_ENGAGED - All kinetic actuation is hard-locked.' };
+    }
+
+    // S8 SOUL check — does the Corporate SOUL permit this physical action?
+    const nodes: any = policy.hardware_nodes;
+    const nodeOwnerId = nodes?.nhi_agent_id || nodeId;
+    const tenantId = nodes?.tenant_id || '';
+
+    try {
+      const soulVerdict = await ConscienceEngine.evaluate(
+        tenantId,
+        {
+          agent_id: nodeOwnerId,
+          action_description: `Physical movement: velocity ${requestedVector.velocity_ms}m/s ${requestedVector.lat ? `to (${requestedVector.lat},${requestedVector.lon})` : ''}`,
+          domain: 'security',
+          action_metadata: {
+            velocity_ms: requestedVector.velocity_ms,
+            lat: requestedVector.lat,
+            lon: requestedVector.lon,
+            node_id: nodeId
+          }
+        }
+      );
+
+      if (soulVerdict.verdict === 'block') {
+        return {
+          allowed: false,
+          reason: `SOUL_BLOCK: ${soulVerdict.conflict_reason || 'Corporate SOUL prohibits this physical action'}`
+        };
+      }
+    } catch {
+      // No SOUL configured for this tenant — proceed with kinetic-only validation
     }
 
     if (requestedVector.velocity_ms > (policy.max_velocity_ms || 0)) {
