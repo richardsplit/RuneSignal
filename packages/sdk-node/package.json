@@ -1,0 +1,34 @@
+{
+  "name": "@trustlayer/sdk",
+  "version": "1.0.0",
+  "description": "Official Node.js SDK for TrustLayer — AI Agent Action Firewall for Enterprise Systems",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts --clean",
+    "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": ["trustlayer", "ai", "governance", "firewall", "agent", "policy", "audit"],
+  "author": "TrustLayer",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "devDependencies": {
+    "tsup": "^8.0.0",
+    "typescript": "^5.0.0"
+  },
+  "peerDependencies": {
+    "node": ">=18.0.0"
+  }
+}

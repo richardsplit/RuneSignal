@@ -1,6 +1,7 @@
 import { createAdminClient } from '../db/supabase';
 import { getLedgerSigner } from './signer';
 import { v4 as uuidv4 } from 'uuid';
+import { SIEMExporter } from '../integrations/siem/exporter';
 
 export interface AuditEventInput {
   event_type: string;
@@ -48,6 +49,14 @@ export class AuditLedgerService {
       console.error('Failed to append to audit ledger:', error);
       throw new Error('Audit Ledger violation: Failed to append event.');
     }
+
+    // Non-blocking SIEM push — fire-and-forget, never blocks the ledger write
+    SIEMExporter.exportEvents(input.tenant_id, {
+      since: new Date(Date.now() - 10 * 1000).toISOString(), // last 10s window
+      limit: 50,
+    }).catch(err => {
+      console.warn('[SIEM] Non-blocking push failed:', err?.message);
+    });
 
     return data;
   }

@@ -11,6 +11,7 @@ export default function Sidebar() {
   const navItems = [
     // Core
     { name: 'Overview', href: '/', group: 'Core' },
+    { name: '🛡️ Action Firewall', href: '/firewall', group: 'Core' },
     { name: 'S3 Provenance', href: '/provenance', group: 'Core' },
     { name: 'S6 Identity', href: '/identity', group: 'Core' },
     { name: 'S1 Conflict', href: '/conflict', group: 'Core' },
@@ -20,9 +21,11 @@ export default function Sidebar() {
     // Intelligence & Compliance
     { name: 'S11 Explainability', href: '/explain', group: 'Intel' },
     { name: 'S13 Governance', href: '/compliance', group: 'Intel' },
+    { name: '📋 Compliance Reports', href: '/compliance/reports', group: 'Intel' },
     { name: 'S14 Anomaly Detector', href: '/anomaly', group: 'Intel' },
     // Operations
     { name: 'S9 FinOps', href: '/finops', group: 'Ops' },
+    { name: '📊 Risk Analytics', href: '/insurance/analytics', group: 'Ops' },
     { name: 'S10 Sovereign Export', href: '/account-settings', group: 'Ops' },
     { name: 'S12 NHI Lifecycle', href: '/nhi', group: 'Ops' },
     // Advanced
@@ -31,7 +34,10 @@ export default function Sidebar() {
     { name: 'S17 Red Teaming', href: '/red-team', group: 'Advanced' },
     // Platform
     { name: 'API Documentation', href: '/documentation', group: 'Platform' },
+    { name: '🚀 Quickstart', href: '/documentation/quickstart', group: 'Platform' },
     { name: 'Billing & Usage', href: '/billing', group: 'Platform' },
+    { name: 'SSO Settings', href: '/account-settings/sso', group: 'Platform' },
+    { name: 'Integrations', href: '/account-settings/integrations', group: 'Platform' },
   ];
 
   return (

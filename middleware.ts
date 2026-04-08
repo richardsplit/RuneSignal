@@ -78,7 +78,7 @@ export async function middleware(request: NextRequest) {
   // 2.3 Usage Tracking & Metering (Phase 3)
   // Increment API call counts for billable governance routes
   if (apiKeyTenantId && url.startsWith('/api/v1')) {
-    const billableRoutes = ['/api/v1/provenance', '/api/v1/intent', '/api/v1/moral', '/api/v1/verify', '/api/v1/enforce'];
+    const billableRoutes = ['/api/v1/provenance', '/api/v1/intent', '/api/v1/moral', '/api/v1/verify', '/api/v1/enforce', '/api/v1/firewall'];
     const isBillable = billableRoutes.some(route => url.startsWith(route));
     
     if (isBillable) {
@@ -179,7 +179,7 @@ export async function middleware(request: NextRequest) {
   // 5. Agent-only /api/v1 Authorization (Scoped to sensitive agent-only routes)
   // This part still allows legacy agent auth via headers if it's an agent API call.
   if (url.startsWith('/api/v1/')) {
-    const sensitiveAgentRoutes = ['/api/v1/provenance/certify', '/api/v1/intent', '/api/v1/enforce/tool-call', '/api/v1/moral/evaluate'];
+    const sensitiveAgentRoutes = ['/api/v1/provenance/certify', '/api/v1/intent', '/api/v1/enforce/tool-call', '/api/v1/moral/evaluate', '/api/v1/firewall/evaluate'];
     const isSensitive = sensitiveAgentRoutes.some(route => url.startsWith(route));
 
     // Agent calls use Service Role or specific Agent keys (simplified for now to check headers)
