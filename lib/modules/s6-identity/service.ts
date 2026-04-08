@@ -152,4 +152,143 @@ export class IdentityService {
     if (error || !data) return 'unknown';
     return data.status as any;
   }
+
+  /**
+   * Returns full agent details including permission scopes and risk profile.
+   */
+  static async getAgentDetail(agentId: string, tenantId: string): Promise<{ agent: AgentCredential; scopes: PermissionScope[]; risk_score: number | null } | null> {
+    const supabase = createAdminClient();
+
+    const { data: agent, error: agentError } = await supabase
+      .from('agent_credentials')
+      .select('*')
+      .eq('id', agentId)
+      .eq('tenant_id', tenantId)
+      .single();
+
+    if (agentError || !agent) return null;
+
+    const { data: scopes } = await supabase
+      .from('permission_scopes')
+      .select('*')
+      .eq('agent_id', agentId);
+
+    const { data: riskProfile } = await supabase
+      .from('agent_risk_profiles')
+      .select('risk_score')
+      .eq('agent_id', agentId)
+      .single();
+
+    return {
+      agent,
+      scopes: scopes || [],
+      risk_score: riskProfile?.risk_score ?? null,
+    };
+  }
+
+  /**
+   * Suspends an active agent, preventing further action execution.
+   */
+  static async suspendAgent(agentId: string, tenantId: string, reason: string): Promise<void> {
+    const supabase = createAdminClient();
+
+    const { error } = await supabase
+      .from('agent_credentials')
+      .update({ status: 'suspended', metadata: supabase.rpc as any })
+      .eq('id', agentId)
+      .eq('tenant_id', tenantId);
+
+    // Simple update — metadata merge handled below
+    await supabase
+      .from('agent_credentials')
+      .update({ status: 'suspended' })
+      .eq('id', agentId)
+      .eq('tenant_id', tenantId);
+
+    await AuditLedgerService.appendEvent({
+      event_type: 'agent.suspended',
+      module: 's6',
+      tenant_id: tenantId,
+      agent_id: agentId,
+      request_id: uuidv4(),
+      payload: { reason, status: 'suspended' },
+    });
+  }
+
+  /**
+   * Reactivates a previously suspended agent.
+   */
+  static async reactivateAgent(agentId: string, tenantId: string): Promise<void> {
+    await createAdminClient()
+      .from('agent_credentials')
+      .update({ status: 'active' })
+      .eq('id', agentId)
+      .eq('tenant_id', tenantId);
+
+    await AuditLedgerService.appendEvent({
+      event_type: 'agent.reactivated',
+      module: 's6',
+      tenant_id: tenantId,
+      agent_id: agentId,
+      request_id: uuidv4(),
+      payload: { status: 'active' },
+    });
+  }
+
+  /**
+   * Revokes an agent permanently (status = 'revoked').
+   */
+  static async revokeAgent(agentId: string, tenantId: string, reason: string): Promise<void> {
+    await createAdminClient()
+      .from('agent_credentials')
+      .update({ status: 'revoked' })
+      .eq('id', agentId)
+      .eq('tenant_id', tenantId);
+
+    await AuditLedgerService.appendEvent({
+      event_type: 'agent.revoked',
+      module: 's6',
+      tenant_id: tenantId,
+      agent_id: agentId,
+      request_id: uuidv4(),
+      payload: { reason, status: 'revoked' },
+    });
+  }
+
+  /**
+   * Rotates the agent JWT token — issues a new token and logs the rotation.
+   */
+  static async rotateAgentToken(agentId: string, tenantId: string): Promise<{ token: string }> {
+    const supabase = createAdminClient();
+
+    // Fetch current agent to extract scopes
+    const { data: agent, error } = await supabase
+      .from('agent_credentials')
+      .select('status')
+      .eq('id', agentId)
+      .eq('tenant_id', tenantId)
+      .single();
+
+    if (error || !agent) throw new Error('Agent not found');
+    if (agent.status !== 'active') throw new Error(`Cannot rotate token for ${agent.status} agent`);
+
+    const { data: scopes } = await supabase
+      .from('permission_scopes')
+      .select('resource, actions')
+      .eq('agent_id', agentId);
+
+    const scopeStrings = (scopes || []).map(s => `${s.resource}:${(s.actions as string[]).join(',')}`);
+    const token = await JwtHandler.generateAgentToken(agentId, tenantId, scopeStrings);
+
+    await AuditLedgerService.appendEvent({
+      event_type: 'agent.token_rotated',
+      module: 's6',
+      tenant_id: tenantId,
+      agent_id: agentId,
+      request_id: uuidv4(),
+      payload: { scope_count: scopeStrings.length },
+    });
+
+    return { token };
+  }
 }

@@ -1,6 +1,7 @@
 import { createAdminClient } from '../../db/supabase';
 import { AuditLedgerService } from '../../ledger/service';
 import { WebhookEmitter } from '../../webhooks/emitter';
+import { IntegrationDispatcher } from '../../integrations/dispatcher';
 import { CreateExceptionRequest, ExceptionTicket, ResolveExceptionRequest } from './types';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -57,6 +58,36 @@ export class HitlService {
       TicketID: ticketId
     });
 
+    // Dispatch to integration channels (Slack, Teams, Jira, ServiceNow)
+    // Fire-and-forget — don't block ticket creation on integration success
+    IntegrationDispatcher.dispatchHitlCreated(tenantId, {
+      id: ticketId,
+      tenant_id: tenantId,
+      agent_id: agentId,
+      title: request.title,
+      description: request.description,
+      priority: priority as 'critical' | 'high' | 'medium' | 'low',
+      status: 'open',
+      context_data: request.context_data || {},
+      sla_deadline: slaDeadline.toISOString(),
+      created_at: new Date().toISOString(),
+    }).then(async (dispatchResults) => {
+      // Store external refs from all successful dispatches
+      const externalRefs: Record<string, unknown> = {};
+      for (const result of dispatchResults) {
+        if (result.success && result.external_ref) {
+          externalRefs[result.provider] = result.external_ref;
+        }
+      }
+      if (Object.keys(externalRefs).length > 0) {
+        const supabase = createAdminClient();
+        await supabase
+          .from('hitl_exceptions')
+          .update({ external_refs: externalRefs })
+          .eq('id', ticketId);
+      }
+    }).catch(e => console.error('[HITL] Integration dispatch failed:', e));
+
     return ticket;
   }
 
@@ -106,6 +137,21 @@ export class HitlService {
     await WebhookEmitter.notifyTenant(tenantId, `✅ HITL Resolved: ${ticketId.split('-')[0]} was ${newStatus.toUpperCase()}`, {
       Reason: request.reason
     });
+
+    // Dispatch resolution to integration channels (update Slack message, transition Jira, etc.)
+    IntegrationDispatcher.dispatchHitlResolved(tenantId, {
+      id: ticketId,
+      tenant_id: tenantId,
+      agent_id: currentTicket.agent_id,
+      title: updatedTicket.title || ticketId,
+      description: updatedTicket.description || '',
+      priority: updatedTicket.priority || 'medium',
+      status: newStatus,
+      context_data: updatedTicket.context_data || {},
+      sla_deadline: updatedTicket.sla_deadline || '',
+      created_at: updatedTicket.created_at || '',
+      external_refs: updatedTicket.external_refs || {},
+    } as any).catch(e => console.error('[HITL] Resolved dispatch failed:', e));
 
     // 2. Mock Training Pipeline Webhook (Item 11)
     if (newStatus === 'approved') {

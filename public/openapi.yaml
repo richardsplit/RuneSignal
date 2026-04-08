@@ -1,13 +1,31 @@
 openapi: 3.1.0
 info:
-  title: TrustLayer API Docs
+  title: TrustLayer API
   description: |
-    TrustLayer provides a set of powerful APIs to certify LLM provenance, monitor agent intent, 
-    enforce moral alignment (Corporate SOUL), and manage human-in-the-loop governance.
-    
-    All requests require either a valid User Session (Internal Dashboard) 
-    or a Bearer Token (External Agents).
-  version: 1.0.0
+    **TrustLayer** is the AI Agent Action Firewall for Enterprise Systems.
+
+    Every consequential agent action is evaluated against identity, policy, moral alignment,
+    and risk rules before execution. Ed25519-signed audit certificates provide tamper-evident
+    provenance for every decision.
+
+    ## Authentication
+    All API requests require a Bearer token with prefix `tl_`:
+    ```
+    Authorization: Bearer tl_your_api_key_here
+    ```
+    Generate API keys in **Account Settings → API Keys**.
+
+    ## Tenant Isolation
+    All requests require `X-Tenant-Id` header (or use the session tenant for dashboard calls).
+
+    ## Rate Limits
+    - Starter: 1,000 req/min
+    - Pro: 10,000 req/min
+    - Enterprise: unlimited
+  version: 2.0.0
+  contact:
+    name: TrustLayer Support
+    url: https://trustlayer.com
 servers:
   - url: https://api.trustlayer.com/api/v1
     description: Production API
@@ -27,7 +45,155 @@ components:
         error:
           type: string
           example: "Invalid Request"
-    
+
+    FirewallRequest:
+      type: object
+      required: [action, resource]
+      properties:
+        agent_id:
+          type: string
+          format: uuid
+          description: Agent UUID (overrides X-Agent-Id header)
+        action:
+          type: string
+          example: "create_journal_entry"
+        resource:
+          type: string
+          example: "erp://journal/entries"
+        tool_name:
+          type: string
+          example: "erp_create_journal"
+        description:
+          type: string
+        domain:
+          type: string
+          example: "finance"
+        metadata:
+          type: object
+          additionalProperties: true
+        risk_threshold:
+          type: integer
+          minimum: 0
+          maximum: 100
+          default: 70
+
+    FirewallResponse:
+      type: object
+      properties:
+        evaluation_id:
+          type: string
+          format: uuid
+        verdict:
+          type: string
+          enum: [allow, block, escalate]
+        risk_score:
+          type: integer
+          minimum: 0
+          maximum: 100
+        checks:
+          type: array
+          items:
+            type: object
+            properties:
+              module:
+                type: string
+              passed:
+                type: boolean
+              score:
+                type: integer
+              message:
+                type: string
+                nullable: true
+        reasons:
+          type: array
+          items:
+            type: string
+        certificate_id:
+          type: string
+          format: uuid
+          nullable: true
+        hitl_ticket_id:
+          type: string
+          format: uuid
+          nullable: true
+        latency_ms:
+          type: integer
+
+    Agent:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        model:
+          type: string
+        status:
+          type: string
+          enum: [active, suspended, revoked]
+        permissions:
+          type: array
+          items:
+            type: string
+        created_at:
+          type: string
+          format: date-time
+
+    HitlTicket:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        priority:
+          type: string
+          enum: [low, medium, high, critical]
+        status:
+          type: string
+          enum: [pending, approved, rejected, expired]
+        agent_id:
+          type: string
+          format: uuid
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        resolved_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    ProvenanceCertificate:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        agent_id:
+          type: string
+          format: uuid
+        action:
+          type: string
+        resource:
+          type: string
+          nullable: true
+        outcome:
+          type: string
+        signature:
+          type: string
+          description: Ed25519 signature (hex-encoded)
+        created_at:
+          type: string
+          format: date-time
+
     MoralVerdict:
       type: object
       properties:
@@ -131,12 +297,804 @@ paths:
               schema:
                 $ref: '#/components/schemas/MoralVerdict'
 
+  /firewall/evaluate:
+    post:
+      summary: Evaluate Agent Action
+      description: |
+        The core TrustLayer firewall endpoint. Chains identity → policy + moral (parallel) →
+        risk → HITL auto-escalation. Returns a composite verdict in <500ms p95.
+
+        **Verdicts:**
+        - `allow` — action is safe to proceed
+        - `block` — action is blocked by policy or identity check
+        - `escalate` — action requires human approval (HITL ticket created automatically)
+      tags: [Firewall]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: X-Tenant-Id
+          in: header
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: X-Agent-Id
+          in: header
+          required: false
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FirewallRequest'
+            example:
+              action: create_journal_entry
+              resource: "erp://journal/entries"
+              domain: finance
+              description: "Post $12,500 invoice from Acme Corp"
+              metadata:
+                amount: 12500
+                currency: USD
+              risk_threshold: 70
+      responses:
+        '200':
+          description: Action allowed or escalated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FirewallResponse'
+        '403':
+          description: Action blocked
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FirewallResponse'
+        '401':
+          description: Missing authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /agents/register:
+    post:
+      summary: Register Agent
+      description: Registers a new AI agent and issues a JWT identity token.
+      tags: [Agents]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: X-Tenant-Id
+          in: header
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, permissions]
+              properties:
+                name:
+                  type: string
+                  example: "Invoice Processor v2"
+                description:
+                  type: string
+                model:
+                  type: string
+                  example: "gpt-4o"
+                permissions:
+                  type: array
+                  items:
+                    type: string
+                  example: ["finance:read", "finance:write"]
+                metadata:
+                  type: object
+                  additionalProperties: true
+      responses:
+        '201':
+          description: Agent registered
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Agent'
+                  - type: object
+                    properties:
+                      token:
+                        type: string
+                        description: JWT bearer token for agent (shown once)
+
+  /agents/{id}:
+    get:
+      summary: Get Agent Detail
+      tags: [Agents]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: X-Tenant-Id
+          in: header
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Agent detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Agent'
+    patch:
+      summary: Update Agent
+      tags: [Agents]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: X-Tenant-Id
+          in: header
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                action:
+                  type: string
+                  enum: [suspend, reactivate]
+                  description: Status transition
+                reason:
+                  type: string
+      responses:
+        '200':
+          description: Agent updated
+    delete:
+      summary: Revoke Agent
+      tags: [Agents]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: X-Tenant-Id
+          in: header
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Agent revoked
+
+  /agents/{id}/rotate:
+    post:
+      summary: Rotate Agent Token
+      description: Revokes the current JWT and issues a new one.
+      tags: [Agents]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: X-Tenant-Id
+          in: header
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: New token issued
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  expires_at:
+                    type: string
+                    format: date-time
+
+  /exceptions:
+    post:
+      summary: Create HITL Exception
+      description: Manually create a human-in-the-loop review ticket.
+      tags: [Exceptions]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: X-Tenant-Id
+          in: header
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, description]
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                priority:
+                  type: string
+                  enum: [low, medium, high, critical]
+                  default: medium
+                agent_id:
+                  type: string
+                  format: uuid
+      responses:
+        '201':
+          description: Exception created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HitlTicket'
+
+  /exceptions/{id}/resolve:
+    post:
+      summary: Resolve HITL Exception
+      tags: [Exceptions]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: X-Tenant-Id
+          in: header
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [resolution]
+              properties:
+                resolution:
+                  type: string
+                  enum: [approve, reject]
+                note:
+                  type: string
+      responses:
+        '200':
+          description: Exception resolved
+
+  /provenance/certify:
+    post:
+      summary: Certify Action
+      description: Creates an Ed25519-signed provenance certificate for a completed agent action.
+      tags: [Provenance]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: X-Tenant-Id
+          in: header
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action, outcome]
+              properties:
+                agent_id:
+                  type: string
+                  format: uuid
+                action:
+                  type: string
+                resource:
+                  type: string
+                outcome:
+                  type: string
+                  enum: [success, failure, partial]
+                metadata:
+                  type: object
+                  additionalProperties: true
+      responses:
+        '201':
+          description: Certificate created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProvenanceCertificate'
+
+  /provenance/{id}:
+    get:
+      summary: Verify Certificate
+      description: Retrieves and verifies a provenance certificate by ID.
+      tags: [Provenance]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: X-Tenant-Id
+          in: header
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Certificate with verification status
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ProvenanceCertificate'
+                  - type: object
+                    properties:
+                      verified:
+                        type: boolean
+                      verification_error:
+                        type: string
+                        nullable: true
+
+  /policies/packs:
+    get:
+      summary: List Policy Packs
+      description: Returns all available regulatory policy packs with tenant installation status.
+      tags: [PolicyPacks]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: X-Tenant-Id
+          in: header
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of policy packs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  packs:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                        name:
+                          type: string
+                          example: "HIPAA Compliance Pack"
+                        description:
+                          type: string
+                        category:
+                          type: string
+                          enum: [healthcare, financial, privacy, payment, security]
+                        tier_required:
+                          type: string
+                          enum: [starter, pro, enterprise]
+                        policies:
+                          type: array
+                          items:
+                            type: object
+                        installed:
+                          type: boolean
+                        installed_at:
+                          type: string
+                          format: date-time
+                          nullable: true
+    post:
+      summary: Install Policy Pack
+      description: Installs a regulatory policy pack for the tenant.
+      tags: [PolicyPacks]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: X-Tenant-Id
+          in: header
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [pack_id]
+              properties:
+                pack_id:
+                  type: string
+                  format: uuid
+      responses:
+        '201':
+          description: Pack installed
+        '404':
+          description: Pack not found
+
+  /siem/export:
+    get:
+      summary: Pull SIEM Events
+      description: |
+        Pull-based SIEM export. Returns recent audit events in JSON (NDJSON) or CEF format.
+        Compatible with Splunk, QRadar, Elastic SIEM, and Datadog.
+      tags: [SIEM]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: X-Tenant-Id
+          in: header
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [json, cef]
+            default: json
+        - name: since
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: Return events after this timestamp (default last hour)
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 1000
+            maximum: 5000
+        - name: event_types
+          in: query
+          schema:
+            type: string
+          description: Comma-separated event type filter
+      responses:
+        '200':
+          description: Audit events in requested format
+          content:
+            application/x-ndjson:
+              schema:
+                type: string
+            text/plain:
+              schema:
+                type: string
+    post:
+      summary: Push SIEM Events
+      description: Triggers an immediate push to all configured SIEM endpoints.
+      tags: [SIEM]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: X-Tenant-Id
+          in: header
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Push result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  events_exported:
+                    type: integer
+                  endpoints_notified:
+                    type: integer
+                  errors:
+                    type: array
+                    items:
+                      type: string
+
+  /siem/subscribe:
+    get:
+      summary: List SIEM Endpoints
+      tags: [SIEM]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: X-Tenant-Id
+          in: header
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: SIEM endpoint list
+    post:
+      summary: Register SIEM Endpoint
+      description: Registers a push endpoint for real-time event forwarding.
+      tags: [SIEM]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: X-Tenant-Id
+          in: header
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [endpoint_url]
+              properties:
+                name:
+                  type: string
+                endpoint_url:
+                  type: string
+                  format: uri
+                format:
+                  type: string
+                  enum: [json, cef]
+                  default: json
+                auth_header:
+                  type: string
+                  description: "Header:Value pair, e.g. Authorization:Bearer token"
+                event_filter:
+                  type: array
+                  items:
+                    type: string
+                  description: Event type filter (supports wildcards, e.g. agent.*)
+      responses:
+        '201':
+          description: SIEM endpoint registered
+    delete:
+      summary: Remove SIEM Endpoint
+      tags: [SIEM]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: X-Tenant-Id
+          in: header
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Endpoint removed
+
+  /compliance/reports:
+    get:
+      summary: Generate Compliance Report
+      description: |
+        Generates a point-in-time compliance evidence report. Covers audit trail,
+        HITL oversight log, policy violations, signature coverage, and installed policy packs.
+
+        Supported frameworks: SOC 2 Type II, HIPAA, GDPR, PCI-DSS, General.
+      tags: [Compliance]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: X-Tenant-Id
+          in: header
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: framework
+          in: query
+          schema:
+            type: string
+            enum: [general, soc2, hipaa, gdpr, pci-dss]
+            default: general
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [json, summary]
+            default: json
+      responses:
+        '200':
+          description: Compliance report
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  generated_at:
+                    type: string
+                    format: date-time
+                  framework:
+                    type: string
+                  period:
+                    type: object
+                    properties:
+                      from:
+                        type: string
+                      to:
+                        type: string
+                  summary:
+                    type: object
+
+  /insurance/analytics:
+    get:
+      summary: Risk Analytics
+      description: Returns 30/60/90-day risk score trends and per-agent summaries.
+      tags: [Risk]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: X-Tenant-Id
+          in: header
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Risk analytics data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  overall:
+                    type: object
+                    properties:
+                      avg_risk_score:
+                        type: number
+                      max_risk_score:
+                        type: number
+                      total_agents:
+                        type: integer
+                      high_risk_agents:
+                        type: integer
+                      risk_trend:
+                        type: string
+                        enum: [improving, stable, worsening]
+                  trend_30d:
+                    type: array
+                    items:
+                      type: object
+                  agent_summaries:
+                    type: array
+                    items:
+                      type: object
+
+  /intent:
+    post:
+      summary: Mediate Agent Intent
+      description: Evaluates an agent's intended action against existing locks and policy constraints.
+      tags: [Policy]
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [intent_description]
+              properties:
+                intent_description:
+                  type: string
+                  example: "Executing a financial transfer to vendor X"
+                vendor:
+                  type: string
+                  enum: [openai, claude]
+      responses:
+        '200':
+          description: Intent mediation result
+        '403':
+          description: Intent blocked
+
+  /moral:
+    post:
+      summary: Evaluate Moral Alignment
+      description: Evaluates an action against the Corporate SOUL (Governance Policy).
+      tags: [Moral]
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action_description, domain]
+              properties:
+                action_description:
+                  type: string
+                  example: "Sharing sensitive customer data with external vendor"
+                domain:
+                  type: string
+                  example: "privacy"
+      responses:
+        '200':
+          description: Moral verdict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MoralVerdict'
+
   /keys:
     get:
       summary: List API Keys
       description: Secured with User Session (Dashboard).
+      tags: [Internal]
     post:
       summary: Generate New API Key
+      tags: [Internal]
       responses:
         '201':
           description: Key created (Raw key shown once)
