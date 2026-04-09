@@ -1,5 +1,5 @@
 import React from 'react';
-import { createServerClient } from '../../lib/db/supabase';
+import { createServerClient } from '@lib/db/supabase';
 import { headers } from 'next/headers';
 
 async function getDashboardMetrics(tenantId: string) {

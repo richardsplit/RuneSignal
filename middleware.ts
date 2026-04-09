@@ -35,13 +35,21 @@ export async function middleware(request: NextRequest) {
   const isOnboarding = url.startsWith('/onboarding');
   const isInternal = url.startsWith('/_next') || url.includes('.') || url.startsWith('/api/v1/billing/webhook');
 
-  // Public routes — skip all auth processing
-  if (isPublicApi || isRoot || isLogin || isLanding || isInternal) {
+  // Static assets and fully public non-root routes — skip all auth processing
+  if (isPublicApi || isLogin || isLanding || isInternal) {
     return response;
   }
 
   // 2. Auth Check (Supabase SSR)
   const { data: { user } } = await supabase.auth.getUser();
+
+  // Root / is the public landing page — but redirect already-authenticated users to dashboard
+  if (isRoot) {
+    if (user) {
+      return NextResponse.redirect(new URL('/dashboard', request.url));
+    }
+    return response;
+  }
 
   // 2.1 API Key Verification (For Agent/Machine access)
   const authHeader = request.headers.get('Authorization');
