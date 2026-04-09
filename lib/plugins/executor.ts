@@ -10,6 +10,12 @@
 
 import { createAdminClient } from '../db/supabase';
 
+// In-process cache: tracks tenants known to have zero active plugins.
+// TTL of 60 seconds — avoids a DB round-trip on every ledger write for
+// tenants that haven't installed any plugins yet.
+const noPluginsCache = new Map<string, number>(); // tenantId → expiry timestamp
+const NO_PLUGINS_TTL_MS = 60_000;
+
 interface AuditEventPayload {
   id: string;
   event_type: string;
@@ -33,6 +39,10 @@ export class PluginExecutor {
    * Resolves all matching plugins and fires them concurrently.
    */
   static async dispatch(event: AuditEventPayload): Promise<void> {
+    // Short-circuit: skip DB query entirely if this tenant is cached as having no plugins
+    const cacheExpiry = noPluginsCache.get(event.tenant_id);
+    if (cacheExpiry && Date.now() < cacheExpiry) return;
+
     const supabase = createAdminClient();
 
     // Find all active plugins for this tenant whose triggers match the event type
@@ -42,7 +52,14 @@ export class PluginExecutor {
       .eq('tenant_id', event.tenant_id)
       .eq('is_active', true);
 
-    if (!plugins || plugins.length === 0) return;
+    if (!plugins || plugins.length === 0) {
+      // Cache the zero-plugins state so subsequent events skip this query
+      noPluginsCache.set(event.tenant_id, Date.now() + NO_PLUGINS_TTL_MS);
+      return;
+    }
+
+    // Tenant has plugins — ensure it's not incorrectly cached as having none
+    noPluginsCache.delete(event.tenant_id);
 
     const matchingPlugins = plugins.filter(p => {
       if (!p.triggers || p.triggers.length === 0) return false;

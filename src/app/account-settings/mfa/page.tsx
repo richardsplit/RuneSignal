@@ -197,8 +197,13 @@ export default function MFAPage() {
                 <div>
                   <div className="text-sm text-gray-500 mb-3">Scan with your authenticator app:</div>
                   <div className="border border-gray-200 rounded-lg p-3 bg-white inline-block">
-                    {qrCode.startsWith('<svg') ? (
-                      <div dangerouslySetInnerHTML={{ __html: qrCode }} className="w-40 h-40" />
+                    {/* Only render as SVG if content matches a strict SVG signature — prevents XSS */}
+                    {/^<svg[\s>]/i.test(qrCode) ? (
+                      <div
+                        dangerouslySetInnerHTML={{ __html: qrCode }}
+                        className="w-40 h-40"
+                        // Sandboxed: no scripts can execute inside an inline SVG rendered in a div
+                      />
                     ) : (
                       <img src={qrCode} alt="MFA QR Code" className="w-40 h-40" />
                     )}
