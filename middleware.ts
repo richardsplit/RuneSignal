@@ -29,10 +29,12 @@ export async function middleware(request: NextRequest) {
   // 1. Skip auth for static/public assets and public API routes
   const isPublicApi = url.startsWith('/api/health') || url.startsWith('/api/v1/verify/pubkey');
   const isLogin = url.startsWith('/login');
+  const isLanding = url.startsWith('/landing');
+  const isMfaVerify = url.startsWith('/mfa-verify');
   const isOnboarding = url.startsWith('/onboarding');
   const isInternal = url.startsWith('/_next') || url.includes('.') || url.startsWith('/api/v1/billing/webhook');
 
-  if (isPublicApi || isLogin || isInternal) {
+  if (isPublicApi || isLogin || isLanding || isInternal) {
     return response;
   }
 
@@ -70,9 +72,9 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // If unauthenticated (no user and no valid API key) and on a protected dashboard route, redirect to login
+  // If unauthenticated (no user and no valid API key) and on a protected dashboard route, redirect to landing
   if (!user && !apiKeyTenantId && !url.startsWith('/api')) {
-    return NextResponse.redirect(new URL('/login', request.url));
+    return NextResponse.redirect(new URL('/landing', request.url));
   }
 
   // 2.3 Usage Tracking & Metering (Phase 3)
@@ -129,7 +131,7 @@ export async function middleware(request: NextRequest) {
   const { data: factors } = await supabase.auth.mfa.listFactors();
   const hasMfaEnrolled = factors?.all?.some(f => f.status === 'verified') || false;
 
-  if (hasMfaEnrolled && aal === 'aal1' && !url.startsWith('/mfa-verify') && !url.startsWith('/login') && !url.startsWith('/api')) {
+  if (hasMfaEnrolled && aal === 'aal1' && !isMfaVerify && !url.startsWith('/login') && !url.startsWith('/landing') && !url.startsWith('/api')) {
     // Redirect to MFA verification page if they are only partially authenticated
     return NextResponse.redirect(new URL('/mfa-verify', request.url));
   }
@@ -197,6 +199,8 @@ export async function middleware(request: NextRequest) {
   if (
     !url.startsWith('/api') &&
     !url.startsWith('/login') &&
+    !url.startsWith('/landing') &&
+    !url.startsWith('/mfa-verify') &&
     !url.startsWith('/onboarding') &&
     !url.startsWith('/_next') &&
     !url.startsWith('/public')
@@ -205,9 +209,9 @@ export async function middleware(request: NextRequest) {
     const supabaseSessionClient = await createServerClient();
     const { data: { session: dashboardSession } } = await supabaseSessionClient.auth.getSession();
     if (!dashboardSession) {
-      const loginUrl = new URL('/login', request.url);
-      loginUrl.searchParams.set('redirect', url);
-      return NextResponse.redirect(loginUrl);
+      const landingUrl = new URL('/landing', request.url);
+      landingUrl.searchParams.set('redirect', url);
+      return NextResponse.redirect(landingUrl);
     }
   }
 
