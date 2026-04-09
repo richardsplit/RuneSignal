@@ -26,15 +26,17 @@ export async function middleware(request: NextRequest) {
   // Initialize Supabase Middleware Client for SSR
   const supabase = createMiddlewareClient(request, response);
 
-  // 1. Skip auth for static/public assets and public API routes
+  // 1. Skip auth for static/public assets and public routes
   const isPublicApi = url.startsWith('/api/health') || url.startsWith('/api/v1/verify/pubkey');
+  const isRoot = url === '/';           // landing page lives at /
   const isLogin = url.startsWith('/login');
-  const isLanding = url.startsWith('/landing');
+  const isLanding = url.startsWith('/landing'); // legacy /landing redirect safety
   const isMfaVerify = url.startsWith('/mfa-verify');
   const isOnboarding = url.startsWith('/onboarding');
   const isInternal = url.startsWith('/_next') || url.includes('.') || url.startsWith('/api/v1/billing/webhook');
 
-  if (isPublicApi || isLogin || isLanding || isInternal) {
+  // Public routes — skip all auth processing
+  if (isPublicApi || isRoot || isLogin || isLanding || isInternal) {
     return response;
   }
 
@@ -72,9 +74,9 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // If unauthenticated (no user and no valid API key) and on a protected dashboard route, redirect to landing
+  // If unauthenticated (no user and no valid API key) and on a protected dashboard route, redirect to homepage
   if (!user && !apiKeyTenantId && !url.startsWith('/api')) {
-    return NextResponse.redirect(new URL('/landing', request.url));
+    return NextResponse.redirect(new URL('/', request.url));
   }
 
   // 2.3 Usage Tracking & Metering (Phase 3)
@@ -198,6 +200,7 @@ export async function middleware(request: NextRequest) {
   // Protect all dashboard routes — require Supabase session
   if (
     !url.startsWith('/api') &&
+    url !== '/' &&
     !url.startsWith('/login') &&
     !url.startsWith('/landing') &&
     !url.startsWith('/mfa-verify') &&
@@ -209,9 +212,9 @@ export async function middleware(request: NextRequest) {
     const supabaseSessionClient = await createServerClient();
     const { data: { session: dashboardSession } } = await supabaseSessionClient.auth.getSession();
     if (!dashboardSession) {
-      const landingUrl = new URL('/landing', request.url);
-      landingUrl.searchParams.set('redirect', url);
-      return NextResponse.redirect(landingUrl);
+      const homeUrl = new URL('/', request.url);
+      homeUrl.searchParams.set('redirect', url);
+      return NextResponse.redirect(homeUrl);
     }
   }
 

@@ -13,7 +13,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const isAuthPage = pathname === '/login' || pathname === '/onboarding' || pathname === '/landing' || pathname === '/mfa-verify' || pathname.startsWith('/landing');
+  const isAuthPage =
+    pathname === '/' ||
+    pathname === '/login' ||
+    pathname === '/onboarding' ||
+    pathname === '/mfa-verify' ||
+    pathname.startsWith('/landing'); // legacy redirect safety
 
   return (
     <html lang="en">

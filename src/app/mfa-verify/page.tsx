@@ -44,7 +44,7 @@ export default function MFAVerifyPage() {
       if (verifyError) throw verifyError;
 
       // Success -> Redirect to dashboard
-      router.push('/');
+      router.push('/dashboard');
       router.refresh();
     } catch (err: any) {
       setError(err.message || 'MFA verification failed');
