@@ -26,7 +26,7 @@ export default function Sidebar() {
     // Operations
     { name: 'S9 FinOps', href: '/finops', group: 'Ops' },
     { name: '📊 Risk Analytics', href: '/insurance/analytics', group: 'Ops' },
-    { name: 'S10 Sovereign Export', href: '/account-settings', group: 'Ops' },
+    { name: 'S10 Data Residency', href: '/sovereignty', group: 'Ops' },
     { name: 'S12 NHI Lifecycle', href: '/nhi', group: 'Ops' },
     // Advanced
     { name: 'S15 Physical AI', href: '/physical', group: 'Advanced' },
