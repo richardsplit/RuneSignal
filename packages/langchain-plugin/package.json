@@ -1,0 +1,19 @@
+{
+  "name": "@trustlayer/langchain-plugin",
+  "version": "1.0.0",
+  "description": "TrustLayer LangChain plugin — transparent HITL and signing for LangChain agents",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "peerDependencies": {
+    "@trustlayer/sdk": "^1.0.0",
+    "langchain": ">=0.1.0"
+  },
+  "license": "MIT"
+}
