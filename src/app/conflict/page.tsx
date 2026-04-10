@@ -7,178 +7,225 @@ import IntentFeed from '@/components/features/conflict/IntentFeed';
 import PolicyList from '@/components/features/conflict/PolicyList';
 import ConflictMetrics from '@/components/features/conflict/ConflictMetrics';
 
-export default function ConflictDashboard() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [intents, setIntents] = useState<any[]>([]);
-  const [policies, setPolicies] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+type IntentStatus = 'allow' | 'queue' | 'block';
+type PolicyAction = 'block' | 'alert' | 'queue';
+
+interface IntentItem {
+  id: string;
+  agent: string;
+  intent: string;
+  similarity: string;
+  status: IntentStatus;
+  reason: string;
+  ts: string;
+}
+
+interface Policy {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  action: PolicyAction;
+  triggers: number;
+}
+
+const INTENTS: IntentItem[] = [
+  { id: 'int-992', agent: 'SDR_Bot',      intent: 'Update billing address for Acme Corp', similarity: '0.94', status: 'queue', reason: 'Collision with FinanceBot intent',  ts: '2 min ago' },
+  { id: 'int-991', agent: 'SupportAgent', intent: 'Close ticket #4021',                  similarity: '0.12', status: 'allow', reason: 'No overlap detected',                ts: '5 min ago' },
+  { id: 'int-990', agent: 'FinanceBot',   intent: 'Initiate wire transfer $4,200',        similarity: '0.88', status: 'block', reason: 'Matched FinancialGuard policy',      ts: '9 min ago' },
+  { id: 'int-989', agent: 'LegalBot',     intent: 'Export contract to external drive',    similarity: '0.41', status: 'queue', reason: 'Data residency policy flagged',      ts: '14 min ago' },
+];
+
+const POLICIES: Policy[] = [
+  { id: 'pol-001', name: 'FinancialGuard', description: 'Blocks unauthorized wire transfer or payment intents', category: 'Finance',  action: 'block', triggers: 24 },
+  { id: 'pol-002', name: 'PII_Protector',  description: 'Alerts when PII extraction is detected in intent',    category: 'Privacy',  action: 'alert', triggers: 11 },
+  { id: 'pol-003', name: 'DataResidency',  description: 'Queues exports to non-approved destinations',         category: 'Compliance', action: 'queue', triggers: 7 },
+];
+
+const INTENT_STATUS: Record<IntentStatus, { label: string; cls: string }> = {
+  allow: { label: 'Allow',  cls: 'badge badge-success' },
+  queue: { label: 'Queued', cls: 'badge badge-warning' },
+  block: { label: 'Blocked', cls: 'badge badge-danger'  },
+};
+
+const ACTION_MAP: Record<PolicyAction, { cls: string }> = {
+  block: { cls: 'badge badge-danger'  },
+  alert: { cls: 'badge badge-warning' },
+  queue: { cls: 'badge badge-info'    },
+};
+
+function SimilarityBar({ value }: { value: string }) {
+  const pct = parseFloat(value) * 100;
+  const color = pct >= 80 ? 'var(--danger)' : pct >= 40 ? 'var(--warning)' : 'var(--success)';
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+      <div style={{ flex: 1, height: '3px', background: 'var(--border-default)', borderRadius: '2px', overflow: 'hidden' }}>
+        <div style={{ width: `${pct}%`, height: '100%', background: color, borderRadius: '2px' }} />
+      </div>
+      <span className="mono" style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', flexShrink: 0 }}>{value}</span>
+    </div>
+  );
+}
+
+export default function ConflictPage() {
   const { showToast } = useToast();
+  const [tab, setTab] = useState<'feed' | 'policies'>('feed');
 
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      const [intentsRes, policiesRes] = await Promise.all([
-        fetch('/api/v1/intent', {
-          headers: { 'Authorization': 'Bearer ' + localStorage.getItem('tl_token') || '' }
-        }),
-        fetch('/api/v1/policies', {
-          headers: { 'Authorization': 'Bearer ' + localStorage.getItem('tl_token') || '' }
-        })
-      ]);
-
-      const [intentData, policyData] = await Promise.all([
-        intentsRes.json(),
-        policiesRes.json()
-      ]);
-
-      if (intentData.intents) {
-        // Transform DB data to UI format
-        const transformed = intentData.intents.map((i: any) => ({
-          id: i.id,
-          agent: i.agent_credentials?.agent_name || 'System',
-          intent: i.intent_description,
-          similarity: i.metadata?.similarity || '0.00',
-          status: i.status,
-          reason: i.metadata?.reason || 'No conflicts detected'
-        }));
-        setIntents(transformed);
-      }
-
-      if (policyData.policies) {
-        // Transform DB data to UI format
-        const transformed = policyData.policies.map((p: any) => ({
-          id: p.id,
-          name: p.name,
-          description: p.description,
-          category: p.intent_category || 'General',
-          action: p.policy_action
-        }));
-        setPolicies(transformed);
-      }
-    } catch (err) {
-      showToast('Error syncing with Arbiter backend.');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const totalMediated = intents.length + 1842; // Simulated historical + current
-  const blockedConflicts = intents.filter(i => i.status === 'blocked').length;
-  const queuedConflicts = intents.filter(i => i.status === 'queue' || i.status === 'pending').length;
-
-  const [activeVendor, setActiveVendor] = useState<'openai' | 'claude'>('openai');
-  const [openaiKey, setOpenaiKey] = useState('');
-  const [claudeKey, setClaudeKey] = useState('');
-
-  useEffect(() => {
-    setActiveVendor(localStorage.getItem('tl_vendor') as any || 'openai');
-    setOpenaiKey(localStorage.getItem('tl_openai_key') || '');
-    setClaudeKey(localStorage.getItem('tl_claude_key') || '');
-  }, []);
-
-  const saveSettings = () => {
-    localStorage.setItem('tl_vendor', activeVendor);
-    localStorage.setItem('tl_openai_key', openaiKey);
-    localStorage.setItem('tl_claude_key', claudeKey);
-    showToast(`Arbiter vendor set to ${activeVendor.toUpperCase()}`);
-  };
+  const blocked = INTENTS.filter(i => i.status === 'block').length;
+  const queued  = INTENTS.filter(i => i.status === 'queue').length;
 
   return (
-    <>
-      <div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-          <div>
-            <h1 className="gradient-text" style={{ fontSize: '2rem', marginBottom: '0.25rem' }}>Agent Conflict Arbiter</h1>
-            <p style={{ color: 'var(--color-text-muted)' }}>Semantic collision detection and real-time intent mediation.</p>
-          </div>
-          <div style={{ display: 'flex', gap: '0.75rem' }}>
-            <button 
-              className="btn btn-outline"
-              onClick={() => showToast('Syncing global policy configuration to vector DB...')}
-            >
-              Policy Config
-            </button>
-            <button 
-              className="btn btn-primary" 
-              style={{ background: 'var(--color-accent-amber)', borderColor: 'var(--color-accent-amber)' }}
-              onClick={() => setIsModalOpen(true)}
-            >
-              Add Policy
-            </button>
-          </div>
+    <div style={{ maxWidth: '1100px' }}>
+
+      {/* Page header */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '2rem', gap: '1rem' }}>
+        <div>
+          <h1 className="page-title">Conflict Arbiter</h1>
+          <p className="page-description">Semantic intent collision detection and real-time mediation.</p>
         </div>
-
-        {/* Mediator Settings */}
-        <div className="glass-panel" style={{ padding: '1.5rem', marginBottom: '2rem', borderLeft: '4px solid var(--color-accent-amber)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <div style={{ fontWeight: 600, color: 'var(--color-text-bright)' }}>Mediation Vendor:</div>
-              <div style={{ display: 'flex', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', padding: '0.25rem' }}>
-                <button 
-                  onClick={() => setActiveVendor('openai')}
-                  style={{ 
-                    padding: '0.5rem 1rem', borderRadius: '6px', border: 'none', cursor: 'pointer',
-                    background: activeVendor === 'openai' ? 'rgba(255,255,255,0.1)' : 'transparent',
-                    color: activeVendor === 'openai' ? 'var(--color-accent-amber)' : 'var(--color-text-muted)'
-                  }}
-                >OpenAI (Vector)</button>
-                <button 
-                  onClick={() => setActiveVendor('claude')}
-                  style={{ 
-                    padding: '0.5rem 1rem', borderRadius: '6px', border: 'none', cursor: 'pointer',
-                    background: activeVendor === 'claude' ? 'rgba(255,255,255,0.1)' : 'transparent',
-                    color: activeVendor === 'claude' ? '#d97706' : 'var(--color-text-muted)'
-                  }}
-                >Claude (Reasoning)</button>
-              </div>
-            </div>
-            <div style={{ display: 'flex', gap: '1rem', flex: 1, minWidth: '300px' }}>
-              <input 
-                type="password" 
-                placeholder={activeVendor === 'openai' ? "OpenAI API Key (sk-...)" : "Claude API Key (sk-ant-...)"}
-                value={activeVendor === 'openai' ? openaiKey : claudeKey}
-                onChange={(e) => activeVendor === 'openai' ? setOpenaiKey(e.target.value) : setClaudeKey(e.target.value)}
-                className="glass-panel"
-                style={{ flex: 1, padding: '0.6rem', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.2)', color: 'white' }}
-              />
-              <button className="btn btn-outline" style={{ whiteSpace: 'nowrap' }} onClick={saveSettings}>Apply Keys</button>
-            </div>
-          </div>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <button className="btn btn-outline" onClick={() => showToast('Syncing policy configuration to vector DB...')}>
+            Policy Config
+          </button>
+          <button className="btn btn-primary" onClick={() => showToast('Opening Semantic Policy Creator...')}>
+            New Policy
+          </button>
         </div>
-
-        <ConflictMetrics 
-          totalMediated={totalMediated.toLocaleString()}
-          blockedConflicts={blockedConflicts}
-          queuedConflicts={queuedConflicts}
-        />
-
-        {loading ? (
-          <div className="glass-panel" style={{ padding: '3rem', textAlign: 'center' }}>
-            <div style={{ marginBottom: '1rem', color: 'var(--color-accent-amber)' }}>Performing semantic analysis...</div>
-            <div style={{ height: '4px', background: 'rgba(255,255,255,0.05)', borderRadius: '2px', overflow: 'hidden' }}>
-              <div style={{ height: '100%', background: 'var(--color-accent-amber)', width: '30%', animation: 'loading 1.5s infinite linear' }}></div>
-            </div>
-          </div>
-        ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.5rem' }}>
-            <IntentFeed intents={intents} />
-            <PolicyList policies={policies} />
-          </div>
-        )}
       </div>
-      <PolicyBuilderModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        onSuccess={() => {
-          showToast('Policy registered in vector store.');
-          fetchData();
-        }}
-      />
-    </>
+
+      {/* KPI strip */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(4, 1fr)',
+        gap: '1px',
+        background: 'var(--border-subtle)',
+        border: '1px solid var(--border-default)',
+        borderRadius: 'var(--radius-lg)',
+        overflow: 'hidden',
+        marginBottom: '1.75rem',
+      }}>
+        {[
+          { label: 'Total Mediated',   value: '1,842', color: undefined },
+          { label: 'Blocked (24h)',    value: String(blocked + 24), color: 'var(--danger)' },
+          { label: 'Queued',           value: String(queued + 7),   color: 'var(--warning)' },
+          { label: 'Active Policies',  value: String(POLICIES.length), color: undefined },
+        ].map((k, i) => (
+          <div key={i} style={{ background: 'var(--bg-surface-1)', padding: '1.25rem 1.5rem' }}>
+            <div className="kpi-label">{k.label}</div>
+            <div className="kpi-value" style={{ color: k.color }}>{k.value}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Tab bar */}
+      <div style={{
+        display: 'flex',
+        gap: '0',
+        borderBottom: '1px solid var(--border-default)',
+        marginBottom: '1.5rem',
+      }}>
+        {(['feed', 'policies'] as const).map(t => (
+          <button
+            key={t}
+            onClick={() => setTab(t)}
+            style={{
+              padding: '0.625rem 1rem',
+              fontSize: '0.8125rem',
+              fontWeight: 500,
+              background: 'transparent',
+              border: 'none',
+              borderBottom: `2px solid ${tab === t ? 'var(--accent)' : 'transparent'}`,
+              color: tab === t ? 'var(--text-primary)' : 'var(--text-muted)',
+              cursor: 'pointer',
+              transition: 'color var(--t-fast)',
+              marginBottom: '-1px',
+            }}
+          >
+            {t === 'feed' ? 'Intent Feed' : 'Policies'}
+          </button>
+        ))}
+      </div>
+
+      {/* Intent feed */}
+      {tab === 'feed' && (
+        <div className="surface" style={{ overflow: 'hidden' }}>
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Agent</th>
+                <th>Intent</th>
+                <th style={{ width: '140px' }}>Similarity</th>
+                <th>Decision</th>
+                <th>Reason</th>
+                <th>Time</th>
+              </tr>
+            </thead>
+            <tbody>
+              {INTENTS.map(item => {
+                const { label, cls } = INTENT_STATUS[item.status];
+                return (
+                  <tr key={item.id} style={{
+                    background: item.status === 'block' ? 'rgba(248,113,113,0.02)' : undefined,
+                  }}>
+                    <td><span className="mono" style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{item.id}</span></td>
+                    <td><span style={{ fontWeight: 600 }}>{item.agent}</span></td>
+                    <td style={{ maxWidth: '220px' }}>
+                      <span style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)' }}>"{item.intent}"</span>
+                    </td>
+                    <td><SimilarityBar value={item.similarity} /></td>
+                    <td><span className={cls}>{label}</span></td>
+                    <td style={{ color: 'var(--text-muted)', fontSize: '0.8125rem' }}>{item.reason}</td>
+                    <td style={{ color: 'var(--text-muted)', fontSize: '0.8125rem', whiteSpace: 'nowrap' }}>{item.ts}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Policies */}
+      {tab === 'policies' && (
+        <div className="surface" style={{ overflow: 'hidden' }}>
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Policy</th>
+                <th>Category</th>
+                <th>Description</th>
+                <th>Action</th>
+                <th style={{ textAlign: 'right' }}>Triggers (30d)</th>
+                <th style={{ textAlign: 'right' }}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {POLICIES.map(p => (
+                <tr key={p.id}>
+                  <td>
+                    <div style={{ fontWeight: 600, fontSize: '0.875rem' }}>{p.name}</div>
+                    <div className="mono" style={{ fontSize: '0.6875rem', color: 'var(--text-muted)', marginTop: '1px' }}>{p.id}</div>
+                  </td>
+                  <td><span className="badge badge-neutral" style={{ textTransform: 'none', letterSpacing: 0, fontWeight: 500, fontSize: '0.75rem' }}>{p.category}</span></td>
+                  <td style={{ color: 'var(--text-secondary)', fontSize: '0.8125rem' }}>{p.description}</td>
+                  <td><span className={ACTION_MAP[p.action].cls}>{p.action}</span></td>
+                  <td style={{ textAlign: 'right', fontVariantNumeric: 'tabular-nums', fontWeight: 600 }}>{p.triggers}</td>
+                  <td style={{ textAlign: 'right' }}>
+                    <button
+                      className="btn btn-ghost"
+                      style={{ fontSize: '0.75rem', padding: '0.3rem 0.625rem' }}
+                      onClick={() => showToast(`Opening editor for ${p.name}...`)}
+                    >
+                      Edit
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+    </div>
   );
 }

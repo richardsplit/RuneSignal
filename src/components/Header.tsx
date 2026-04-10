@@ -1,154 +1,159 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
-import Link from 'next/link';
-import { createBrowserClient } from '@lib/db/supabase';
-import { useRouter } from 'next/navigation';
+import React from 'react';
+import { usePathname } from 'next/navigation';
+import { useToast } from '@/components/ToastProvider';
 
-export default function Header({ title }: { title?: string }) {
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [userEmail, setUserEmail] = useState<string | null>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const supabase = createBrowserClient();
-  const router = useRouter();
+/* ── Route → breadcrumb label ────────────────────────────────────────── */
+const ROUTE_LABELS: Record<string, { section: string | null; title: string }> = {
+  '/':           { section: null,              title: 'Dashboard'       },
+  '/provenance': { section: 'Governance',      title: 'Provenance'      },
+  '/conflict':   { section: 'Governance',      title: 'Conflict Arbiter'},
+  '/exceptions': { section: 'Governance',      title: 'Review Queue'    },
+  '/audit':      { section: 'Governance',      title: 'Audit Trail'     },
+  '/identity':   { section: 'Risk & Identity', title: 'Agent Identity'  },
+  '/insurance':  { section: 'Risk & Identity', title: 'Risk & Insurance'},
+};
 
-  useEffect(() => {
-    const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setUserEmail(user.email || null);
-      }
-    };
-    getUser();
-  }, [supabase]);
+/* ── Icons ───────────────────────────────────────────────────────────── */
+const BellIcon = () => (
+  <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+    <path d="M7.5 1.5a5 5 0 0 1 5 5v2.5l1 1.5H1.5L2.5 9V6.5a5 5 0 0 1 5-5z" stroke="currentColor" strokeWidth="1.25" strokeLinejoin="round"/>
+    <path d="M6 12.5c0 .83.67 1.5 1.5 1.5S9 13.33 9 12.5" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round"/>
+  </svg>
+);
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsProfileOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [dropdownRef]);
+const DocsIcon = () => (
+  <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+    <path d="M2 2h7l2 2v7H2V2z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round"/>
+    <path d="M4.5 5.5h4M4.5 7.5h2.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+  </svg>
+);
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    setIsProfileOpen(false);
-    router.push('/login');
-    router.refresh();
-  };
+const PlusIcon = () => (
+  <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+    <path d="M6.5 2v9M2 6.5h9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+  </svg>
+);
 
-  const userInitial = userEmail ? userEmail.charAt(0).toUpperCase() : 'U';
+/* ── Component ───────────────────────────────────────────────────────── */
+export default function Header() {
+  const { showToast } = useToast();
+  const pathname = usePathname();
+  const route = ROUTE_LABELS[pathname] ?? { section: null, title: pathname };
 
   return (
     <header style={{
       display: 'flex',
       alignItems: 'center',
-      justifyContent: 'flex-end',
-      paddingBottom: '1rem',
-      borderBottom: '1px solid var(--border-glass)',
-      marginBottom: '1rem',
-      position: 'relative'
+      justifyContent: 'space-between',
+      padding: '0 2rem',
+      height: '52px',
+      flexShrink: 0,
+      borderBottom: '1px solid var(--border-subtle)',
+      background: 'var(--bg-base)',
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-        <Link href="/documentation" style={{ textDecoration: 'none' }}>
-          <button 
-            className="btn btn-outline" 
-            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-          >
-            <span>Documentation</span>
-          </button>
-        </Link>
-        <Link href="/identity" style={{ textDecoration: 'none' }}>
-          <button 
-            className="btn btn-primary"
-          >
-            Connect New Agent
-          </button>
-        </Link>
-        
-        <div style={{ position: 'relative' }} ref={dropdownRef}>
-          <div 
-            onClick={() => setIsProfileOpen(!isProfileOpen)}
-            style={{
-              width: '36px',
-              height: '36px',
-              borderRadius: '50%',
-              background: 'linear-gradient(135deg, var(--color-primary-emerald), var(--color-info-cyan))',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: 600,
-              color: 'white',
-              cursor: 'pointer',
-              border: '2px solid transparent',
-              transition: 'border-color 0.2s',
-              ...(isProfileOpen ? { borderColor: 'var(--color-primary-emerald)' } : {})
-            }}
-          >
-            {userInitial}
-          </div>
 
-          {/* Profile Dropdown Menu */}
-          {isProfileOpen && (
-            <div className="glass-panel animate-fade-in" style={{
-              position: 'absolute',
-              top: '120%',
-              right: 0,
-              width: '240px',
-              padding: '0.5rem 0',
-              zIndex: 50,
-              boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
-            }}>
-              <div style={{ padding: '0.5rem 1rem', borderBottom: '1px solid var(--border-glass)', marginBottom: '0.5rem' }}>
-                <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>User Profile</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', wordBreak: 'break-all' }}>
-                  {userEmail || 'Loading...'}
-                </div>
-              </div>
-              <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                <li>
-                  <Link href="/account-settings" style={{ textDecoration: 'none' }}>
-                    <button style={{
-                      width: '100%',
-                      textAlign: 'left',
-                      padding: '0.5rem 1rem',
-                      background: 'transparent',
-                      border: 'none',
-                      color: 'var(--color-text-main)',
-                      fontSize: '0.85rem',
-                      cursor: 'pointer'
-                    }} className="hover-highlight" onClick={() => setIsProfileOpen(false)}>
-                      Account Settings
-                    </button>
-                  </Link>
-                </li>
-                <li style={{ borderTop: '1px solid var(--border-glass)', marginTop: '0.5rem', paddingTop: '0.5rem' }}>
-                  <button 
-                    onClick={handleSignOut}
-                    style={{
-                      width: '100%',
-                      textAlign: 'left',
-                      padding: '0.5rem 1rem',
-                      background: 'transparent',
-                      border: 'none',
-                      color: 'var(--color-error-rose)',
-                      fontSize: '0.85rem',
-                      cursor: 'pointer'
-                    }} 
-                    className="hover-highlight"
-                  >
-                    Sign Out
-                  </button>
-                </li>
-              </ul>
-            </div>
-          )}
-        </div>
+      {/* Left — breadcrumb + env chip */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        {route.section && (
+          <>
+            <span style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', fontWeight: 400 }}>
+              {route.section}
+            </span>
+            <span style={{ color: 'var(--border-strong)', fontSize: '0.75rem' }}>/</span>
+          </>
+        )}
+        <span style={{ fontSize: '0.8125rem', color: 'var(--text-primary)', fontWeight: 500 }}>
+          {route.title}
+        </span>
+
+        {/* Environment chip */}
+        <span style={{
+          marginLeft: '0.5rem',
+          padding: '0.15rem 0.5rem',
+          borderRadius: '4px',
+          fontSize: '0.625rem',
+          fontWeight: 700,
+          letterSpacing: '0.07em',
+          textTransform: 'uppercase',
+          background: 'var(--accent-dim)',
+          color: 'var(--accent)',
+          border: '1px solid var(--accent-border)',
+        }}>
+          Production
+        </span>
+      </div>
+
+      {/* Right — actions */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+
+        {/* Docs */}
+        <button
+          className="btn btn-ghost"
+          style={{ gap: '0.375rem', fontSize: '0.8125rem' }}
+          onClick={() => showToast('Opening TrustLayer Documentation...')}
+        >
+          <DocsIcon />
+          Docs
+        </button>
+
+        {/* Separator */}
+        <div style={{ width: '1px', height: '16px', background: 'var(--border-subtle)', margin: '0 0.25rem' }} />
+
+        {/* Connect agent */}
+        <button
+          className="btn btn-primary"
+          style={{ gap: '0.375rem' }}
+          onClick={() => showToast('Opening Agent Connection Wizard...')}
+        >
+          <PlusIcon />
+          Connect Agent
+        </button>
+
+        {/* Notifications */}
+        <button
+          className="btn btn-ghost"
+          style={{ width: '32px', height: '32px', padding: 0, position: 'relative', borderRadius: '6px' }}
+          onClick={() => showToast('No new notifications', 'info')}
+          aria-label="Notifications"
+        >
+          <BellIcon />
+          <span style={{
+            position: 'absolute',
+            top: '7px',
+            right: '7px',
+            width: '5px',
+            height: '5px',
+            borderRadius: '50%',
+            background: 'var(--warning)',
+            border: '1.5px solid var(--bg-base)',
+          }} />
+        </button>
+
+        {/* Avatar */}
+        <button
+          onClick={() => showToast('Profile settings coming soon...', 'info')}
+          aria-label="User profile"
+          style={{
+            width: '28px',
+            height: '28px',
+            borderRadius: '50%',
+            background: 'var(--bg-surface-3)',
+            border: '1px solid var(--border-default)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '0.625rem',
+            fontWeight: 700,
+            color: 'var(--text-secondary)',
+            cursor: 'pointer',
+            flexShrink: 0,
+          }}
+        >
+          RG
+        </button>
+
       </div>
     </header>
   );
