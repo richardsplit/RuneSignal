@@ -1,0 +1,33 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { createAdminClient } from '../../../../../../lib/db/supabase';
+
+/**
+ * GET /api/v1/redteam/campaigns
+ * List all red team campaigns for the tenant.
+ * Query params: status, target_agent_id, limit
+ */
+export async function GET(request: NextRequest) {
+  const tenantId = request.headers.get('X-Tenant-Id');
+  if (!tenantId) return NextResponse.json({ error: 'Missing X-Tenant-Id' }, { status: 401 });
+
+  const { searchParams } = new URL(request.url);
+  const status = searchParams.get('status');
+  const targetAgentId = searchParams.get('target_agent_id');
+  const limit = Math.min(parseInt(searchParams.get('limit') || '20', 10), 100);
+
+  const supabase = createAdminClient();
+  let query = supabase
+    .from('red_team_campaigns')
+    .select('*')
+    .eq('tenant_id', tenantId)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  if (status) query = query.eq('status', status);
+  if (targetAgentId) query = query.eq('target_agent_id', targetAgentId);
+
+  const { data, error } = await query;
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  return NextResponse.json({ campaigns: data || [], count: (data || []).length });
+}

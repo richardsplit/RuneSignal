@@ -10,7 +10,7 @@ export default function Sidebar() {
   
   const navItems = [
     // Core
-    { name: 'Overview', href: '/', group: 'Core' },
+    { name: 'Overview', href: '/dashboard', group: 'Core' },
     { name: '🛡️ Action Firewall', href: '/firewall', group: 'Core' },
     { name: 'S3 Provenance', href: '/provenance', group: 'Core' },
     { name: 'S6 Identity', href: '/identity', group: 'Core' },
@@ -26,7 +26,7 @@ export default function Sidebar() {
     // Operations
     { name: 'S9 FinOps', href: '/finops', group: 'Ops' },
     { name: '📊 Risk Analytics', href: '/insurance/analytics', group: 'Ops' },
-    { name: 'S10 Sovereign Export', href: '/account-settings', group: 'Ops' },
+    { name: 'S10 Data Residency', href: '/sovereignty', group: 'Ops' },
     { name: 'S12 NHI Lifecycle', href: '/nhi', group: 'Ops' },
     // Advanced
     { name: 'S15 Physical AI', href: '/physical', group: 'Advanced' },
@@ -51,12 +51,12 @@ export default function Sidebar() {
     }}>
       {/* Brand */}
       <div style={{ padding: '0 1.5rem', marginBottom: '3rem' }}>
-        <Link href="/">
-          <Image 
-            src="/trustlayer-logo.svg" 
-            alt="TrustLayer" 
-            width={200} 
-            height={50} 
+        <Link href="/dashboard">
+          <Image
+            src="/trustlayer-logo.svg"
+            alt="TrustLayer"
+            width={200}
+            height={50}
             style={{ width: '100%', height: 'auto', display: 'block' }}
           />
         </Link>
@@ -73,7 +73,7 @@ export default function Sidebar() {
               </div>
               <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                 {items.map(item => {
-                  const isActive = pathname === item.href;
+                  const isActive = pathname === item.href || (item.href === '/dashboard' && pathname === '/dashboard');
                   return (
                     <li key={item.name}>
                       <Link

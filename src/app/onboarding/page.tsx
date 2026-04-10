@@ -51,8 +51,15 @@ export default function OnboardingPage() {
 
       if (memberError) throw memberError;
 
-      // 3. Success -> Redirect to dashboard
-      router.push('/');
+      // 3. Set admin role claim in JWT metadata (requires service-role, done via API route)
+      await fetch('/api/v1/onboarding/set-admin-role', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: user.id, tenant_id: tenant.id }),
+      });
+
+      // 4. Success -> Redirect to dashboard
+      router.push('/dashboard');
       router.refresh();
     } catch (err: any) {
       setError(err.message || 'Onboarding failed');

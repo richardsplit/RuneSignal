@@ -28,7 +28,7 @@ export default function LoginPage() {
         if (error) throw error;
         alert('Verification email sent! Check your inbox.');
       }
-      router.push('/');
+      router.push('/dashboard');
       router.refresh();
     } catch (err: any) {
       setError(err.message || 'Authentication failed');

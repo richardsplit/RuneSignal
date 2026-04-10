@@ -2,6 +2,8 @@ import { createAdminClient } from '../db/supabase';
 import { getLedgerSigner } from './signer';
 import { v4 as uuidv4 } from 'uuid';
 import { SIEMExporter } from '../integrations/siem/exporter';
+import { PluginExecutor } from '../plugins/executor';
+import { PQC_ENABLED, pqcSign } from './pqc-signer';
 
 export interface AuditEventInput {
   event_type: string;
@@ -40,6 +42,7 @@ export class AuditLedgerService {
         request_id: input.request_id || uuidv4(),
         payload: input.payload,
         signature,
+        pqc_signature: PQC_ENABLED ? pqcSign(dataToSign) : null,
         created_at
       })
       .select()
@@ -57,6 +60,20 @@ export class AuditLedgerService {
     }).catch(err => {
       console.warn('[SIEM] Non-blocking push failed:', err?.message);
     });
+
+    // Non-blocking plugin dispatch — fire-and-forget, never blocks the ledger write
+    if (data) {
+      PluginExecutor.dispatch({
+        id: data.id,
+        event_type: data.event_type,
+        tenant_id: data.tenant_id,
+        agent_id: data.agent_id,
+        payload: data.payload,
+        created_at: data.created_at,
+      }).catch(err => {
+        console.warn('[Plugins] Non-blocking dispatch failed:', err?.message);
+      });
+    }
 
     return data;
   }
