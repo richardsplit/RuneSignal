@@ -19,10 +19,10 @@ const PLANS = [
   {
     id: 'pro',
     name: 'Pro',
-    price: '$49',
+    price: '$299',
     period: '/mo',
-    description: 'Advanced governance for growing fleets.',
-    features: ['Unlimited Agentic Workers', 'Immutable SOUL (PromptGuard)', 'Actuarial Risk Assessment', 'Priority Email Support', 'Custom Webhooks'],
+    description: 'Advanced governance for production agent fleets.',
+    features: ['Unlimited agents', 'HITL Approval API + blast radius scoring', 'Shadow AI discovery', 'Slack / ServiceNow / Jira adapters', 'SDK + LangChain plugin', 'EU AI Act evidence reports', 'Priority support'],
     priceId: process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID,
     buttonText: 'Upgrade to Pro',
     highlight: true
