@@ -1,4 +1,7 @@
 -- supabase/migrations/006_insurance_os.sql
+-- S5 DEFERRED: requires actuarial licensure, insurance regulatory approval,
+-- and historical claims data before any commercial deployment.
+-- This migration is preserved but the feature is not exposed in the UI.
 
 -- Coverage Policies
 CREATE TABLE coverage_policies (

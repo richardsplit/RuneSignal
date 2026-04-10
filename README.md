@@ -2,14 +2,22 @@
 
 TrustLayer is a centralized, cryptographic control plane for enterprise AI agents. It provides provenance, accountability, identity, and operational control over autonomous AI actors acting on behalf of an enterprise.
 
+## Core Capabilities
+
+TrustLayer provides three core compliance capabilities:
+
+1. **Cryptographic Agent Action Signing (S3)** — Every agent action is signed with Ed25519, creating an immutable, tamper-proof audit ledger.
+2. **Human-in-the-Loop Approval Routing (S7)** — High-risk agent actions are automatically routed to human reviewers with configurable blast-radius thresholds.
+3. **EU AI Act Evidence Package Export (S11 + S13)** — One-click generation of a regulator-ready compliance evidence package mapped to EU AI Act Articles 13, 14, 17, and 26.
+
+Additional modules available in Enterprise tier.
+
 ## Architecture Modules
 
-The platform is split into 5 core governance modules:
+The platform is built on three core governance modules:
 - **S3 (Provenance Engine)**: Cryptographic hashing and signing of LLM inputs, outputs, and system prompts acting as a tamper-evident audit ledger.
 - **S6 (Identity & Permissions)**: Registration and credential issuance for agents (RS256 JWTs) and strictly typed tool permission scopes.
-- **S1 (Conflict Arbiter)**: Semantic intent registry (`pgvector`) preventing multi-agent collisions and enforcing global corporate policies.
 - **S7 (HITL Ops Routing)**: Human-in-the-loop exception handling, SLA tracking, and Slack routing for agent ambiguities.
-- **S5 (Insurance Micro-OS)**: Actuarial risk scoring and dynamic premium generation based on historical agent telemetry.
 
 ## Tech Stack
 - **Framework**: Next.js 16 (App Router)

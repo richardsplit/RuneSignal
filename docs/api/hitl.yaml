@@ -1,0 +1,281 @@
+openapi: 3.1.0
+info:
+  title: TrustLayer HITL Approval API
+  version: 1.0.0
+  description: |
+    Human-in-the-Loop Approval API for AI agent actions.
+    Route high-risk agent actions to human reviewers before execution.
+    
+    Enforcement: EU AI Act Article 14 (Human Oversight)
+  contact:
+    name: TrustLayer API Support
+    url: https://docs.trustlayer.io
+
+servers:
+  - url: https://app.trustlayer.io/api/v1
+    description: Production
+
+security:
+  - bearerAuth: []
+
+paths:
+  /hitl/approvals:
+    post:
+      summary: Create approval request
+      description: Submit an agent action for human approval. Returns immediately with pending status.
+      operationId: createApproval
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateApprovalRequest'
+            example:
+              agent_id: "sales-agent-v2"
+              action_type: "send_proposal_email"
+              action_description: "Send proposal to CEO of BigCorp"
+              action_payload:
+                to: "ceo@bigcorp.com"
+                subject: "Partnership Proposal"
+              blast_radius: "high"
+              reversible: false
+              routing:
+                channels: ["slack", "email"]
+                escalation_minutes: 30
+                auto_approve_if_no_response: false
+      responses:
+        '201':
+          description: Approval request created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApprovalCreatedResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+    get:
+      summary: List approvals
+      operationId: listApprovals
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, approved, rejected, expired, escalated]
+        - name: agent_id
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+            maximum: 100
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: List of approvals
+
+  /hitl/approvals/{approval_id}:
+    get:
+      summary: Get approval status
+      description: Poll this endpoint to check if a human has approved or rejected the action.
+      operationId: getApproval
+      parameters:
+        - name: approval_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Approval details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApprovalResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /hitl/approvals/{approval_id}/decide:
+    post:
+      summary: Submit human decision
+      description: Used by the TrustLayer review UI when a human reviewer approves or rejects.
+      operationId: decideApproval
+      parameters:
+        - name: approval_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [decision]
+              properties:
+                decision:
+                  type: string
+                  enum: [approved, rejected]
+                note:
+                  type: string
+                  nullable: true
+      responses:
+        '200':
+          description: Decision recorded
+
+  /hitl/webhooks:
+    post:
+      summary: Register approval webhook
+      operationId: registerWebhook
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [url]
+              properties:
+                url:
+                  type: string
+                  format: uri
+                events:
+                  type: array
+                  items:
+                    type: string
+                    enum: [approval.decided, approval.expired, approval.escalated]
+                  default: [approval.decided, approval.expired]
+      responses:
+        '201':
+          description: Webhook registered
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: API Key
+
+  schemas:
+    CreateApprovalRequest:
+      type: object
+      required: [agent_id, action_type, action_description]
+      properties:
+        agent_id:
+          type: string
+        action_type:
+          type: string
+        action_description:
+          type: string
+        action_payload:
+          type: object
+        blast_radius:
+          type: string
+          enum: [low, medium, high, critical]
+        reversible:
+          type: boolean
+          default: true
+        context:
+          type: object
+          properties:
+            session_id:
+              type: string
+            user_id:
+              type: string
+              nullable: true
+            triggering_prompt:
+              type: string
+              nullable: true
+        routing:
+          type: object
+          properties:
+            channels:
+              type: array
+              items:
+                type: string
+                enum: [slack, email, webhook]
+            escalation_minutes:
+              type: integer
+              default: 30
+            auto_approve_if_no_response:
+              type: boolean
+              default: false
+
+    ApprovalCreatedResponse:
+      type: object
+      properties:
+        approval_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [pending]
+        created_at:
+          type: string
+          format: date-time
+        expires_at:
+          type: string
+          format: date-time
+        review_url:
+          type: string
+          format: uri
+
+    ApprovalResponse:
+      type: object
+      properties:
+        approval_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [pending, approved, rejected, expired, escalated]
+        decision:
+          type: string
+          enum: [approved, rejected]
+          nullable: true
+        decided_by:
+          type: object
+          nullable: true
+          properties:
+            user_id:
+              type: string
+            name:
+              type: string
+        decided_at:
+          type: string
+          format: date-time
+          nullable: true
+        reviewer_note:
+          type: string
+          nullable: true
+        ledger_entry_id:
+          type: string
+          format: uuid
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string

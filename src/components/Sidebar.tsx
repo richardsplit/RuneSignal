@@ -81,19 +81,19 @@ const NAV: NavGroup[] = [
     ],
   },
   {
+    section: 'Compliance',
+    items: [
+      { label: 'Compliance Reports', href: '/dashboard/compliance/reports', icon: Icon.Audit },
+      { label: 'Agent Inventory',    href: '/dashboard/agents',             icon: Icon.Identity },
+    ],
+  },
+  {
     section: 'Governance',
     items: [
       { label: 'Provenance',       href: '/provenance', icon: Icon.Provenance },
       { label: 'Conflict Arbiter', href: '/conflict',   icon: Icon.Conflict   },
       { label: 'Review Queue',     href: '/exceptions', icon: Icon.Exceptions, badge: '3' },
       { label: 'Audit Trail',      href: '/audit',      icon: Icon.Audit      },
-    ],
-  },
-  {
-    section: 'Risk & Identity',
-    items: [
-      { label: 'Agent Identity',   href: '/identity',   icon: Icon.Identity   },
-      { label: 'Risk & Insurance', href: '/insurance',  icon: Icon.Insurance  },
     ],
   },
 ];
