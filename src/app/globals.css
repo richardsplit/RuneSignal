@@ -725,3 +725,8 @@ a {
 /* ── Dot status (inline text indicator) — extends existing .status-dot ── */
 .status-dot.idle     { background: var(--text-muted); }
 .status-dot.danger   { background: var(--danger); box-shadow: 0 0 5px var(--danger); }
+
+/* ── Hover utilities (CSS-only, safe for Server Components) ────────────── */
+.hover-surface:hover { background: var(--bg-surface-2) !important; }
+.hover-text-primary  { color: var(--text-muted); transition: color var(--t-fast); }
+.hover-text-primary:hover { color: var(--text-primary) !important; }

@@ -359,6 +359,7 @@ export default function DashboardPage() {
               <Link
                 key={mod.href}
                 href={mod.href}
+                className="hover-surface"
                 style={{
                   display: 'block',
                   background: 'var(--bg-surface-1)',
@@ -366,8 +367,6 @@ export default function DashboardPage() {
                   textDecoration: 'none',
                   transition: 'background var(--t-fast)',
                 }}
-                onMouseEnter={e => ((e.currentTarget as HTMLElement).style.background = 'var(--bg-surface-2)')}
-                onMouseLeave={e => ((e.currentTarget as HTMLElement).style.background = 'var(--bg-surface-1)')}
               >
                 {/* Top row: label + badge */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.875rem' }}>
@@ -438,17 +437,14 @@ export default function DashboardPage() {
           <div style={{ padding: '0.75rem 1.25rem' }}>
             <Link
               href="/exceptions"
+              className="hover-text-primary"
               style={{
                 fontSize: '0.75rem',
-                color: 'var(--text-muted)',
                 textDecoration: 'none',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.25rem',
-                transition: 'color var(--t-fast)',
               }}
-              onMouseEnter={e => ((e.currentTarget as HTMLElement).style.color = 'var(--text-primary)')}
-              onMouseLeave={e => ((e.currentTarget as HTMLElement).style.color = 'var(--text-muted)')}
             >
               View all exceptions →
             </Link>
