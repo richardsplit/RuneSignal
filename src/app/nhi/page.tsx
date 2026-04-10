@@ -1,6 +1,5 @@
 'use client';
 import { useState, useEffect } from 'react';
-import Header from '@/components/Header';
 
 interface AgentKey {
   id: string;
@@ -14,19 +13,64 @@ interface AgentKey {
   status: 'active' | 'expired' | 'revoked';
 }
 
+/* ─── Status badge ───────────────────────────────────────────────────── */
+function KeyStatusBadge({ status }: { status: AgentKey['status'] }) {
+  const map = {
+    active:  { cls: 'badge badge-success', label: 'Active' },
+    expired: { cls: 'badge badge-neutral', label: 'Expired' },
+    revoked: { cls: 'badge badge-danger',  label: 'Revoked' },
+  };
+  const { cls, label } = map[status];
+  return <span className={cls}>{label}</span>;
+}
+
+/* ─── TTL ring ───────────────────────────────────────────────────────── */
+function TtlRing({ days }: { days: number }) {
+  const radius = 18;
+  const circ = 2 * Math.PI * radius;
+  const offset = circ - (circ * Math.min(days, 30)) / 30;
+  const color = days < 7 ? 'var(--warning)' : 'var(--success)';
+  return (
+    <div style={{ position: 'relative', width: '44px', height: '44px', flexShrink: 0 }}>
+      <svg width="44" height="44" style={{ transform: 'rotate(-90deg)' }}>
+        <circle cx="22" cy="22" r={radius} fill="none" stroke="var(--border-subtle)" strokeWidth="3" />
+        <circle
+          cx="22" cy="22" r={radius}
+          fill="none"
+          stroke={color}
+          strokeWidth="3"
+          strokeDasharray={circ}
+          strokeDashoffset={offset}
+          strokeLinecap="round"
+        />
+      </svg>
+      <span style={{
+        position: 'absolute', inset: 0,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: '0.6875rem', fontWeight: 600,
+        color: 'var(--text-primary)',
+        fontVariantNumeric: 'tabular-nums',
+      }}>
+        {Math.ceil(days)}
+      </span>
+    </div>
+  );
+}
+
+/* ─── Page ───────────────────────────────────────────────────────────── */
 export default function NHIDashboard() {
   const [keys, setKeys] = useState<AgentKey[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchKeys = async () => {
     try {
-        const res = await fetch('/api/v1/nhi/list');
-        const data = await res.json();
-        setKeys(data.keys || []);
+      const res = await fetch('/api/v1/nhi/list');
+      const data = await res.json();
+      setKeys(data.keys || []);
     } catch (e) {
-        console.error(e);
+      console.error(e);
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
   };
 
@@ -35,120 +79,259 @@ export default function NHIDashboard() {
   }, []);
 
   const handleRotate = async (keyId: string) => {
-      if (!confirm('Are you sure you want to rotate this identity? The old key will expire in 24 hours.')) return;
-      
-      const res = await fetch('/api/v1/nhi/rotate', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({ old_key_id: keyId })
-      });
-      if (res.ok) {
-          const data = await res.json();
-          alert(`Rotation successful! New Key Generated: ${data.new_api_key_plain}`);
-          fetchKeys();
-      } else {
-          alert('Rotation failed.');
-      }
+    if (!confirm('Are you sure you want to rotate this identity? The old key will expire in 24 hours.')) return;
+    const res = await fetch('/api/v1/nhi/rotate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ old_key_id: keyId }),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      alert(`Rotation successful! New Key Generated: ${data.new_api_key_plain}`);
+      fetchKeys();
+    } else {
+      alert('Rotation failed.');
+    }
   };
 
   const handleRevoke = async (keyId: string) => {
-       const reason = prompt('KILL SWITCH ENGAGED. Please provide a revocation reason for the audit ledger:');
-       if (!reason) return;
-       
-       const res = await fetch('/api/v1/nhi/revoke', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({ key_id: keyId, reason })
-      });
-      if (res.ok) {
-          const data = await res.json();
-          alert(`Identity Neuturalized. Death Certificate Minted: ${data.certificate_id}`);
-          fetchKeys();
-      } else {
-          alert('Revocation failed.');
-      }
+    const reason = prompt('KILL SWITCH ENGAGED. Please provide a revocation reason for the audit ledger:');
+    if (!reason) return;
+    const res = await fetch('/api/v1/nhi/revoke', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key_id: keyId, reason }),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      alert(`Identity Neutralized. Death Certificate Minted: ${data.certificate_id}`);
+      fetchKeys();
+    } else {
+      alert('Revocation failed.');
+    }
   };
 
+  /* ── Derived stats ── */
+  const activeCount  = keys.filter(k => k.status === 'active').length;
+  const expiredCount = keys.filter(k => k.status === 'expired').length;
+  const revokedCount = keys.filter(k => k.status === 'revoked').length;
+  const expiringSoon = keys.filter(k => k.status === 'active' && k.ttl_days < 7).length;
+
   if (loading) {
-     return <div className="p-8 text-neutral-400">Loading NHI Registry...</div>;
+    return (
+      <div style={{ maxWidth: '960px', paddingTop: '2rem' }}>
+        <div className="empty-state">
+          <p className="empty-state-title">Loading NHI Registry…</p>
+          <p className="empty-state-body">Fetching credential list from the identity ledger.</p>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="flex h-screen bg-neutral-900 text-neutral-100 font-sans">
-      <main className="flex-1 overflow-y-auto">
-        <Header title="Non-Human Identity Lifecycle (S12)" />
-        
-        <div className="p-8 max-w-7xl mx-auto space-y-8">
-           
-           <div className="bg-neutral-800/40 p-6 rounded-xl border border-neutral-700/50">
-               <div className="flex justify-between items-center mb-6">
-                  <div>
-                      <h2 className="text-xl font-medium text-white mb-1">Active Credentials</h2>
-                      <p className="text-sm text-neutral-400">Cryptographically verifiable identities subject to mandatory ephemeral circulation.</p>
-                  </div>
-               </div>
+    <div style={{ maxWidth: '960px' }}>
 
-               <div className="overflow-x-auto">
-                   <table className="w-full text-left text-sm">
-                       <thead className="text-neutral-400 border-b border-neutral-700">
-                           <tr>
-                               <th className="pb-3 font-medium">Agent Binding</th>
-                               <th className="pb-3 font-medium">Identity Hash</th>
-                               <th className="pb-3 font-medium">Status</th>
-                               <th className="pb-3 font-medium text-center">Countdown (Days)</th>
-                               <th className="pb-3 font-medium text-right">Lifeline Controls</th>
-                           </tr>
-                       </thead>
-                       <tbody className="divide-y divide-neutral-800">
-                           {keys.map(k => (
-                               <tr key={k.id} className="hover:bg-neutral-800/60 transition-colors">
-                                   <td className="py-4 text-neutral-300 font-mono text-xs">{k.agent_id || 'unbound_pool'}</td>
-                                   <td className="py-4 font-mono text-neutral-300">
-                                       <span className="opacity-50">tl_</span>{k.key_prefix.replace('tl_', '')}<span className="opacity-50">***</span>
-                                   </td>
-                                   <td className="py-4">
-                                       {k.status === 'active' && <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Active</span>}
-                                       {k.status === 'expired' && <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-neutral-500/10 text-neutral-400 border border-neutral-500/20">Expired</span>}
-                                       {k.status === 'revoked' && <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-500/10 text-red-500 border border-red-500/20">Annihilated</span>}
-                                   </td>
-                                   <td className="py-4">
-                                       <div className="flex justify-center items-center h-full">
-                                          {k.status === 'active' ? (
-                                              <div className="relative w-12 h-12 flex items-center justify-center">
-                                                  <svg className="absolute inset-0 w-full h-full transform -rotate-90">
-                                                      <circle cx="24" cy="24" r="20" className={`stroke-current ${k.ttl_days < 7 ? 'text-amber-500' : 'text-emerald-500'}`} strokeWidth="4" fill="none" 
-                                                              strokeDasharray="125" strokeDashoffset={125 - (125 * (k.ttl_days / 30))} />
-                                                  </svg>
-                                                  <span className="text-sm font-mono text-white absolute">{Math.ceil(k.ttl_days)}</span>
-                                              </div>
-                                          ) : (
-                                              <span className="text-neutral-600 font-mono">-</span>
-                                          )}
-                                       </div>
-                                   </td>
-                                   <td className="py-4 text-right space-x-3">
-                                       {k.status === 'active' && (
-                                           <button onClick={() => handleRotate(k.id)} className="text-indigo-400 hover:text-indigo-300 text-xs font-medium transition-colors">Rotate</button>
-                                       )}
-                                       {k.status === 'active' && (
-                                           <button onClick={() => handleRevoke(k.id)} className="px-3 py-1 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded border border-red-500/30 text-xs font-medium transition-colors">Kill Switch</button>
-                                       )}
-                                       {k.status === 'revoked' && k.death_certificate_id && (
-                                           <a href={`/provenance/${k.death_certificate_id}`} className="text-neutral-400 hover:text-white text-xs font-medium transition-colors underline decoration-neutral-600 underline-offset-2">View Death Cert</a>
-                                       )}
-                                   </td>
-                               </tr>
-                           ))}
-                           {keys.length === 0 && (
-                               <tr><td colSpan={5} className="py-8 text-center text-neutral-500">No active identities tracked.</td></tr>
-                           )}
-                       </tbody>
-                   </table>
-               </div>
-           </div>
+      {/* Page header */}
+      <div style={{ marginBottom: '1.75rem' }}>
+        <h1 className="page-title">NHI Lifecycle</h1>
+        <p className="page-description">
+          Non-human identity credential management, rotation scheduling, and spawn graph.
+        </p>
+      </div>
 
+      {/* KPI strip */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(4, 1fr)',
+        gap: '1px',
+        background: 'var(--border-subtle)',
+        border: '1px solid var(--border-default)',
+        borderRadius: 'var(--radius-lg)',
+        overflow: 'hidden',
+        marginBottom: '1.75rem',
+      }}>
+        {[
+          { label: 'Active Credentials', value: String(activeCount),  accentColor: activeCount > 0 ? 'var(--success)' : undefined },
+          { label: 'Expiring Soon',      value: String(expiringSoon), accentColor: expiringSoon > 0 ? 'var(--warning)' : undefined },
+          { label: 'Expired',            value: String(expiredCount), accentColor: undefined },
+          { label: 'Revoked',            value: String(revokedCount), accentColor: revokedCount > 0 ? 'var(--danger)' : undefined },
+        ].map((k, i) => (
+          <div key={i} style={{ background: 'var(--bg-surface-1)', padding: '1.25rem 1.5rem' }}>
+            <div className="kpi-label">{k.label}</div>
+            <div className="kpi-value" style={{ color: k.accentColor ?? undefined }}>
+              {k.value}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Two-panel layout */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '1.25rem', alignItems: 'start' }}>
+
+        {/* Left panel: credentials table */}
+        <div className="surface" style={{ overflow: 'hidden' }}>
+          <div className="panel-header">
+            <span className="panel-title">Active Credentials</span>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+              {keys.length} total
+            </span>
+          </div>
+
+          {keys.length > 0 ? (
+            <div style={{ overflowX: 'auto' }}>
+              <table className="data-table" style={{ width: '100%' }}>
+                <thead>
+                  <tr>
+                    <th>Agent Binding</th>
+                    <th>Identity Hash</th>
+                    <th>Status</th>
+                    <th style={{ textAlign: 'center' }}>TTL (days)</th>
+                    <th style={{ textAlign: 'right' }}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {keys.map(k => (
+                    <tr key={k.id}>
+                      <td>
+                        <span className="mono" style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                          {k.agent_id || 'unbound_pool'}
+                        </span>
+                      </td>
+                      <td>
+                        <span className="mono" style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                          <span style={{ opacity: 0.45 }}>tl_</span>
+                          {k.key_prefix.replace('tl_', '')}
+                          <span style={{ opacity: 0.45 }}>***</span>
+                        </span>
+                      </td>
+                      <td>
+                        <KeyStatusBadge status={k.status} />
+                      </td>
+                      <td style={{ textAlign: 'center' }}>
+                        {k.status === 'active' ? (
+                          <div style={{ display: 'flex', justifyContent: 'center' }}>
+                            <TtlRing days={k.ttl_days} />
+                          </div>
+                        ) : (
+                          <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>—</span>
+                        )}
+                      </td>
+                      <td style={{ textAlign: 'right' }}>
+                        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', alignItems: 'center' }}>
+                          {k.status === 'active' && (
+                            <button
+                              onClick={() => handleRotate(k.id)}
+                              className="btn btn-ghost"
+                              style={{ fontSize: '0.75rem', padding: '0.25rem 0.625rem' }}
+                            >
+                              Rotate
+                            </button>
+                          )}
+                          {k.status === 'active' && (
+                            <button
+                              onClick={() => handleRevoke(k.id)}
+                              className="btn"
+                              style={{
+                                fontSize: '0.75rem',
+                                padding: '0.25rem 0.625rem',
+                                background: 'var(--danger-bg)',
+                                color: 'var(--danger)',
+                                border: '1px solid var(--danger-border)',
+                              }}
+                            >
+                              Kill Switch
+                            </button>
+                          )}
+                          {k.status === 'revoked' && k.death_certificate_id && (
+                            <a
+                              href={`/provenance/${k.death_certificate_id}`}
+                              style={{
+                                fontSize: '0.75rem',
+                                color: 'var(--text-muted)',
+                                textDecoration: 'underline',
+                                textDecorationColor: 'var(--border-default)',
+                                textUnderlineOffset: '2px',
+                              }}
+                            >
+                              View Death Cert
+                            </a>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="empty-state" style={{ padding: '2.5rem' }}>
+              <p className="empty-state-title">No credentials tracked</p>
+              <p className="empty-state-body">Register an agent to begin issuing non-human identities.</p>
+            </div>
+          )}
         </div>
-      </main>
+
+        {/* Right panel: spawn key list / summary */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+
+          {/* Rotation schedule callout */}
+          {expiringSoon > 0 && (
+            <div className="callout callout-warning">
+              <strong>{expiringSoon} credential{expiringSoon > 1 ? 's' : ''} expiring within 7 days.</strong>
+              {' '}Schedule rotation to avoid service interruption.
+            </div>
+          )}
+
+          {/* Agent spawn summary */}
+          <div className="surface">
+            <div className="panel-header">
+              <span className="panel-title">Spawn Graph</span>
+            </div>
+            <div style={{ padding: '1rem 1.25rem', display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
+              {keys.filter(k => k.status === 'active').length === 0 ? (
+                <div className="empty-state" style={{ padding: '1rem 0' }}>
+                  <p className="empty-state-body">No active identities to graph.</p>
+                </div>
+              ) : (
+                keys.filter(k => k.status === 'active').map(k => (
+                  <div key={k.id} style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.625rem',
+                    padding: '0.5rem 0.625rem',
+                    background: 'var(--bg-surface-2)',
+                    borderRadius: 'var(--radius-sm)',
+                    border: '1px solid var(--border-subtle)',
+                  }}>
+                    <span style={{
+                      width: '6px', height: '6px', borderRadius: '50%',
+                      background: k.ttl_days < 7 ? 'var(--warning)' : 'var(--success)',
+                      flexShrink: 0,
+                    }} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p className="mono" style={{ fontSize: '0.6875rem', color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {k.agent_id || 'unbound_pool'}
+                      </p>
+                      <p style={{ fontSize: '0.625rem', color: 'var(--text-muted)' }}>
+                        {Math.ceil(k.ttl_days)}d remaining
+                      </p>
+                    </div>
+                    <span className={k.ttl_days < 7 ? 'badge badge-warning' : 'badge badge-success'} style={{ fontSize: '0.625rem' }}>
+                      {k.ttl_days < 7 ? 'Expiring' : 'Healthy'}
+                    </span>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* Info callout */}
+          <div className="callout callout-info" style={{ fontSize: '0.75rem', lineHeight: 1.5 }}>
+            All credentials are subject to mandatory ephemeral circulation. Rotation resets the 30-day TTL clock.
+          </div>
+        </div>
+
+      </div>
     </div>
   );
 }

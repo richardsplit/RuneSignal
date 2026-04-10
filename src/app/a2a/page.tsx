@@ -1,20 +1,29 @@
 'use client';
 import { useState, useEffect } from 'react';
-import Header from '@/components/Header';
 
 interface A2ASignature {
-    agent_id: string;
-    created_at: string;
+  agent_id: string;
+  created_at: string;
 }
 
 interface Handshake {
-    id: string;
-    initiator_id: string;
-    responder_id: string;
-    terms_hash: string;
-    status: 'pending' | 'accepted' | 'rejected' | 'completed';
-    created_at: string;
-    a2a_signatures: A2ASignature[];
+  id: string;
+  initiator_id: string;
+  responder_id: string;
+  terms_hash: string;
+  status: 'pending' | 'accepted' | 'rejected' | 'completed';
+  created_at: string;
+  a2a_signatures: A2ASignature[];
+}
+
+function statusBadgeClass(status: Handshake['status']): string {
+  switch (status) {
+    case 'accepted':  return 'badge badge-success';
+    case 'completed': return 'badge badge-success';
+    case 'pending':   return 'badge badge-warning';
+    case 'rejected':  return 'badge badge-danger';
+    default:          return 'badge badge-neutral';
+  }
 }
 
 export default function A2ADashboard() {
@@ -23,13 +32,13 @@ export default function A2ADashboard() {
 
   const fetchHandshakes = async () => {
     try {
-        const res = await fetch('/api/v1/a2a/list');
-        const data = await res.json();
-        setHandshakes(data.handshakes || []);
-    } catch(e) {
-        console.error(e);
+      const res = await fetch('/api/v1/a2a/list');
+      const data = await res.json();
+      setHandshakes(data.handshakes || []);
+    } catch (e) {
+      console.error(e);
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
   };
 
@@ -40,89 +49,260 @@ export default function A2ADashboard() {
   }, []);
 
   if (loading) {
-      return <div className="p-8 text-neutral-400">Synchronizing with A2A Escrow Network...</div>;
+    return (
+      <div style={{ padding: '3rem', color: 'var(--text-muted)' }}>
+        Synchronizing with A2A Escrow Network...
+      </div>
+    );
   }
 
+  const total    = handshakes.length;
+  const accepted = handshakes.filter(h => h.status === 'accepted' || h.status === 'completed').length;
+  const pending  = handshakes.filter(h => h.status === 'pending').length;
+  const rejected = handshakes.filter(h => h.status === 'rejected').length;
+
   return (
-    <div className="flex h-screen bg-neutral-900 text-neutral-100 font-sans">
-      <main className="flex-1 overflow-y-auto">
-        <Header title="Machine-to-Machine Gateway (S16)" />
-        
-        <div className="p-8 max-w-7xl mx-auto space-y-8">
-           <div className="bg-neutral-800/40 p-8 rounded-xl border border-neutral-700/50">
-               <h2 className="text-xl font-medium text-white mb-2">Multi-Agent Escrow Pipelines</h2>
-               <p className="text-sm text-neutral-400 mb-8">RuneSignal neutral clearinghouse enforcing cryptographic handshakes between autonomous systems.</p>
-               
-               <div className="space-y-6">
-                   {handshakes.map(h => {
-                       const initiatorSigned = h.a2a_signatures?.some(s => s.agent_id === h.initiator_id);
-                       const responderSigned = h.a2a_signatures?.some(s => s.agent_id === h.responder_id);
+    <div style={{ maxWidth: 1100, margin: '0 auto', padding: '2rem 1.5rem' }}>
 
-                       return (
-                           <div key={h.id} className="relative p-6 rounded-lg bg-neutral-800/80 border border-neutral-700/80 overflow-hidden">
-                               {/* Background Line Connector */}
-                               <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-neutral-700 -z-10 -translate-y-1/2 mx-24"></div>
-                               
-                               <div className="flex justify-between items-center relative z-10 w-full mb-4">
-                                   <div className="font-mono text-[10px] text-neutral-500 text-center absolute -top-4 w-full">Contract Hash: {h.terms_hash}</div>
-                               </div>
+      {/* Page header */}
+      <div style={{ marginBottom: '1.75rem' }}>
+        <h1 className="page-title">A2A Gateway</h1>
+        <p className="page-description">
+          Governed agent-to-agent delegation protocol with dual-signature enforcement.
+        </p>
+      </div>
 
-                               <div className="grid grid-cols-3 gap-4 items-center">
-                                   
-                                   {/* Initiator */}
-                                   <div className={`p-4 rounded-lg flex flex-col items-center justify-center border-2 transition-colors
-                                      ${initiatorSigned ? 'border-emerald-500/50 bg-emerald-900/10' : 'border-neutral-600 bg-neutral-900/40'}`}>
-                                       <div className="w-12 h-12 rounded-full flex items-center justify-center mb-3 bg-neutral-800 border border-neutral-600">
-                                           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className={initiatorSigned ? 'text-emerald-400' : 'text-neutral-400'}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                                       </div>
-                                       <span className="text-xs font-mono text-neutral-300 w-full text-center truncate px-2">{h.initiator_id}</span>
-                                       <span className={`mt-2 text-[10px] uppercase font-bold tracking-widest ${initiatorSigned ? 'text-emerald-500' : 'text-neutral-500'}`}>
-                                           {initiatorSigned ? 'Signed' : 'Awaiting'}
-                                       </span>
-                                   </div>
+      {/* KPI strip */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(4, 1fr)',
+        border: '1px solid var(--border-default)',
+        borderRadius: 'var(--radius-md)',
+        overflow: 'hidden',
+        marginBottom: '1.5rem',
+      }}>
+        {[
+          { label: 'Total Handshakes', value: total,    color: 'var(--text-primary)' },
+          { label: 'Accepted',         value: accepted,  color: 'var(--success)' },
+          { label: 'Pending',          value: pending,   color: 'var(--warning)' },
+          { label: 'Rejected',         value: rejected,  color: 'var(--danger)' },
+        ].map((s, i) => (
+          <div
+            key={s.label}
+            style={{
+              padding: '1.25rem 1.5rem',
+              background: 'var(--bg-surface-1)',
+              borderRight: i < 3 ? '1px solid var(--border-default)' : 'none',
+            }}
+          >
+            <p className="kpi-label">{s.label}</p>
+            <p className="kpi-value" style={{ color: s.color }}>{s.value}</p>
+          </div>
+        ))}
+      </div>
 
-                                   {/* Status Hub */}
-                                   <div className="flex flex-col items-center justify-center">
-                                       <div className={`w-16 h-16 rounded-full flex items-center justify-center border-4 z-20 transition-all
-                                           ${h.status === 'accepted' ? 'border-indigo-500 bg-indigo-900 shadow-[0_0_20px_rgba(99,102,241,0.4)]' : 'border-neutral-600 bg-neutral-800'}`}>
-                                           {h.status === 'accepted' ? (
-                                               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-indigo-300"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-                                           ) : (
-                                               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-neutral-400"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                                           )}
-                                       </div>
-                                       <span className={`mt-3 text-xs uppercase font-bold tracking-widest ${h.status === 'accepted' ? 'text-indigo-400' : 'text-neutral-400'}`}>
-                                           {h.status}
-                                       </span>
-                                       <span className="text-[10px] font-mono text-neutral-500 mt-1">{new Date(h.created_at).toLocaleString()}</span>
-                                   </div>
+      {/* Handshake panels */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        {handshakes.length === 0 ? (
+          <div className="empty-state">
+            <p className="empty-state-title">No active handshakes</p>
+            <p className="empty-state-body">No A2A handshakes active on this tenant domain.</p>
+          </div>
+        ) : (
+          handshakes.map(h => {
+            const initiatorSigned = h.a2a_signatures?.some(s => s.agent_id === h.initiator_id);
+            const responderSigned = h.a2a_signatures?.some(s => s.agent_id === h.responder_id);
 
-                                   {/* Responder */}
-                                   <div className={`p-4 rounded-lg flex flex-col items-center justify-center border-2 transition-colors
-                                      ${responderSigned ? 'border-emerald-500/50 bg-emerald-900/10' : 'border-neutral-600 bg-neutral-900/40'}`}>
-                                       <div className="w-12 h-12 rounded-full flex items-center justify-center mb-3 bg-neutral-800 border border-neutral-600">
-                                           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className={responderSigned ? 'text-emerald-400' : 'text-neutral-400'}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                                       </div>
-                                       <span className="text-xs font-mono text-neutral-300 w-full text-center truncate px-2">{h.responder_id}</span>
-                                       <span className={`mt-2 text-[10px] uppercase font-bold tracking-widest ${responderSigned ? 'text-emerald-500' : 'text-neutral-500'}`}>
-                                           {responderSigned ? 'Signed' : 'Awaiting'}
-                                       </span>
-                                   </div>
+            return (
+              <div className="surface" key={h.id} style={{ overflow: 'hidden' }}>
 
-                               </div>
-                           </div>
-                       );
-                   })}
+                {/* Panel header */}
+                <div className="panel-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <span className="panel-title" style={{ fontSize: '0.8rem' }}>Handshake</span>
+                    <span className={statusBadgeClass(h.status)} style={{ textTransform: 'uppercase', fontSize: '0.65rem' }}>
+                      {h.status}
+                    </span>
+                  </div>
+                  <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                    {new Date(h.created_at).toLocaleString()}
+                  </span>
+                </div>
 
-                   {handshakes.length === 0 && (
-                       <div className="py-16 text-center border-2 border-dashed border-neutral-700/50 rounded-xl">
-                           <p className="text-neutral-500">No A2A handshakes active on this tenant domain.</p>
-                       </div>
-                   )}
-               </div>
-           </div>
-        </div>
-      </main>
+                {/* Terms hash */}
+                <div style={{
+                  padding: '0.6rem 1.25rem',
+                  borderBottom: '1px solid var(--border-subtle)',
+                  background: 'var(--bg-surface-2)',
+                }}>
+                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Contract Hash: </span>
+                  <span className="mono" style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>{h.terms_hash}</span>
+                </div>
+
+                {/* Agent nodes grid */}
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr auto 1fr',
+                  gap: '1rem',
+                  padding: '1.25rem 1.5rem',
+                  alignItems: 'center',
+                }}>
+
+                  {/* Initiator */}
+                  <div style={{
+                    padding: '1rem',
+                    borderRadius: 'var(--radius-md)',
+                    border: `2px solid ${initiatorSigned ? 'var(--success-border)' : 'var(--border-default)'}`,
+                    background: initiatorSigned ? 'var(--success-bg)' : 'var(--bg-surface-2)',
+                    display: 'flex', flexDirection: 'column', alignItems: 'center',
+                    transition: 'all var(--t-base)',
+                  }}>
+                    <div style={{
+                      width: 44, height: 44, borderRadius: '50%',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      background: 'var(--bg-surface-3)',
+                      border: '1px solid var(--border-default)',
+                      marginBottom: '0.6rem',
+                    }}>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke={initiatorSigned ? 'var(--success)' : 'var(--text-muted)'}
+                        strokeWidth="1.5">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                        <circle cx="12" cy="7" r="4" />
+                      </svg>
+                    </div>
+                    <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>Initiator</p>
+                    <span
+                      className="mono"
+                      style={{
+                        fontSize: '0.72rem', color: 'var(--text-secondary)',
+                        maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                        display: 'block', textAlign: 'center',
+                      }}
+                    >
+                      {h.initiator_id}
+                    </span>
+                    <span style={{
+                      marginTop: '0.5rem', fontSize: '0.65rem',
+                      fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em',
+                      color: initiatorSigned ? 'var(--success)' : 'var(--text-muted)',
+                    }}>
+                      {initiatorSigned ? 'Signed' : 'Awaiting'}
+                    </span>
+                  </div>
+
+                  {/* Status hub (center) */}
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
+                    <div style={{
+                      width: 56, height: 56, borderRadius: '50%',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      border: `3px solid ${h.status === 'accepted' || h.status === 'completed'
+                        ? 'var(--accent-border)' : 'var(--border-default)'}`,
+                      background: h.status === 'accepted' || h.status === 'completed'
+                        ? 'var(--accent-dim)' : 'var(--bg-surface-2)',
+                      boxShadow: h.status === 'accepted' || h.status === 'completed'
+                        ? '0 0 20px var(--accent-dim)' : 'none',
+                      transition: 'all var(--t-base)',
+                    }}>
+                      {h.status === 'accepted' || h.status === 'completed' ? (
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+                          stroke="var(--accent)" strokeWidth="2">
+                          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                        </svg>
+                      ) : (
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+                          stroke="var(--text-muted)" strokeWidth="2">
+                          <circle cx="12" cy="12" r="10" />
+                          <polyline points="12 6 12 12 16 14" />
+                        </svg>
+                      )}
+                    </div>
+                    <span style={{
+                      fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase',
+                      letterSpacing: '0.07em',
+                      color: h.status === 'accepted' || h.status === 'completed'
+                        ? 'var(--accent)' : 'var(--text-muted)',
+                    }}>
+                      {h.status}
+                    </span>
+                  </div>
+
+                  {/* Responder */}
+                  <div style={{
+                    padding: '1rem',
+                    borderRadius: 'var(--radius-md)',
+                    border: `2px solid ${responderSigned ? 'var(--success-border)' : 'var(--border-default)'}`,
+                    background: responderSigned ? 'var(--success-bg)' : 'var(--bg-surface-2)',
+                    display: 'flex', flexDirection: 'column', alignItems: 'center',
+                    transition: 'all var(--t-base)',
+                  }}>
+                    <div style={{
+                      width: 44, height: 44, borderRadius: '50%',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      background: 'var(--bg-surface-3)',
+                      border: '1px solid var(--border-default)',
+                      marginBottom: '0.6rem',
+                    }}>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke={responderSigned ? 'var(--success)' : 'var(--text-muted)'}
+                        strokeWidth="1.5">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                        <circle cx="12" cy="7" r="4" />
+                      </svg>
+                    </div>
+                    <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>Responder</p>
+                    <span
+                      className="mono"
+                      style={{
+                        fontSize: '0.72rem', color: 'var(--text-secondary)',
+                        maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                        display: 'block', textAlign: 'center',
+                      }}
+                    >
+                      {h.responder_id}
+                    </span>
+                    <span style={{
+                      marginTop: '0.5rem', fontSize: '0.65rem',
+                      fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em',
+                      color: responderSigned ? 'var(--success)' : 'var(--text-muted)',
+                    }}>
+                      {responderSigned ? 'Signed' : 'Awaiting'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Signature table */}
+                {h.a2a_signatures?.length > 0 && (
+                  <div style={{ borderTop: '1px solid var(--border-subtle)', overflowX: 'auto' }}>
+                    <table className="data-table" style={{ width: '100%' }}>
+                      <thead>
+                        <tr>
+                          <th>Signing Agent</th>
+                          <th>Signed At</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {h.a2a_signatures.map((sig, i) => (
+                          <tr key={i}>
+                            <td>
+                              <span className="mono" style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                                {sig.agent_id}
+                              </span>
+                            </td>
+                            <td style={{ color: 'var(--text-muted)', fontSize: '0.73rem' }}>
+                              {new Date(sig.created_at).toLocaleString()}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            );
+          })
+        )}
+      </div>
     </div>
   );
 }

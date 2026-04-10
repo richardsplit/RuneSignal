@@ -60,62 +60,128 @@ export default function MoralOSDashboard() {
   const totalEvents = events.length;
   const pauseCount = events.filter(e => e.verdict === 'pause').length;
   const blockCount = events.filter(e => e.verdict === 'block').length;
-  const clearRate = totalEvents > 0 ? Math.round(((totalEvents - pauseCount - blockCount) / totalEvents) * 100) : 100;
+  const clearRate = totalEvents > 0
+    ? Math.round(((totalEvents - pauseCount - blockCount) / totalEvents) * 100)
+    : 100;
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
-        <p>Loading MoralOS data...</p>
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '60vh',
+        gap: '0.625rem',
+        color: 'var(--text-muted)',
+        fontSize: '0.875rem',
+      }}>
+        <span
+          className="status-dot online"
+          style={{ animation: 'skeletonPulse 1.4s ease-in-out infinite' }}
+        />
+        Loading policy data…
       </div>
     );
   }
 
   return (
     <>
-      <div style={{ padding: '2rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-          <div>
-            <h1 className="gradient-text" style={{ fontSize: '2rem', marginBottom: '0.25rem' }}>MoralOS</h1>
-            <p style={{ color: 'var(--color-text-muted)' }}>Corporate SOUL governance, moral conflict detection, and agent conscience engine.</p>
+      {/* Page header */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'flex-start',
+        justifyContent: 'space-between',
+        marginBottom: '1.75rem',
+      }}>
+        <div>
+          <h1 className="page-title">Policy Engine</h1>
+          <p className="page-description">
+            Corporate SOUL governance, moral conflict detection, and agent conscience evaluation.
+          </p>
+        </div>
+        <button
+          className="btn btn-outline"
+          onClick={() => setIsEditorOpen(true)}
+        >
+          Configure SOUL
+        </button>
+      </div>
+
+      {/* KPI strip — joined border-radius pattern */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(4, 1fr)',
+        marginBottom: '1.75rem',
+        border: '1px solid var(--border-default)',
+        borderRadius: 'var(--radius-lg)',
+        overflow: 'hidden',
+        background: 'var(--bg-surface-1)',
+      }}>
+        {/* SOUL Version */}
+        <div style={{
+          padding: '1.25rem 1.5rem',
+          borderRight: '1px solid var(--border-subtle)',
+        }}>
+          <div className="kpi-label">SOUL Version</div>
+          <div className="kpi-value accent">
+            {soulData ? `v${soulData.version}` : '—'}
           </div>
         </div>
 
-        {/* Metrics Row */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem', marginBottom: '2rem' }}>
-          <div className="glass-panel" style={{ padding: '1.25rem' }}>
-            <h3 style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>SOUL Version</h3>
-            <p style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--color-primary-emerald)' }}>{soulData ? `v${soulData.version}` : 'None'}</p>
-          </div>
-          <div className="glass-panel" style={{ padding: '1.25rem' }}>
-            <h3 style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>Total Events</h3>
-            <p style={{ fontSize: '1.75rem', fontWeight: 700 }}>{totalEvents}</p>
-          </div>
-          <div className="glass-panel" style={{ padding: '1.25rem' }}>
-            <h3 style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>Blocks / Pauses</h3>
-            <p style={{ fontSize: '1.75rem', fontWeight: 700 }}>
-              <span style={{ color: 'var(--color-error-rose)' }}>{blockCount}</span>
-              <span style={{ color: 'var(--color-text-muted)', fontSize: '1rem' }}> / </span>
-              <span style={{ color: 'var(--color-accent-amber)' }}>{pauseCount}</span>
-            </p>
-          </div>
-          <div className="glass-panel" style={{ padding: '1.25rem' }}>
-            <h3 style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>Clear Rate</h3>
-            <p style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--color-primary-emerald)' }}>{clearRate}%</p>
-          </div>
+        {/* Total Events */}
+        <div style={{
+          padding: '1.25rem 1.5rem',
+          borderRight: '1px solid var(--border-subtle)',
+        }}>
+          <div className="kpi-label">Total Events</div>
+          <div className="kpi-value">{totalEvents}</div>
         </div>
 
-        {/* SOUL Status */}
-        <SoulStatusCard
-          version={soulData?.version || null}
-          signedBy={soulData?.signed_by || '—'}
-          createdAt={soulData?.created_at || ''}
-          signatureValid={true}
-          onConfigureClick={() => setIsEditorOpen(true)}
-        />
+        {/* Blocks */}
+        <div style={{
+          padding: '1.25rem 1.5rem',
+          borderRight: '1px solid var(--border-subtle)',
+        }}>
+          <div className="kpi-label">Blocks</div>
+          <div className="kpi-value danger">{blockCount}</div>
+        </div>
 
-        {/* Main Grid: Events + Heat Map */}
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.5rem' }}>
+        {/* Clear Rate */}
+        <div style={{ padding: '1.25rem 1.5rem' }}>
+          <div className="kpi-label">Clear Rate</div>
+          <div className="kpi-value success">{clearRate}%</div>
+        </div>
+      </div>
+
+      {/* SOUL Status */}
+      <SoulStatusCard
+        version={soulData?.version || null}
+        signedBy={soulData?.signed_by || '—'}
+        createdAt={soulData?.created_at || ''}
+        signatureValid={true}
+        onConfigureClick={() => setIsEditorOpen(true)}
+      />
+
+      {/* Main grid: Event Feed (2fr) + Domain HeatMap (1fr) */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: '2fr 1fr',
+        gap: '1.25rem',
+        marginTop: '1.25rem',
+      }}>
+        {/* Event Feed panel */}
+        <div className="surface" style={{ overflow: 'hidden' }}>
+          <div className="panel-header">
+            <span className="panel-title">Moral Event Feed</span>
+          </div>
           <MoralEventFeed events={events} onFilterChange={handleFilterChange} />
+        </div>
+
+        {/* Domain HeatMap panel */}
+        <div className="surface" style={{ overflow: 'hidden' }}>
+          <div className="panel-header">
+            <span className="panel-title">Domain Activity</span>
+          </div>
           <DomainHeatMap events={events} />
         </div>
       </div>

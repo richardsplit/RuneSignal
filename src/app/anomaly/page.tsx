@@ -1,6 +1,5 @@
 'use client';
 import { useState, useEffect } from 'react';
-import Header from '@/components/Header';
 
 interface AnomalyEvent {
   id: string;
@@ -14,18 +13,18 @@ interface AnomalyEvent {
   created_at: string;
 }
 
-const SEVERITY_CONFIG = {
-  low:      { dot: 'bg-neutral-400', badge: 'text-neutral-400 border-neutral-600 bg-neutral-800/50' },
-  medium:   { dot: 'bg-amber-400',   badge: 'text-amber-400 border-amber-700/40 bg-amber-900/10' },
-  high:     { dot: 'bg-orange-400',  badge: 'text-orange-400 border-orange-700/40 bg-orange-900/10' },
-  critical: { dot: 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.7)] animate-pulse', badge: 'text-red-400 border-red-700/40 bg-red-900/10' },
+const SEVERITY_CONFIG: Record<string, { badgeClass: string; dotColor: string }> = {
+  low:      { badgeClass: 'badge badge-neutral',  dotColor: 'var(--text-muted)' },
+  medium:   { badgeClass: 'badge badge-warning',  dotColor: 'var(--warning)' },
+  high:     { badgeClass: 'badge badge-warning',  dotColor: 'var(--warning)' },
+  critical: { badgeClass: 'badge badge-danger',   dotColor: 'var(--danger)' },
 };
 
 const TYPE_LABELS: Record<string, string> = {
-  cost_spike:   '💰 Cost Spike',
-  token_volume: '📊 Token Volume',
-  error_rate:   '❌ Error Rate',
-  velocity:     '⚡ Call Velocity',
+  cost_spike:   'Cost Spike',
+  token_volume: 'Token Volume',
+  error_rate:   'Error Rate',
+  velocity:     'Call Velocity',
 };
 
 export default function AnomalyDashboard() {
@@ -60,86 +59,156 @@ export default function AnomalyDashboard() {
   };
 
   const criticalCount = anomalies.filter(a => a.severity === 'critical').length;
+  const highCount     = anomalies.filter(a => a.severity === 'high').length;
+  const resolvedToday = anomalies.filter(a => a.resolved).length;
 
-  if (loading) return <div className="p-8 text-neutral-400">Scanning telemetry streams...</div>;
+  if (loading) {
+    return (
+      <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+        Scanning telemetry...
+      </div>
+    );
+  }
 
   return (
-    <div className="flex h-screen bg-neutral-900 text-neutral-100 font-sans">
-      <main className="flex-1 overflow-y-auto">
-        <Header title="Anomaly Detector (S14)" />
+    <div style={{ maxWidth: 1000, margin: '0 auto', padding: '2rem 1.5rem' }}>
 
-        <div className="p-8 max-w-7xl mx-auto space-y-8">
-          {/* Summary bar */}
-          <div className="grid grid-cols-4 gap-4">
-            {[
-              { label: 'Active Anomalies', value: anomalies.length, color: 'text-white' },
-              { label: 'Critical', value: anomalies.filter(a => a.severity === 'critical').length, color: 'text-red-400' },
-              { label: 'High', value: anomalies.filter(a => a.severity === 'high').length, color: 'text-orange-400' },
-              { label: 'Medium / Low', value: anomalies.filter(a => ['medium', 'low'].includes(a.severity)).length, color: 'text-amber-400' },
-            ].map(s => (
-              <div key={s.label} className="bg-neutral-800/50 rounded-xl border border-neutral-700/50 p-5">
-                <p className="text-xs text-neutral-500 uppercase tracking-widest">{s.label}</p>
-                <p className={`text-4xl font-mono font-light mt-1 ${s.color}`}>{s.value}</p>
-              </div>
-            ))}
+      {/* Page header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.75rem' }}>
+        <div>
+          <h1 className="page-title">Anomaly Detection</h1>
+          <p className="page-description">Statistical behavioural deviations detected via Welford z-score streaming.</p>
+        </div>
+        {/* Live pill */}
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: '0.4rem',
+          padding: '0.3rem 0.75rem',
+          background: 'var(--success-bg)',
+          border: '1px solid var(--success-border)',
+          borderRadius: 'var(--radius-xl)',
+          fontSize: '0.75rem',
+          color: 'var(--success)',
+          fontWeight: 600,
+          whiteSpace: 'nowrap',
+          flexShrink: 0,
+          marginTop: '0.25rem',
+        }}>
+          <span className="status-dot online" style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--success)', display: 'inline-block' }} />
+          Live · 8s
+        </div>
+      </div>
+
+      {/* KPI strip */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(4, 1fr)',
+        border: '1px solid var(--border-default)',
+        borderRadius: 'var(--radius-md)',
+        overflow: 'hidden',
+        marginBottom: '1.5rem',
+      }}>
+        {[
+          { label: 'Active Anomalies', value: anomalies.length, color: 'var(--text-primary)' },
+          { label: 'Critical',         value: criticalCount,     color: 'var(--danger)' },
+          { label: 'High',             value: highCount,          color: 'var(--warning)' },
+          { label: 'Resolved Today',   value: resolvedToday,      color: 'var(--success)' },
+        ].map((s, i) => (
+          <div
+            key={s.label}
+            style={{
+              padding: '1.25rem 1.5rem',
+              background: 'var(--bg-surface-1)',
+              borderRight: i < 3 ? '1px solid var(--border-default)' : 'none',
+            }}
+          >
+            <p className="kpi-label">{s.label}</p>
+            <p className="kpi-value" style={{ color: s.color }}>{s.value}</p>
           </div>
+        ))}
+      </div>
 
-          {criticalCount > 0 && (
-            <div className="flex items-center gap-3 bg-red-900/20 border border-red-500/40 rounded-lg p-4">
-              <span className="text-red-400 text-xl">⚠</span>
-              <span className="text-red-300 font-medium">{criticalCount} critical anomal{criticalCount === 1 ? 'y' : 'ies'} require immediate investigation.</span>
-            </div>
-          )}
+      {/* Critical callout */}
+      {criticalCount > 0 && (
+        <div className="callout callout-danger" style={{ marginBottom: '1.5rem' }}>
+          <strong>{criticalCount} critical anomal{criticalCount === 1 ? 'y' : 'ies'}</strong> require immediate investigation.
+        </div>
+      )}
 
-          {/* Anomaly Feed */}
-          <div className="bg-neutral-800/40 rounded-xl border border-neutral-700/50 overflow-hidden">
-            <div className="p-5 border-b border-neutral-700/50">
-              <h3 className="font-medium text-white">Live Anomaly Feed</h3>
-              <p className="text-sm text-neutral-400 mt-0.5">Real-time statistical deviations detected via Welford z-score streaming</p>
-            </div>
+      {/* Main table */}
+      <div className="surface" style={{ overflow: 'hidden' }}>
+        <div className="panel-header">
+          <span className="panel-title">Live Anomaly Feed</span>
+        </div>
 
-            <div className="divide-y divide-neutral-800">
-              {anomalies.map(anomaly => {
-                const cfg = SEVERITY_CONFIG[anomaly.severity] || SEVERITY_CONFIG.low;
-                return (
-                  <div key={anomaly.id} className="flex items-center gap-5 px-6 py-4 hover:bg-neutral-800/60 transition-colors">
-                    <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${cfg.dot}`} />
-
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-3 mb-0.5">
-                        <span className="font-medium text-neutral-200 text-sm">{TYPE_LABELS[anomaly.anomaly_type] || anomaly.anomaly_type}</span>
-                        <span className={`text-[10px] px-2 py-0.5 rounded border uppercase font-bold tracking-widest ${cfg.badge}`}>
+        {anomalies.length === 0 ? (
+          <div className="empty-state">
+            <p className="empty-state-title">No active anomalies</p>
+            <p className="empty-state-body">All agent metrics are within baseline tolerances.</p>
+          </div>
+        ) : (
+          <div style={{ overflowX: 'auto' }}>
+            <table className="data-table" style={{ width: '100%' }}>
+              <thead>
+                <tr>
+                  <th>Severity</th>
+                  <th>Type</th>
+                  <th>Agent</th>
+                  <th>z-score</th>
+                  <th>Baseline → Observed</th>
+                  <th>Time</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {anomalies.map(anomaly => {
+                  const cfg = SEVERITY_CONFIG[anomaly.severity] || SEVERITY_CONFIG.low;
+                  return (
+                    <tr key={anomaly.id}>
+                      <td>
+                        <span className={cfg.badgeClass} style={{ textTransform: 'uppercase', fontSize: '0.65rem' }}>
                           {anomaly.severity}
                         </span>
-                      </div>
-                      <p className="text-xs font-mono text-neutral-500 truncate">
-                        Agent: {anomaly.agent_id} · z={anomaly.z_score.toFixed(2)} · baseline={anomaly.baseline_value.toFixed(4)} → observed={anomaly.observed_value.toFixed(4)}
-                      </p>
-                    </div>
-
-                    <div className="text-right flex-shrink-0">
-                      <p className="text-xs text-neutral-500">{new Date(anomaly.created_at).toLocaleString()}</p>
-                      <button
-                        onClick={() => handleResolve(anomaly.id)}
-                        className="mt-1 text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
-                      >
-                        Mark Resolved →
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-
-              {anomalies.length === 0 && (
-                <div className="py-14 text-center">
-                  <div className="text-4xl mb-3">✓</div>
-                  <p className="text-neutral-500">No active anomalies. All agent metrics within baseline tolerances.</p>
-                </div>
-              )}
-            </div>
+                      </td>
+                      <td style={{ color: 'var(--text-secondary)' }}>
+                        {TYPE_LABELS[anomaly.anomaly_type] || anomaly.anomaly_type}
+                      </td>
+                      <td>
+                        <span className="mono" style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {anomaly.agent_id}
+                        </span>
+                      </td>
+                      <td>
+                        <span className="mono" style={{ color: 'var(--text-primary)', fontWeight: 600 }}>
+                          {anomaly.z_score.toFixed(2)}
+                        </span>
+                      </td>
+                      <td>
+                        <span className="mono" style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                          {anomaly.baseline_value.toFixed(4)}
+                          <span style={{ color: 'var(--text-muted)', margin: '0 0.3rem' }}>→</span>
+                          {anomaly.observed_value.toFixed(4)}
+                        </span>
+                      </td>
+                      <td style={{ color: 'var(--text-muted)', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
+                        {new Date(anomaly.created_at).toLocaleString()}
+                      </td>
+                      <td>
+                        <button
+                          className="btn btn-ghost"
+                          onClick={() => handleResolve(anomaly.id)}
+                          style={{ fontSize: '0.75rem', padding: '0.2rem 0.6rem' }}
+                        >
+                          Resolve
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
-        </div>
-      </main>
+        )}
+      </div>
     </div>
   );
 }

@@ -16,7 +16,7 @@ const PROVIDERS = [
   {
     id: 'okta',
     name: 'Okta',
-    icon: '🔵',
+    monogram: 'OK',
     description: 'Connect with Okta Workforce Identity for SSO and SCIM provisioning.',
     fields: [
       { key: 'issuer', label: 'Okta Issuer URL', placeholder: 'https://yourorg.okta.com' },
@@ -27,7 +27,7 @@ const PROVIDERS = [
   {
     id: 'entra',
     name: 'Microsoft Entra ID',
-    icon: '🟦',
+    monogram: 'MS',
     description: 'Connect with Azure Active Directory / Microsoft Entra for enterprise SSO.',
     fields: [
       { key: 'tenant_id', label: 'Azure Tenant ID', placeholder: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx' },
@@ -38,7 +38,7 @@ const PROVIDERS = [
   {
     id: 'auth0',
     name: 'Auth0',
-    icon: '⚫',
+    monogram: 'A0',
     description: 'Connect with Auth0 Universal Login for flexible identity management.',
     fields: [
       { key: 'domain', label: 'Auth0 Domain', placeholder: 'yourorg.auth0.com' },
@@ -60,7 +60,6 @@ export default function SSOSettingsPage() {
 
   useEffect(() => {
     if (!tenantId) return;
-    // Load existing SSO config
     fetch(`/api/v1/auth/sso/${selectedProvider}`, {
       headers: { 'X-Tenant-Id': tenantId },
     })
@@ -107,7 +106,6 @@ export default function SSOSettingsPage() {
 
   const handleTestConnection = async () => {
     if (!tenantId) return;
-    // Construct the SSO login URL for testing
     const loginUrl = `/api/v1/auth/sso/${selectedProvider}?tenant_id=${tenantId}`;
     window.open(loginUrl, '_blank', 'width=600,height=700');
   };
@@ -115,129 +113,122 @@ export default function SSOSettingsPage() {
   const currentProvider = PROVIDERS.find(p => p.id === selectedProvider)!;
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        background: '#0a0a0a',
-        color: '#e5e5e5',
-        fontFamily: 'Inter, system-ui, sans-serif',
-        padding: '32px',
-        maxWidth: 800,
-      }}
-    >
-      <div style={{ marginBottom: 32 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 700, margin: 0 }}>Single Sign-On (SSO)</h1>
-        <p style={{ color: '#737373', fontSize: 14, marginTop: 4 }}>
-          Configure your identity provider to enable SSO for all team members
+    <div style={{ maxWidth: 720 }}>
+      {/* Page header */}
+      <div style={{ marginBottom: '1.75rem' }}>
+        <h1 className="page-title">Single Sign-On</h1>
+        <p className="page-description">
+          Connect an identity provider to enable SSO for all team members.
         </p>
       </div>
 
-      {/* Current status banner */}
+      {/* Active SSO callout */}
       {config?.is_active && (
         <div
-          style={{
-            background: '#052e16',
-            border: '1px solid #14532d',
-            borderRadius: 8,
-            padding: '12px 16px',
-            marginBottom: 24,
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}
+          className="callout callout-success"
+          style={{ marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}
         >
-          <div>
-            <span style={{ color: '#10b981', fontWeight: 600, fontSize: 14 }}>
-              ✓ SSO Active
-            </span>
-            <span style={{ color: '#737373', fontSize: 13, marginLeft: 12 }}>
-              Provider: {config.provider.toUpperCase()}
-              {config.enforce_sso && ' · Enforcement enabled'}
-            </span>
-          </div>
+          <span style={{ color: 'var(--success)', fontWeight: 600, fontSize: '0.875rem' }}>
+            SSO Active — Provider: {config.provider.toUpperCase()}
+          </span>
+          {config.enforce_sso && (
+            <span className="badge badge-success">Enforcement enabled</span>
+          )}
         </div>
       )}
 
       {/* Provider selector */}
-      <div style={{ marginBottom: 24 }}>
-        <div style={{ fontSize: 13, color: '#737373', marginBottom: 10 }}>
+      <div style={{ marginBottom: '1.25rem' }}>
+        <div style={{
+          fontSize: '0.6875rem',
+          fontWeight: 600,
+          color: 'var(--text-muted)',
+          textTransform: 'uppercase',
+          letterSpacing: '0.07em',
+          marginBottom: '0.625rem',
+        }}>
           Identity Provider
         </div>
-        <div style={{ display: 'flex', gap: 10 }}>
+        <div style={{ display: 'flex', gap: '0.625rem' }}>
           {PROVIDERS.map(p => (
             <button
               key={p.id}
+              className={`provider-card${selectedProvider === p.id ? ' selected' : ''}`}
               onClick={() => {
                 setSelectedProvider(p.id);
                 setFormData({});
                 setConfig(null);
               }}
               style={{
-                background: selectedProvider === p.id ? '#1a1a1a' : 'transparent',
-                border: `1px solid ${selectedProvider === p.id ? '#10b981' : '#2a2a2a'}`,
-                borderRadius: 8,
-                padding: '10px 16px',
-                cursor: 'pointer',
-                color: selectedProvider === p.id ? '#e5e5e5' : '#737373',
-                fontSize: 13,
                 display: 'flex',
                 alignItems: 'center',
-                gap: 8,
+                gap: '0.625rem',
+                padding: '0.625rem 0.875rem',
+                background: selectedProvider === p.id ? 'var(--bg-surface-2)' : 'var(--bg-surface-1)',
+                border: `1px solid ${selectedProvider === p.id ? 'var(--accent-border)' : 'var(--border-default)'}`,
+                borderRadius: 'var(--radius-md)',
+                cursor: 'pointer',
+                color: selectedProvider === p.id ? 'var(--text-primary)' : 'var(--text-secondary)',
+                fontSize: '0.8125rem',
+                fontWeight: 500,
+                fontFamily: 'inherit',
+                transition: 'border-color var(--t-base), background var(--t-base), color var(--t-base)',
               }}
             >
-              <span>{p.icon}</span>
-              <span>{p.name}</span>
+              {/* Monogram */}
+              <span style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 22,
+                height: 22,
+                borderRadius: 'var(--radius-sm)',
+                background: selectedProvider === p.id ? 'var(--accent-dim)' : 'rgba(255,255,255,0.05)',
+                color: selectedProvider === p.id ? 'var(--accent)' : 'var(--text-muted)',
+                fontSize: '0.625rem',
+                fontWeight: 700,
+                letterSpacing: '0.02em',
+                flexShrink: 0,
+              }}>
+                {p.monogram}
+              </span>
+              {p.name}
             </button>
           ))}
         </div>
       </div>
 
-      {/* Provider description */}
-      <div
-        style={{
-          background: '#111',
-          border: '1px solid #2a2a2a',
-          borderRadius: 8,
-          padding: 20,
-          marginBottom: 24,
-        }}
-      >
-        <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 6 }}>
-          {currentProvider.icon} {currentProvider.name}
+      {/* Provider description panel */}
+      <div className="surface" style={{ marginBottom: '1rem', overflow: 'hidden' }}>
+        <div className="panel-header">
+          <span className="panel-title">{currentProvider.name}</span>
         </div>
-        <p style={{ fontSize: 13, color: '#737373', margin: 0 }}>
-          {currentProvider.description}
-        </p>
+        <div style={{ padding: '0.875rem 1.25rem' }}>
+          <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', margin: 0 }}>
+            {currentProvider.description}
+          </p>
+        </div>
       </div>
 
-      {/* Configuration form */}
-      <div
-        style={{
-          background: '#111',
-          border: '1px solid #2a2a2a',
-          borderRadius: 8,
-          padding: 24,
-          marginBottom: 24,
-        }}
-      >
-        <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 20 }}>
-          Configuration
+      {/* Configuration form panel */}
+      <div className="surface" style={{ marginBottom: '1rem', overflow: 'hidden' }}>
+        <div className="panel-header">
+          <span className="panel-title">Configuration</span>
         </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {currentProvider.fields.map(field => (
-            <div key={field.key}>
-              <label
-                style={{
-                  display: 'block',
-                  fontSize: 12,
-                  color: '#737373',
-                  marginBottom: 6,
-                }}
-              >
+            <div key={field.key} className="form-field">
+              <label className="form-label" style={{
+                display: 'block',
+                fontSize: '0.75rem',
+                fontWeight: 500,
+                color: 'var(--text-secondary)',
+                marginBottom: '0.375rem',
+              }}>
                 {field.label}
               </label>
               <input
+                className="form-input"
                 type={field.secret ? 'password' : 'text'}
                 placeholder={field.placeholder}
                 value={formData[field.key] || ''}
@@ -246,108 +237,123 @@ export default function SSOSettingsPage() {
                 }
                 style={{
                   width: '100%',
-                  background: '#0a0a0a',
-                  border: '1px solid #2a2a2a',
-                  borderRadius: 6,
-                  color: '#e5e5e5',
-                  padding: '10px 12px',
-                  fontSize: 13,
+                  background: 'var(--bg-canvas)',
+                  border: '1px solid var(--border-default)',
+                  borderRadius: 'var(--radius-md)',
+                  color: 'var(--text-primary)',
+                  padding: '0.5625rem 0.75rem',
+                  fontSize: '0.8125rem',
                   boxSizing: 'border-box',
                   outline: 'none',
-                  fontFamily: field.secret ? 'monospace' : 'inherit',
+                  fontFamily: field.secret ? 'ui-monospace, monospace' : 'inherit',
+                  transition: 'border-color var(--t-fast)',
                 }}
               />
             </div>
           ))}
-        </div>
 
-        {/* Enforce SSO toggle */}
-        <div
-          style={{
-            marginTop: 24,
+          {/* Enforce SSO toggle */}
+          <div className="toggle-row" style={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            padding: '14px 16px',
-            background: '#0a0a0a',
-            border: '1px solid #2a2a2a',
-            borderRadius: 6,
-          }}
-        >
-          <div>
-            <div style={{ fontSize: 13, fontWeight: 500 }}>Enforce SSO</div>
-            <div style={{ fontSize: 12, color: '#737373', marginTop: 2 }}>
-              Require all users to log in via SSO. Password-based logins will be disabled.
+            padding: '0.875rem 1rem',
+            background: 'var(--bg-canvas)',
+            border: '1px solid var(--border-subtle)',
+            borderRadius: 'var(--radius-md)',
+            marginTop: '0.25rem',
+          }}>
+            <div>
+              <div className="toggle-label" style={{
+                fontSize: '0.8125rem',
+                fontWeight: 600,
+                color: 'var(--text-primary)',
+              }}>
+                Enforce SSO
+              </div>
+              <div className="toggle-description" style={{
+                fontSize: '0.75rem',
+                color: 'var(--text-muted)',
+                marginTop: '0.125rem',
+              }}>
+                Require all users to log in via SSO. Password-based logins will be disabled.
+              </div>
             </div>
-          </div>
-          <div
-            onClick={() => setEnforceSso(v => !v)}
-            style={{
-              width: 44,
-              height: 24,
-              background: enforceSso ? '#10b981' : '#2a2a2a',
-              borderRadius: 12,
-              cursor: 'pointer',
-              position: 'relative',
-              transition: 'background 0.2s',
-              flexShrink: 0,
-            }}
-          >
-            <div
+            {/* Toggle switch */}
+            <button
+              role="switch"
+              aria-checked={enforceSso}
+              onClick={() => setEnforceSso(v => !v)}
               style={{
+                width: 40,
+                height: 22,
+                background: enforceSso ? 'var(--accent)' : 'var(--bg-surface-3)',
+                borderRadius: 11,
+                border: 'none',
+                cursor: 'pointer',
+                position: 'relative',
+                transition: 'background var(--t-base)',
+                flexShrink: 0,
+                padding: 0,
+              }}
+            >
+              <span style={{
                 position: 'absolute',
                 top: 3,
-                left: enforceSso ? 23 : 3,
-                width: 18,
-                height: 18,
+                left: enforceSso ? 21 : 3,
+                width: 16,
+                height: 16,
                 background: '#fff',
                 borderRadius: '50%',
-                transition: 'left 0.2s',
-              }}
-            />
+                transition: 'left var(--t-base)',
+                display: 'block',
+              }} />
+            </button>
           </div>
         </div>
       </div>
 
-      {/* OIDC redirect URI info */}
-      <div
-        style={{
-          background: '#0f1116',
-          border: '1px solid #1e2433',
-          borderRadius: 8,
-          padding: 16,
-          marginBottom: 24,
-          fontSize: 12,
-          color: '#737373',
-        }}
-      >
-        <div style={{ fontWeight: 600, color: '#a3a3a3', marginBottom: 6 }}>
-          Redirect URI (add to your IdP)
+      {/* Redirect URI panel */}
+      <div className="surface" style={{ marginBottom: '1.25rem', overflow: 'hidden' }}>
+        <div className="panel-header">
+          <span className="panel-title">Redirect URI</span>
+          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+            Add this to your identity provider
+          </span>
         </div>
-        <code
-          style={{
-            color: '#10b981',
-            fontFamily: 'monospace',
-            fontSize: 13,
-          }}
-        >
-          {typeof window !== 'undefined'
-            ? `${window.location.origin}/api/v1/auth/sso/${selectedProvider}?callback=true`
-            : `/api/v1/auth/sso/${selectedProvider}?callback=true`}
-        </code>
+        <div style={{ padding: '1rem 1.25rem' }}>
+          <code
+            className="code-block mono"
+            style={{
+              display: 'block',
+              background: 'var(--bg-canvas)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: 'var(--radius-md)',
+              padding: '0.625rem 0.875rem',
+              fontSize: '0.8125rem',
+              color: 'var(--accent)',
+              wordBreak: 'break-all',
+            }}
+          >
+            {typeof window !== 'undefined'
+              ? `${window.location.origin}/api/v1/auth/sso/${selectedProvider}?callback=true`
+              : `/api/v1/auth/sso/${selectedProvider}?callback=true`}
+          </code>
+        </div>
       </div>
 
-      {/* Message */}
+      {/* Feedback message */}
       {message && (
         <div
+          className={`callout ${message.type === 'success' ? 'callout-success' : 'callout-danger'}`}
           style={{
-            background: message.type === 'success' ? '#052e16' : '#1c0a0a',
-            border: `1px solid ${message.type === 'success' ? '#14532d' : '#7f1d1d'}`,
-            borderRadius: 8,
-            padding: '12px 16px',
-            color: message.type === 'success' ? '#10b981' : '#f87171',
-            fontSize: 13,
-            marginBottom: 24,
+            marginBottom: '1.25rem',
+            padding: '0.75rem 1rem',
+            borderRadius: 'var(--radius-md)',
+            background: message.type === 'success' ? 'var(--success-bg)' : 'var(--danger-bg)',
+            border: `1px solid ${message.type === 'success' ? 'var(--success-border)' : 'var(--danger-border)'}`,
+            color: message.type === 'success' ? 'var(--success)' : 'var(--danger)',
+            fontSize: '0.8125rem',
           }}
         >
           {message.text}
@@ -355,38 +361,19 @@ export default function SSOSettingsPage() {
       )}
 
       {/* Actions */}
-      <div style={{ display: 'flex', gap: 12 }}>
+      <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
         <button
+          className="btn btn-primary"
           onClick={handleSave}
           disabled={saving}
-          style={{
-            background: '#2563eb',
-            color: '#fff',
-            border: 'none',
-            borderRadius: 6,
-            padding: '10px 20px',
-            cursor: saving ? 'not-allowed' : 'pointer',
-            opacity: saving ? 0.7 : 1,
-            fontSize: 14,
-            fontWeight: 500,
-          }}
         >
           {saving ? 'Saving…' : 'Save Configuration'}
         </button>
 
         {config?.is_active && (
           <button
+            className="btn btn-outline"
             onClick={handleTestConnection}
-            style={{
-              background: 'transparent',
-              color: '#10b981',
-              border: '1px solid #10b981',
-              borderRadius: 6,
-              padding: '10px 20px',
-              cursor: 'pointer',
-              fontSize: 14,
-              fontWeight: 500,
-            }}
           >
             Test SSO Login
           </button>

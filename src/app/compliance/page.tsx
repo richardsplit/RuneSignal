@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
-import Header from '@/components/Header';
 
+/* ─── Types ──────────────────────────────────────────────────────────── */
 interface Framework {
   id: string;
   name: string;
@@ -14,19 +14,83 @@ interface Framework {
 
 interface Control {
   id: string;
+  framework_id?: string;
   control_code: string;
   title: string;
   description: string;
   satisfied: boolean;
+  evidence_types?: string[];
   evidence: any[];
 }
 
-export default function ComplianceDashboard() {
-  const [frameworks, setFrameworks] = useState<Framework[]>([]);
-  const [activeFw, setActiveFw] = useState<Framework | null>(null);
-  const [controls, setControls] = useState<Control[]>([]);
-  const [loading, setLoading] = useState(true);
+interface EvidenceItem {
+  id: string;
+  tenant?: string;
+  control_code?: string;
+  confidence?: number;
+  date?: string;
+  created_at?: string;
+  control?: Control;
+}
 
+/* ─── Jurisdiction badge map ─────────────────────────────────────────── */
+const FRAMEWORK_META: Record<string, { jurisdiction: string; badgeCls: string }> = {
+  'eu-ai-act':  { jurisdiction: 'EU',          badgeCls: 'badge badge-info'    },
+  'nist-rmf':   { jurisdiction: 'US (NIST)',    badgeCls: 'badge badge-accent'  },
+  'soc2':       { jurisdiction: 'AICPA / US',  badgeCls: 'badge badge-neutral' },
+};
+
+function jurisdictionFor(fw: Framework) {
+  const key = fw.id?.toLowerCase().replace(/\s+/g, '-') ?? '';
+  for (const [k, v] of Object.entries(FRAMEWORK_META)) {
+    if (key.includes(k.replace('-', '')) || fw.name.toLowerCase().includes(k.replace('-', ''))) return v;
+  }
+  return { jurisdiction: 'International', badgeCls: 'badge badge-neutral' };
+}
+
+/* ─── Progress ring ─────────────────────────────────────────────────── */
+function ProgressRing({ pct }: { pct: number }) {
+  const r = 28;
+  const circ = 2 * Math.PI * r;
+  const offset = circ - (circ * Math.min(pct, 100)) / 100;
+  const color = pct >= 75 ? 'var(--success)' : pct >= 40 ? 'var(--warning)' : 'var(--danger)';
+  return (
+    <div style={{ position: 'relative', width: '68px', height: '68px', flexShrink: 0 }}>
+      <svg width="68" height="68" style={{ transform: 'rotate(-90deg)' }}>
+        <circle cx="34" cy="34" r={r} fill="none" stroke="var(--border-subtle)" strokeWidth="5" />
+        <circle
+          cx="34" cy="34" r={r}
+          fill="none"
+          stroke={color}
+          strokeWidth="5"
+          strokeDasharray={circ}
+          strokeDashoffset={offset}
+          strokeLinecap="round"
+        />
+      </svg>
+      <span style={{
+        position: 'absolute', inset: 0,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: '0.875rem', fontWeight: 700,
+        color: 'var(--text-primary)',
+        fontVariantNumeric: 'tabular-nums',
+      }}>
+        {pct}%
+      </span>
+    </div>
+  );
+}
+
+/* ─── Page ───────────────────────────────────────────────────────────── */
+export default function ComplianceDashboard() {
+  const [frameworks, setFrameworks]     = useState<Framework[]>([]);
+  const [activeFw, setActiveFw]         = useState<Framework | null>(null);
+  const [controls, setControls]         = useState<Control[]>([]);
+  const [evidence, setEvidence]         = useState<EvidenceItem[]>([]);
+  const [loading, setLoading]           = useState(true);
+  const [activeTab, setActiveTab]       = useState<'frameworks' | 'controls' | 'evidence'>('frameworks');
+
+  /* ── Fetch frameworks on mount ── */
   useEffect(() => {
     fetch('/api/v1/compliance/frameworks')
       .then(r => r.json())
@@ -40,12 +104,19 @@ export default function ComplianceDashboard() {
       .catch(console.error);
   }, []);
 
+  /* ── Fetch controls when active framework changes ── */
   useEffect(() => {
     if (activeFw) {
       fetch(`/api/v1/compliance/evidence?framework_id=${activeFw.id}`)
         .then(r => r.json())
         .then(d => {
           setControls(d.controls || []);
+          /* Flatten evidence items from controls */
+          const ev: EvidenceItem[] = [];
+          (d.controls || []).forEach((c: Control) => {
+            (c.evidence || []).forEach((e: any) => ev.push({ ...e, control: c }));
+          });
+          setEvidence(ev);
         })
         .catch(console.error);
     }
@@ -58,126 +129,363 @@ export default function ComplianceDashboard() {
 
   const handleExport = () => {
     if (!activeFw) return;
-    const csvContent = "data:text/csv;charset=utf-8," 
-      + "Control Code,Title,Satisfied,Evidence Count\n"
-      + controls.map(c => `${c.control_code},"${c.title}",${c.satisfied},${c.evidence?.length || 0}`).join("\n");
-      
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `RuneSignal_Compliance_Export_${activeFw.name.replace(/ /g, '_')}.csv`);
+    const csvContent = 'data:text/csv;charset=utf-8,'
+      + 'Control Code,Title,Satisfied,Evidence Count\n'
+      + controls.map(c => `${c.control_code},"${c.title}",${c.satisfied},${c.evidence?.length || 0}`).join('\n');
+    const link = document.createElement('a');
+    link.setAttribute('href', encodeURI(csvContent));
+    link.setAttribute('download', `RuneSignal_Compliance_Export_${activeFw.name.replace(/ /g, '_')}.csv`);
     document.body.appendChild(link);
     link.click();
     link.remove();
   };
 
+  /* ── Derived KPIs ── */
+  const totalControls  = frameworks.reduce((s, f) => s + (f.controls_count || 0), 0);
+  const totalEvidence  = frameworks.reduce((s, f) => s + (f.evidence_count || 0), 0);
+  const satisfiedCount = controls.filter(c => c.satisfied).length;
+  const avgProgress    = frameworks.length
+    ? Math.round(frameworks.reduce((s, f) => s + (f.progress_pct || 0), 0) / frameworks.length)
+    : 0;
+
   if (loading) {
-     return <div className="p-8 text-neutral-400">Loading Intelligence Hub...</div>;
+    return (
+      <div style={{ maxWidth: '1000px', paddingTop: '2rem' }}>
+        <div className="empty-state">
+          <p className="empty-state-title">Loading Intelligence Hub…</p>
+          <p className="empty-state-body">Fetching compliance frameworks from the governance ledger.</p>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="flex h-screen bg-neutral-900 text-neutral-100 font-sans">
-      <main className="flex-1 overflow-y-auto">
-        <Header title="Governance Intelligence Hub (S13)" />
-        
-        <div className="p-8 max-w-7xl mx-auto space-y-8">
-          
-          <div className="flex items-center justify-between">
-            <div className="flex space-x-4">
+    <div style={{ maxWidth: '1000px' }}>
+
+      {/* Page header */}
+      <div style={{ marginBottom: '1.75rem' }}>
+        <h1 className="page-title">Governance Intel</h1>
+        <p className="page-description">
+          Regulation-mapped compliance framework controls and evidence tracking.
+        </p>
+      </div>
+
+      {/* KPI strip */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(4, 1fr)',
+        gap: '1px',
+        background: 'var(--border-subtle)',
+        border: '1px solid var(--border-default)',
+        borderRadius: 'var(--radius-lg)',
+        overflow: 'hidden',
+        marginBottom: '1.75rem',
+      }}>
+        {[
+          { label: 'Frameworks',          value: String(frameworks.length),  accentColor: undefined },
+          { label: 'Total Controls',      value: String(totalControls),      accentColor: undefined },
+          { label: 'Evidence Items',      value: String(totalEvidence),      accentColor: 'var(--accent)' },
+          { label: 'Avg. Readiness',      value: `${avgProgress}%`,          accentColor: avgProgress >= 75 ? 'var(--success)' : avgProgress >= 40 ? 'var(--warning)' : 'var(--danger)' },
+        ].map((k, i) => (
+          <div key={i} style={{ background: 'var(--bg-surface-1)', padding: '1.25rem 1.5rem' }}>
+            <div className="kpi-label">{k.label}</div>
+            <div className="kpi-value" style={{ color: k.accentColor ?? undefined }}>
+              {k.value}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Action bar */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', gap: '1rem', flexWrap: 'wrap' }}>
+        {/* Tab bar */}
+        <div className="tab-bar">
+          {(['frameworks', 'controls', 'evidence'] as const).map(tab => (
+            <button
+              key={tab}
+              className={`tab${activeTab === tab ? ' active' : ''}`}
+              onClick={() => setActiveTab(tab)}
+              style={{ textTransform: 'capitalize' }}
+            >
+              {tab}
+              {tab === 'controls' && controls.length > 0 && (
+                <span style={{ marginLeft: '0.375rem', opacity: 0.6, fontSize: '0.6875rem' }}>
+                  ({controls.length})
+                </span>
+              )}
+              {tab === 'evidence' && evidence.length > 0 && (
+                <span style={{ marginLeft: '0.375rem', opacity: 0.6, fontSize: '0.6875rem' }}>
+                  ({evidence.length})
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+
+        {/* Action buttons */}
+        <div style={{ display: 'flex', gap: '0.625rem', flexShrink: 0 }}>
+          <button onClick={handleAutoMine} className="btn btn-outline" style={{ fontSize: '0.8125rem' }}>
+            Auto-Mine Ledger
+          </button>
+          <button onClick={handleExport} className="btn btn-primary" style={{ fontSize: '0.8125rem' }}>
+            Export Bundle
+          </button>
+        </div>
+      </div>
+
+      {/* ── Tab: Frameworks ── */}
+      {activeTab === 'frameworks' && (
+        <>
+          {frameworks.length > 0 ? (
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+              gap: '1rem',
+            }}>
+              {frameworks.map(fw => {
+                const { jurisdiction, badgeCls } = jurisdictionFor(fw);
+                const progressColor = fw.progress_pct >= 75 ? 'var(--success)' : fw.progress_pct >= 40 ? 'var(--warning)' : 'var(--danger)';
+                return (
+                  <div
+                    key={fw.id}
+                    className="surface"
+                    style={{
+                      cursor: 'pointer',
+                      transition: 'background var(--t-fast)',
+                      outline: activeFw?.id === fw.id ? '2px solid var(--accent-border)' : 'none',
+                      outlineOffset: '-2px',
+                    }}
+                    onClick={() => { setActiveFw(fw); setActiveTab('controls'); }}
+                    onMouseEnter={e => ((e.currentTarget as HTMLElement).style.background = 'var(--bg-surface-2)')}
+                    onMouseLeave={e => ((e.currentTarget as HTMLElement).style.background = '')}
+                  >
+                    <div style={{ padding: '1.25rem' }}>
+                      {/* Header row */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
+                        <div>
+                          <p style={{ fontSize: '0.9375rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.25rem' }}>
+                            {fw.name}
+                          </p>
+                          <span style={{ fontSize: '0.6875rem', color: 'var(--text-muted)' }}>v{fw.version}</span>
+                        </div>
+                        <span className={badgeCls}>{jurisdiction}</span>
+                      </div>
+
+                      {/* Description */}
+                      <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1.5, marginBottom: '1rem' }}>
+                        {fw.description}
+                      </p>
+
+                      {/* Stats + ring */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                          <span className="kpi-label">Controls</span>
+                          <span style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)', fontVariantNumeric: 'tabular-nums' }}>
+                            {fw.evidence_count}
+                            <span style={{ fontSize: '0.75rem', fontWeight: 400, color: 'var(--text-muted)', marginLeft: '0.25rem' }}>
+                              / {fw.controls_count}
+                            </span>
+                          </span>
+                          <span style={{ fontSize: '0.6875rem', color: 'var(--text-muted)' }}>satisfied</span>
+                        </div>
+                        <ProgressRing pct={fw.progress_pct} />
+                      </div>
+
+                      {/* Progress bar */}
+                      <div style={{
+                        marginTop: '1rem',
+                        height: '3px',
+                        background: 'var(--border-subtle)',
+                        borderRadius: '2px',
+                        overflow: 'hidden',
+                      }}>
+                        <div style={{
+                          height: '100%',
+                          width: `${fw.progress_pct}%`,
+                          background: progressColor,
+                          borderRadius: '2px',
+                          transition: 'width 0.4s ease',
+                        }} />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="empty-state">
+              <p className="empty-state-title">No frameworks loaded</p>
+              <p className="empty-state-body">Click "Auto-Mine Ledger" to discover and map governance frameworks automatically.</p>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* ── Tab: Controls ── */}
+      {activeTab === 'controls' && (
+        <>
+          {/* Active framework selector */}
+          {frameworks.length > 1 && (
+            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
               {frameworks.map(fw => (
-                <button 
+                <button
                   key={fw.id}
                   onClick={() => setActiveFw(fw)}
-                  className={`px-5 py-2 rounded-t-lg font-medium transition-colors border-b-2 ${
-                    activeFw?.id === fw.id 
-                    ? 'bg-neutral-800/80 border-emerald-500 text-emerald-400' 
-                    : 'bg-transparent border-transparent text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800/40'
-                  }`}
+                  className={activeFw?.id === fw.id ? 'btn btn-primary' : 'btn btn-outline'}
+                  style={{ fontSize: '0.75rem', padding: '0.25rem 0.75rem' }}
                 >
-                  {fw.name} <span className="text-xs ml-2 opacity-60">v{fw.version}</span>
+                  {fw.name}
                 </button>
               ))}
             </div>
-            
-            <div className="flex gap-4">
-                <button onClick={handleAutoMine} className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded text-sm transition-colors border border-indigo-500/50">
-                    Auto-Mine Ledger
-                </button>
-                <button onClick={handleExport} className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded text-sm transition-colors border border-emerald-500/50">
-                    Export Evidence Bundle
-                </button>
-            </div>
-          </div>
+          )}
 
-          {activeFw && (
-            <>
-              {/* Evidence Gauge / Scorecard */}
-              <div className="bg-neutral-800/30 p-6 rounded-xl border border-neutral-700/50 flex items-center justify-between">
-                 <div>
-                    <h2 className="text-3xl font-light text-white mb-1">{activeFw.name} Readiness</h2>
-                    <p className="text-neutral-400 text-sm max-w-xl">{activeFw.description}</p>
-                 </div>
-                 
-                 <div className="flex items-center space-x-6">
-                    <div className="text-right">
-                       <p className="text-sm text-neutral-400">Controls Satisfied</p>
-                       <p className="text-2xl font-mono text-emerald-400">{activeFw.evidence_count} / {activeFw.controls_count}</p>
-                    </div>
-                    
-                    <div className="relative w-24 h-24 flex items-center justify-center rounded-full bg-neutral-900 border-4 border-neutral-700">
-                       {/* Extremely basic visual progress representation */}
-                       <svg className="absolute inset-0 w-full h-full transform -rotate-90">
-                          <circle cx="44" cy="44" r="44" className="text-emerald-500 stroke-current" strokeWidth="8" fill="none" 
-                                  strokeDasharray="276" strokeDashoffset={276 - (276 * activeFw.progress_pct) / 100} 
-                                  style={{ transform: 'translate(4px, 4px)' }} />
-                       </svg>
-                       <span className="text-xl font-medium text-white">{activeFw.progress_pct}%</span>
-                    </div>
-                 </div>
+          {controls.length > 0 ? (
+            <div className="surface" style={{ overflow: 'hidden' }}>
+              <div className="panel-header">
+                <span className="panel-title">{activeFw?.name ?? 'Controls'}</span>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                  {satisfiedCount} / {controls.length} satisfied
+                </span>
               </div>
-
-              {/* Gap List / Controls Table */}
-              <div className="bg-neutral-800/40 rounded-xl border border-neutral-700/50 overflow-hidden">
-                <table className="w-full text-left text-sm">
-                  <thead className="bg-neutral-800/80 text-neutral-300">
+              <div style={{ overflowX: 'auto' }}>
+                <table className="data-table" style={{ width: '100%' }}>
+                  <thead>
                     <tr>
-                      <th className="p-4 font-medium">Control</th>
-                      <th className="p-4 font-medium">Description</th>
-                      <th className="p-4 font-medium">Status</th>
-                      <th className="p-4 font-medium">Evidence Count</th>
+                      <th>Framework</th>
+                      <th>Control Code</th>
+                      <th>Title</th>
+                      <th>Evidence Types</th>
+                      <th>Status</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-neutral-700/50">
-                    {controls.map(control => (
-                      <tr key={control.id} className="hover:bg-neutral-800/60 transition-colors">
-                        <td className="p-4 font-mono text-neutral-300 whitespace-nowrap">{control.control_code}</td>
-                        <td className="p-4 text-neutral-400 max-w-md">
-                           <p className="font-medium text-neutral-200">{control.title}</p>
-                           <p className="truncate">{control.description}</p>
+                  <tbody>
+                    {controls.map(c => (
+                      <tr key={c.id}>
+                        <td>
+                          <span style={{ fontSize: '0.6875rem', color: 'var(--text-muted)' }}>
+                            {activeFw?.name ?? c.framework_id ?? '—'}
+                          </span>
                         </td>
-                        <td className="p-4">
-                           {control.satisfied ? (
-                               <span className="px-2 py-1 bg-emerald-500/10 text-emerald-400 rounded-full text-xs font-medium border border-emerald-500/20">Satisfied</span>
-                           ) : (
-                               <span className="px-2 py-1 bg-amber-500/10 text-amber-400 rounded-full text-xs font-medium border border-amber-500/20">Gap Identified</span>
-                           )}
+                        <td>
+                          <span className="mono" style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)' }}>
+                            {c.control_code}
+                          </span>
                         </td>
-                        <td className="p-4 font-mono text-neutral-300">
-                            {control.evidence?.length || 0} items
+                        <td>
+                          <p style={{ fontSize: '0.8125rem', color: 'var(--text-primary)', fontWeight: 500 }}>
+                            {c.title}
+                          </p>
+                          {c.description && (
+                            <p style={{ fontSize: '0.6875rem', color: 'var(--text-muted)', marginTop: '0.125rem', maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {c.description}
+                            </p>
+                          )}
+                        </td>
+                        <td>
+                          <span style={{ fontSize: '0.6875rem', color: 'var(--text-muted)' }}>
+                            {c.evidence_types?.join(', ') || (c.evidence?.length ? `${c.evidence.length} item${c.evidence.length !== 1 ? 's' : ''}` : '—')}
+                          </span>
+                        </td>
+                        <td>
+                          {c.satisfied
+                            ? <span className="badge badge-success">Satisfied</span>
+                            : <span className="badge badge-warning">Gap</span>
+                          }
                         </td>
                       </tr>
                     ))}
-                    {controls.length === 0 && (
-                        <tr><td colSpan={4} className="p-8 text-center text-neutral-500">No controls mapped to this framework yet.</td></tr>
-                    )}
                   </tbody>
                 </table>
               </div>
-            </>
+            </div>
+          ) : (
+            <div className="empty-state">
+              <p className="empty-state-title">No controls mapped</p>
+              <p className="empty-state-body">
+                {activeFw
+                  ? `No controls have been mapped to ${activeFw.name} yet.`
+                  : 'Select a framework to view its controls.'}
+              </p>
+            </div>
           )}
+        </>
+      )}
 
-        </div>
-      </main>
+      {/* ── Tab: Evidence ── */}
+      {activeTab === 'evidence' && (
+        <>
+          {evidence.length > 0 ? (
+            <div className="surface" style={{ overflow: 'hidden' }}>
+              <div className="panel-header">
+                <span className="panel-title">Evidence Items</span>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                  {evidence.length} records
+                </span>
+              </div>
+              <div style={{ overflowX: 'auto' }}>
+                <table className="data-table" style={{ width: '100%' }}>
+                  <thead>
+                    <tr>
+                      <th>Tenant</th>
+                      <th>Control</th>
+                      <th>Confidence</th>
+                      <th>Date</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {evidence.map((ev, i) => {
+                      const confidence = typeof ev.confidence === 'number' ? ev.confidence : null;
+                      const confColor = confidence === null
+                        ? 'var(--text-muted)'
+                        : confidence >= 0.8 ? 'var(--success)'
+                        : confidence >= 0.5 ? 'var(--warning)'
+                        : 'var(--danger)';
+                      const dateStr = ev.date ?? ev.created_at ?? null;
+                      return (
+                        <tr key={ev.id ?? i}>
+                          <td>
+                            <span style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)' }}>
+                              {ev.tenant ?? '—'}
+                            </span>
+                          </td>
+                          <td>
+                            <span className="mono" style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                              {ev.control_code ?? ev.control?.control_code ?? '—'}
+                            </span>
+                          </td>
+                          <td>
+                            {confidence !== null ? (
+                              <span style={{ fontSize: '0.8125rem', color: confColor, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>
+                                {(confidence * 100).toFixed(0)}%
+                              </span>
+                            ) : (
+                              <span style={{ color: 'var(--text-muted)', fontSize: '0.8125rem' }}>—</span>
+                            )}
+                          </td>
+                          <td>
+                            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                              {dateStr ? new Date(dateStr).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ) : (
+            <div className="empty-state">
+              <p className="empty-state-title">No evidence items</p>
+              <p className="empty-state-body">
+                Evidence is auto-mined from audit ledger events. Run "Auto-Mine Ledger" to populate this view.
+              </p>
+            </div>
+          )}
+        </>
+      )}
+
     </div>
   );
 }
