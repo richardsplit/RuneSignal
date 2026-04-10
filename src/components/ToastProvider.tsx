@@ -1,41 +1,103 @@
 'use client';
 
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useCallback, useContext, useState } from 'react';
+
+/* ─── Types ──────────────────────────────────────────────────────────── */
+type ToastType = 'success' | 'error' | 'info';
 
 interface Toast {
   id: string;
   message: string;
-  type?: 'success' | 'error' | 'info';
+  type: ToastType;
 }
 
 interface ToastContextType {
-  showToast: (message: string, type?: 'success' | 'error' | 'info') => void;
+  showToast: (message: string, type?: ToastType) => void;
 }
 
+/* ─── Context ────────────────────────────────────────────────────────── */
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
+/* ─── Icon ───────────────────────────────────────────────────────────── */
+function ToastIcon({ type }: { type: ToastType }) {
+  const bg = type === 'error' ? 'var(--danger)' : type === 'info' ? 'var(--info)' : 'var(--success)';
+  return (
+    <div style={{
+      width: '18px',
+      height: '18px',
+      borderRadius: '50%',
+      background: bg,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      color: '#09090b',
+      fontSize: '0.5625rem',
+      fontWeight: 800,
+      flexShrink: 0,
+    }}>
+      {type === 'error' ? '✕' : type === 'info' ? 'i' : '✓'}
+    </div>
+  );
+}
+
+/* ─── Dismiss button ─────────────────────────────────────────────────── */
+function DismissBtn({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        background: 'transparent',
+        border: 'none',
+        cursor: 'pointer',
+        color: 'var(--text-muted)',
+        padding: '0 0.125rem',
+        fontSize: '0.75rem',
+        lineHeight: 1,
+        flexShrink: 0,
+        display: 'flex',
+        alignItems: 'center',
+      }}
+    >
+      ✕
+    </button>
+  );
+}
+
+/* ─── Provider ───────────────────────────────────────────────────────── */
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
-  const showToast = useCallback((message: string, type: 'success' | 'error' | 'info' = 'success') => {
-    const id = Math.random().toString(36).substring(2, 9);
-    setToasts((prev) => [...prev, { id, message, type }]);
-    
-    setTimeout(() => {
-      setToasts((prev) => prev.filter((t) => t.id !== id));
-    }, 4000);
+  const dismiss = useCallback((id: string) => {
+    setToasts(prev => prev.filter(t => t.id !== id));
   }, []);
+
+  const showToast = useCallback((message: string, type: ToastType = 'success') => {
+    const id = Math.random().toString(36).substring(2, 9);
+    setToasts(prev => [...prev, { id, message, type }]);
+    setTimeout(() => dismiss(id), 4500);
+  }, [dismiss]);
 
   return (
     <ToastContext.Provider value={{ showToast }}>
       {children}
       <div className="toast-container">
-        {toasts.map((toast) => (
-          <div key={toast.id} className="toast" style={{ borderColor: toast.type === 'error' ? 'var(--color-error-rose)' : 'var(--color-primary-emerald)' }}>
-            <div className="toast-icon" style={{ background: toast.type === 'error' ? 'var(--color-error-rose)' : 'var(--color-primary-emerald)' }}>
-              {toast.type === 'error' ? '!' : '✓'}
-            </div>
-            <div style={{ fontSize: '0.875rem', fontWeight: 500 }}>{toast.message}</div>
+        {toasts.map(toast => (
+          <div
+            key={toast.id}
+            className="toast"
+            style={{
+              borderColor: toast.type === 'error'
+                ? 'var(--danger-border)'
+                : toast.type === 'info'
+                ? 'var(--info-border)'
+                : 'var(--success-border)',
+            }}
+          >
+            <ToastIcon type={toast.type} />
+            <span style={{ flex: 1, fontSize: '0.8125rem', fontWeight: 500, color: 'var(--text-primary)' }}>
+              {toast.message}
+            </span>
+            <DismissBtn onClick={() => dismiss(toast.id)} />
           </div>
         ))}
       </div>
@@ -43,10 +105,9 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
+/* ─── Hook ───────────────────────────────────────────────────────────── */
 export function useToast() {
-  const context = useContext(ToastContext);
-  if (!context) {
-    throw new Error('useToast must be used within a ToastProvider');
-  }
-  return context;
+  const ctx = useContext(ToastContext);
+  if (!ctx) throw new Error('useToast must be used within a ToastProvider');
+  return ctx;
 }

@@ -1,50 +1,42 @@
-'use client';
-
+import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
 import './globals.css';
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
-import { usePathname } from 'next/navigation';
 import { ToastProvider } from '@/components/ToastProvider';
-import { TenantProvider } from '@lib/contexts/TenantContext';
+import CommandPalette from '@/components/CommandPalette';
+import { SidebarProvider } from '@/components/SidebarContext';
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const pathname = usePathname();
-  const isAuthPage =
-    pathname === '/' ||
-    pathname === '/login' ||
-    pathname === '/onboarding' ||
-    pathname === '/mfa-verify' ||
-    pathname.startsWith('/landing'); // legacy redirect safety
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+  display: 'swap',
+  weight: ['300', '400', '500', '600', '700'],
+  axes: ['opsz'],
+});
 
+export const metadata: Metadata = {
+  title: 'TrustLayer | Enterprise AI Governance',
+  description: 'Governance, accountability, and operational control for AI agent fleets in production.',
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <head>
-        <title>TrustLayer | Enterprise AI Governance</title>
-        <meta name="description" content="Provide governance, accountability, and operational control over AI agent fleets in production." />
-      </head>
+    <html lang="en" className={inter.variable}>
       <body>
         <ToastProvider>
-          <TenantProvider>
-            {isAuthPage ? (
-              <main style={{ minHeight: '100vh' }}>
-                {children}
-              </main>
-            ) : (
-              <div className="app-layout">
-                <Sidebar />
-                <div className="main-content">
-                  <Header />
-                  <main className="animate-fade-in" style={{ flex: 1, marginTop: '2rem' }}>
-                    {children}
-                  </main>
-                </div>
+          <SidebarProvider>
+            <CommandPalette />
+            <div className="app-layout">
+              <Sidebar />
+              <div className="main-content">
+                <Header />
+                <main className="animate-fade-in" style={{ flex: 1, padding: '2rem', minWidth: 0 }}>
+                  {children}
+                </main>
               </div>
-            )}
-          </TenantProvider>
+            </div>
+          </SidebarProvider>
         </ToastProvider>
       </body>
     </html>

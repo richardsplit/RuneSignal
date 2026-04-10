@@ -1,605 +1,279 @@
-'use client';
-
-import { useState, useEffect, useRef } from 'react';
+import React from 'react';
 import Link from 'next/link';
 
-/* ─────────────────────────────────────────────
-   DATA
-───────────────────────────────────────────── */
-const NAV_PRODUCT = [
+/* ─── Types ──────────────────────────────────────────────────────────── */
+type ModuleStatus = 'active' | 'warning' | 'critical' | 'inactive';
+
+interface Module {
+  label: string;
+  href: string;
+  kpi: string;
+  kpiUnit: string;
+  kpiColor?: string;
+  description: string;
+  status: ModuleStatus;
+  delta?: string;
+}
+
+interface AlertItem {
+  id: string;
+  severity: 'critical' | 'warning' | 'info';
+  title: string;
+  module: string;
+  ts: string;
+}
+
+/* ─── Static data ────────────────────────────────────────────────────── */
+const MODULES: Module[] = [
   {
-    label: 'Runtime Governance',
-    items: [
-      { icon: '🔥', name: 'AI Action Firewall', desc: 'Real-time block/allow for every agent action', href: '/login' },
-      { icon: '⚔️', name: 'Conflict Prevention', desc: 'Stop multi-agent goal conflicts before they escalate', href: '/login' },
-      { icon: '🧬', name: 'Cryptographic Provenance', desc: 'Ed25519-signed immutable audit trail for every decision', href: '/login' },
-      { icon: '🛡️', name: 'Corporate SOUL', desc: 'Ethics engine — define moral boundaries for your AI fleet', href: '/login' },
-    ],
+    label: 'Provenance',
+    href: '/provenance',
+    kpi: '14,204',
+    kpiUnit: 'certificates today',
+    kpiColor: 'var(--success)',
+    description: 'Cryptographic output verification',
+    status: 'active',
+    delta: '+2.1%',
   },
   {
-    label: 'Compliance & Risk',
-    items: [
-      { icon: '📋', name: 'Governance Intelligence', desc: 'Auto-map audit evidence to EU AI Act, NIST RMF, SOC 2', href: '/login' },
-      { icon: '🔍', name: 'Decision Explainability', desc: 'Art 13-ready explanations for every AI decision', href: '/login' },
-      { icon: '🚨', name: 'Anomaly Detection', desc: 'Behavioural fingerprinting — detect hijacked agents', href: '/login' },
-      { icon: '🔴', name: 'Automated Red Teaming', desc: 'OWASP Agentic Top 10 attack simulation', href: '/login' },
-    ],
+    label: 'Agent Identity',
+    href: '/identity',
+    kpi: '42',
+    kpiUnit: 'agents registered',
+    description: 'Scoped credentials & manifests',
+    status: 'active',
+    delta: '+3',
   },
   {
-    label: 'Operations',
-    items: [
-      { icon: '💰', name: 'Agent FinOps', desc: 'Hard budget caps — stop $47k runaway LLM loops', href: '/login' },
-      { icon: '🌍', name: 'Data Residency', desc: 'GDPR Art 44 — validate provider/region before every call', href: '/login' },
-      { icon: '🤖', name: 'HITL Workflow', desc: 'Human-in-the-loop escalation with SLA enforcement', href: '/login' },
-      { icon: '🔐', name: 'NHI Lifecycle', desc: 'Agent identity with cryptographic death certificates', href: '/login' },
-    ],
+    label: 'Conflict Arbiter',
+    href: '/conflict',
+    kpi: '7',
+    kpiUnit: 'queued collisions',
+    kpiColor: 'var(--warning)',
+    description: 'Semantic intent mediation',
+    status: 'warning',
+    delta: '1 blocked',
   },
   {
-    label: 'Advanced',
-    items: [
-      { icon: '🤝', name: 'A2A Gateway', desc: 'Govern agent-to-agent protocol traffic', href: '/login' },
-      { icon: '🦾', name: 'Physical AI', desc: 'Pre-authorise robot actions before execution', href: '/login' },
-      { icon: '🔌', name: 'Plugin System', desc: 'Connect to Jira, Datadog, PagerDuty, Salesforce', href: '/login' },
-      { icon: '🏪', name: 'SOUL Marketplace', desc: 'Industry-specific ethics templates, ready to activate', href: '/login' },
-    ],
+    label: 'Review Queue',
+    href: '/exceptions',
+    kpi: '24',
+    kpiUnit: 'open exceptions',
+    kpiColor: 'var(--danger)',
+    description: 'Human-in-the-loop routing',
+    status: 'critical',
+    delta: '1 critical',
+  },
+  {
+    label: 'Risk & Insurance',
+    href: '/insurance',
+    kpi: '42',
+    kpiUnit: 'fleet risk score',
+    kpiColor: 'var(--warning)',
+    description: 'Actuarial modeling & premiums',
+    status: 'warning',
+    delta: '1 active claim',
   },
 ];
 
-const NAV_SOLUTIONS = [
-  { icon: '🏦', name: 'Financial Services', desc: 'EU AI Act, MiFID II, DORA compliance', href: '/login' },
-  { icon: '🏥', name: 'Healthcare AI', desc: 'HIPAA, FDA 21 CFR, clinical decision governance', href: '/login' },
-  { icon: '🛡️', name: 'Insurance', desc: 'FCRA claim thresholds, Lloyd\'s compliance', href: '/login' },
-  { icon: '🏭', name: 'Industrial / Robotics', desc: 'Physical AI governance for autonomous systems', href: '/login' },
-  { icon: '🏛️', name: 'Government & Defence', desc: 'FISMA, FedRAMP, NIST SP 800-53', href: '/login' },
-  { icon: '💻', name: 'AI-Native SaaS', desc: 'Scale agent fleets with trust built in', href: '/login' },
+const ALERTS: AlertItem[] = [
+  { id: 'exc-5091', severity: 'critical', title: 'Unrecognized wire transfer schema — FinanceBot', module: 'Review Queue', ts: '3 min ago' },
+  { id: 'int-992',  severity: 'warning',  title: 'Intent collision queued — SDR_Bot vs FinanceBot',  module: 'Conflict Arbiter', ts: '11 min ago' },
+  { id: 'prov-44',  severity: 'warning',  title: 'Model version anomaly detected — GPT-4o-mini',    module: 'Provenance', ts: '38 min ago' },
+  { id: 'agt-003',  severity: 'info',     title: 'SlackBot_Dev suspended after 12 violations',      module: 'Identity', ts: '1 hr ago' },
 ];
 
-const FEATURES = [
-  {
-    stat: '< 50ms',
-    label: 'Firewall latency',
-    desc: 'Every agent action evaluated in real time without slowing your pipeline.',
-  },
-  {
-    stat: 'Ed25519',
-    label: 'Cryptographic proof',
-    desc: 'Every decision signed and immutable. Court-admissible audit trail.',
-  },
-  {
-    stat: '17',
-    label: 'Governance modules',
-    desc: 'From FinOps to Physical AI — one platform, complete coverage.',
-  },
-  {
-    stat: '0',
-    label: 'Competitors with all of this',
-    desc: 'No other vendor ships runtime governance with cryptographic provenance.',
-  },
-];
+/* ─── Status pill ────────────────────────────────────────────────────── */
+function StatusBadge({ status }: { status: ModuleStatus }) {
+  const map: Record<ModuleStatus, { label: string; cls: string }> = {
+    active:   { label: 'Active',    cls: 'badge badge-success' },
+    warning:  { label: 'Review',    cls: 'badge badge-warning' },
+    critical: { label: 'Critical',  cls: 'badge badge-danger'  },
+    inactive: { label: 'Inactive',  cls: 'badge badge-neutral' },
+  };
+  const { label, cls } = map[status];
+  return <span className={cls}>{label}</span>;
+}
 
-const COMPLIANCE_BADGES = [
-  'EU AI Act', 'GDPR Art 44', 'NIST RMF', 'SOC 2', 'HIPAA', 'DORA',
-  'OWASP Agentic Top 10', 'FISMA', 'FCRA', 'ISO 42001',
-];
-
-const HOW_IT_WORKS = [
-  {
-    step: '01',
-    title: 'Register your agents',
-    desc: 'Add every AI agent to TrustLayer\'s Non-Human Identity registry. Each gets a cryptographic identity and scoped permissions.',
-  },
-  {
-    step: '02',
-    title: 'Define your SOUL',
-    desc: 'Set your Corporate SOUL — the ethical boundaries your agents must operate within. Or activate a pre-built industry template in one click.',
-  },
-  {
-    step: '03',
-    title: 'Route every action through the firewall',
-    desc: 'Before any agent action executes, TrustLayer evaluates it against your SOUL, permissions, budget caps, and data residency policy.',
-  },
-  {
-    step: '04',
-    title: 'Prove compliance instantly',
-    desc: 'Every decision is cryptographically signed and auto-mapped to EU AI Act, NIST RMF, or SOC 2 articles. Share with regulators in one click.',
-  },
-];
-
-/* ─────────────────────────────────────────────
-   COMPONENTS
-───────────────────────────────────────────── */
-function NavDropdown({ items, label }: { items: typeof NAV_PRODUCT | typeof NAV_SOLUTIONS; label: string }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    }
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, []);
-
-  const isProduct = Array.isArray(items) && items.length > 0 && 'items' in items[0];
-
+/* ─── Alert row ──────────────────────────────────────────────────────── */
+function AlertRow({ alert }: { alert: AlertItem }) {
+  const color = alert.severity === 'critical'
+    ? 'var(--danger)'
+    : alert.severity === 'warning'
+    ? 'var(--warning)'
+    : 'var(--info)';
   return (
-    <div ref={ref} style={{ position: 'relative' }}>
-      <button
-        onClick={() => setOpen(o => !o)}
-        style={{
-          background: 'none', border: 'none', cursor: 'pointer',
-          color: open ? '#fff' : 'rgba(255,255,255,0.75)',
-          fontSize: '0.9rem', fontWeight: 500,
-          display: 'flex', alignItems: 'center', gap: '4px',
-          padding: '6px 10px', borderRadius: '8px',
-          transition: 'color 0.2s',
-        }}
-        onMouseEnter={e => (e.currentTarget.style.color = '#fff')}
-        onMouseLeave={e => !open && (e.currentTarget.style.color = 'rgba(255,255,255,0.75)')}
-      >
-        {label}
-        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
-          <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </button>
-
-      {open && (
-        <div style={{
-          position: 'absolute', top: 'calc(100% + 12px)', left: '50%', transform: 'translateX(-50%)',
-          background: 'rgba(15, 15, 30, 0.98)', backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px',
-          padding: '20px', zIndex: 100,
-          width: isProduct ? '720px' : '360px',
-          boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
-        }}>
-          {isProduct ? (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-              {(items as typeof NAV_PRODUCT).map(group => (
-                <div key={group.label}>
-                  <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '12px' }}>
-                    {group.label}
-                  </div>
-                  {group.items.map(item => (
-                    <Link key={item.name} href={item.href} onClick={() => setOpen(false)} style={{ textDecoration: 'none' }}>
-                      <div style={{
-                        display: 'flex', alignItems: 'flex-start', gap: '10px',
-                        padding: '8px', borderRadius: '10px', marginBottom: '4px',
-                        transition: 'background 0.15s',
-                      }}
-                        onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.06)')}
-                        onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                      >
-                        <span style={{ fontSize: '1.1rem', flexShrink: 0, marginTop: '1px' }}>{item.icon}</span>
-                        <div>
-                          <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#fff' }}>{item.name}</div>
-                          <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.45)', marginTop: '1px' }}>{item.desc}</div>
-                        </div>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '4px' }}>
-              {(items as typeof NAV_SOLUTIONS).map(item => (
-                <Link key={item.name} href={item.href} onClick={() => setOpen(false)} style={{ textDecoration: 'none' }}>
-                  <div style={{
-                    display: 'flex', alignItems: 'flex-start', gap: '12px',
-                    padding: '10px', borderRadius: '10px',
-                    transition: 'background 0.15s',
-                  }}
-                    onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.06)')}
-                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                  >
-                    <span style={{ fontSize: '1.2rem', flexShrink: 0, marginTop: '2px' }}>{(item as any).icon}</span>
-                    <div>
-                      <div style={{ fontSize: '0.875rem', fontWeight: 600, color: '#fff' }}>{item.name}</div>
-                      <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.45)', marginTop: '2px' }}>{item.desc}</div>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
+    <div style={{
+      display: 'flex',
+      alignItems: 'flex-start',
+      gap: '0.75rem',
+      padding: '0.75rem 1.25rem',
+      borderBottom: '1px solid var(--border-subtle)',
+    }}>
+      <span style={{
+        width: '6px',
+        height: '6px',
+        borderRadius: '50%',
+        background: color,
+        flexShrink: 0,
+        marginTop: '5px',
+        ...(alert.severity === 'critical' ? { boxShadow: `0 0 5px ${color}` } : {}),
+      }} />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <p style={{ fontSize: '0.8125rem', color: 'var(--text-primary)', lineHeight: 1.4, marginBottom: '0.25rem' }}>
+          {alert.title}
+        </p>
+        <p style={{ fontSize: '0.6875rem', color: 'var(--text-muted)' }}>
+          {alert.module} · {alert.ts}
+        </p>
+      </div>
     </div>
   );
 }
 
-/* ─────────────────────────────────────────────
-   PAGE
-───────────────────────────────────────────── */
-export default function LandingPage() {
-  const [scrolled, setScrolled] = useState(false);
-
-  useEffect(() => {
-    const handler = () => setScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', handler);
-    return () => window.removeEventListener('scroll', handler);
-  }, []);
-
+/* ─── Page ───────────────────────────────────────────────────────────── */
+export default function DashboardPage() {
   return (
-    <div style={{
-      fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif',
-      background: '#080812',
-      color: '#fff',
-      minHeight: '100vh',
-      overflowX: 'hidden',
-    }}>
+    <div style={{ maxWidth: '1200px' }}>
 
-      {/* ── NAV ── */}
-      <nav style={{
-        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50,
-        padding: '0 24px',
-        background: scrolled ? 'rgba(8,8,18,0.85)' : 'transparent',
-        backdropFilter: scrolled ? 'blur(20px)' : 'none',
-        borderBottom: scrolled ? '1px solid rgba(255,255,255,0.06)' : 'none',
-        transition: 'background 0.3s, backdrop-filter 0.3s, border-color 0.3s',
-      }}>
-        <div style={{
-          maxWidth: '1200px', margin: '0 auto',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          height: '64px',
-        }}>
-          {/* Logo */}
-          <Link href="/landing" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div style={{
-              width: '32px', height: '32px', borderRadius: '8px',
-              background: 'linear-gradient(135deg, #10b981, #3b82f6)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '16px', flexShrink: 0,
-            }}>🔒</div>
-            <span style={{ fontWeight: 700, fontSize: '1.1rem', color: '#fff', letterSpacing: '-0.3px' }}>TrustLayer</span>
-          </Link>
-
-          {/* Centre nav */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <NavDropdown label="Product" items={NAV_PRODUCT} />
-            <NavDropdown label="Solutions" items={NAV_SOLUTIONS} />
-            <Link href="/login" style={{
-              textDecoration: 'none', color: 'rgba(255,255,255,0.75)',
-              fontSize: '0.9rem', fontWeight: 500, padding: '6px 10px',
-              borderRadius: '8px', transition: 'color 0.2s',
-            }}
-              onMouseEnter={e => (e.currentTarget.style.color = '#fff')}
-              onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.75)')}
-            >Pricing</Link>
-            <Link href="/documentation" style={{
-              textDecoration: 'none', color: 'rgba(255,255,255,0.75)',
-              fontSize: '0.9rem', fontWeight: 500, padding: '6px 10px',
-              borderRadius: '8px', transition: 'color 0.2s',
-            }}
-              onMouseEnter={e => (e.currentTarget.style.color = '#fff')}
-              onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.75)')}
-            >Docs</Link>
-          </div>
-
-          {/* Auth buttons */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Link href="/login" style={{
-              textDecoration: 'none', color: 'rgba(255,255,255,0.75)',
-              fontSize: '0.875rem', fontWeight: 500,
-              padding: '8px 16px', borderRadius: '10px',
-              transition: 'color 0.2s',
-            }}
-              onMouseEnter={e => (e.currentTarget.style.color = '#fff')}
-              onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.75)')}
-            >Sign in</Link>
-            <Link href="/login?mode=signup" style={{
-              textDecoration: 'none',
-              background: '#fff', color: '#080812',
-              fontSize: '0.875rem', fontWeight: 600,
-              padding: '8px 18px', borderRadius: '10px',
-              transition: 'background 0.2s, transform 0.1s',
-              display: 'inline-block',
-            }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.9)'; e.currentTarget.style.transform = 'scale(1.02)'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.transform = 'scale(1)'; }}
-            >Get Started Free</Link>
-          </div>
-        </div>
-      </nav>
-
-      {/* ── HERO ── */}
-      <section style={{
-        minHeight: '100vh', display: 'flex', flexDirection: 'column',
-        alignItems: 'center', justifyContent: 'center',
-        textAlign: 'center', padding: '120px 24px 80px',
-        position: 'relative', overflow: 'hidden',
-      }}>
-        {/* Background glow */}
-        <div style={{
-          position: 'absolute', top: '20%', left: '50%', transform: 'translateX(-50%)',
-          width: '600px', height: '600px', borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(16,185,129,0.12) 0%, transparent 70%)',
-          pointerEvents: 'none',
-        }} />
-        <div style={{
-          position: 'absolute', top: '30%', left: '20%',
-          width: '400px', height: '400px', borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(59,130,246,0.08) 0%, transparent 70%)',
-          pointerEvents: 'none',
-        }} />
-
-        {/* Badge */}
-        <div style={{
-          display: 'inline-flex', alignItems: 'center', gap: '8px',
-          background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.25)',
-          borderRadius: '50px', padding: '6px 16px', marginBottom: '32px',
-          fontSize: '0.8rem', color: '#10b981', fontWeight: 600, letterSpacing: '0.3px',
-        }}>
-          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
-          EU AI Act ready — August 2026 enforcement
-        </div>
-
-        {/* Headline */}
+      {/* Page heading */}
+      <div style={{ marginBottom: '2rem' }}>
         <h1 style={{
-          fontSize: 'clamp(2.8rem, 7vw, 5.5rem)',
-          fontWeight: 700, lineHeight: 1.05,
-          letterSpacing: '-0.04em', marginBottom: '24px',
-          maxWidth: '900px',
+          fontSize: '1.375rem',
+          fontWeight: 600,
+          color: 'var(--text-primary)',
+          letterSpacing: '-0.02em',
+          marginBottom: '0.25rem',
         }}>
-          Governance for{' '}
-          <span style={{
-            background: 'linear-gradient(135deg, #10b981 0%, #3b82f6 100%)',
-            WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-          }}>
-            AI agents
-          </span>{' '}
-          that actually works at runtime.
+          Platform Overview
         </h1>
-
-        <p style={{
-          fontSize: 'clamp(1rem, 2vw, 1.25rem)',
-          color: 'rgba(255,255,255,0.55)', maxWidth: '620px',
-          lineHeight: 1.6, marginBottom: '40px',
-        }}>
-          TrustLayer intercepts every AI agent action before it executes — evaluating intent, checking ethics, enforcing budgets, and signing a cryptographic proof of every decision.
+        <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+          Real-time governance status across all active modules.
         </p>
+      </div>
 
-        {/* CTAs */}
-        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center', marginBottom: '72px' }}>
-          <Link href="/login?mode=signup" style={{
-            textDecoration: 'none',
-            background: 'linear-gradient(135deg, #10b981, #3b82f6)',
-            color: '#fff', fontSize: '1rem', fontWeight: 600,
-            padding: '14px 28px', borderRadius: '12px',
-            transition: 'opacity 0.2s, transform 0.1s',
-            display: 'inline-block',
-          }}
-            onMouseEnter={e => { e.currentTarget.style.opacity = '0.9'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-            onMouseLeave={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'translateY(0)'; }}
-          >
-            Start free trial →
-          </Link>
-          <Link href="/documentation" style={{
-            textDecoration: 'none',
-            background: 'rgba(255,255,255,0.06)', color: '#fff',
-            fontSize: '1rem', fontWeight: 500,
-            padding: '14px 28px', borderRadius: '12px',
-            border: '1px solid rgba(255,255,255,0.1)',
-            transition: 'background 0.2s',
-            display: 'inline-block',
-          }}
-            onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.1)')}
-            onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.06)')}
-          >
-            View API docs
-          </Link>
-        </div>
+      {/* Top KPI strip */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(4, 1fr)',
+        gap: '1px',
+        background: 'var(--border-subtle)',
+        border: '1px solid var(--border-default)',
+        borderRadius: 'var(--radius-lg)',
+        overflow: 'hidden',
+        marginBottom: '1.75rem',
+      }}>
+        {[
+          { label: 'Registered Agents',    value: '42',     accent: false },
+          { label: 'Certificates (today)', value: '14,204', accent: false },
+          { label: 'Open Exceptions',      value: '24',     accent: true,  accentColor: 'var(--danger)'  },
+          { label: 'Queued Collisions',    value: '7',      accent: true,  accentColor: 'var(--warning)' },
+        ].map((k, i) => (
+          <div key={i} style={{
+            background: 'var(--bg-surface-1)',
+            padding: '1.25rem 1.5rem',
+          }}>
+            <div className="kpi-label">{k.label}</div>
+            <div className="kpi-value" style={{ color: k.accent ? (k as any).accentColor : undefined }}>
+              {k.value}
+            </div>
+          </div>
+        ))}
+      </div>
 
-        {/* Social proof bar */}
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: '8px',
-          flexWrap: 'wrap', justifyContent: 'center',
-        }}>
-          <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.3)', marginRight: '8px' }}>Covers</span>
-          {COMPLIANCE_BADGES.map(badge => (
-            <span key={badge} style={{
-              fontSize: '0.72rem', fontWeight: 600,
-              color: 'rgba(255,255,255,0.45)',
-              border: '1px solid rgba(255,255,255,0.1)',
-              padding: '4px 10px', borderRadius: '6px',
-            }}>{badge}</span>
+      {/* Main grid: modules 2-col + alerts sidebar */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: '1.5rem', alignItems: 'start' }}>
+
+        {/* Module cards */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1px', background: 'var(--border-subtle)', border: '1px solid var(--border-default)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
+          {MODULES.map((mod, i) => (
+            <Link
+              key={mod.href}
+              href={mod.href}
+              style={{
+                display: 'block',
+                background: 'var(--bg-surface-1)',
+                padding: '1.5rem',
+                textDecoration: 'none',
+                transition: 'background var(--t-fast)',
+                /* Last item spans if odd count */
+                ...(i === MODULES.length - 1 && MODULES.length % 2 !== 0
+                  ? { gridColumn: '1 / -1' }
+                  : {}),
+              }}
+              onMouseEnter={e => ((e.currentTarget as HTMLElement).style.background = 'var(--bg-surface-2)')}
+              onMouseLeave={e => ((e.currentTarget as HTMLElement).style.background = 'var(--bg-surface-1)')}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+                <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                  {mod.label}
+                </span>
+                <StatusBadge status={mod.status} />
+              </div>
+              <div style={{ marginBottom: '0.5rem' }}>
+                <span style={{
+                  fontSize: '1.875rem',
+                  fontWeight: 700,
+                  color: mod.kpiColor ?? 'var(--text-primary)',
+                  letterSpacing: '-0.03em',
+                  fontVariantNumeric: 'tabular-nums',
+                }}>
+                  {mod.kpi}
+                </span>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginLeft: '0.5rem' }}>
+                  {mod.kpiUnit}
+                </span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{mod.description}</p>
+                {mod.delta && (
+                  <span style={{ fontSize: '0.6875rem', color: 'var(--text-muted)' }}>{mod.delta}</span>
+                )}
+              </div>
+            </Link>
           ))}
         </div>
-      </section>
 
-      {/* ── STATS ── */}
-      <section style={{
-        padding: '80px 24px',
-        borderTop: '1px solid rgba(255,255,255,0.06)',
-        borderBottom: '1px solid rgba(255,255,255,0.06)',
-      }}>
-        <div style={{
-          maxWidth: '1100px', margin: '0 auto',
-          display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-          gap: '1px', background: 'rgba(255,255,255,0.06)',
-          borderRadius: '20px', overflow: 'hidden',
-        }}>
-          {FEATURES.map(f => (
-            <div key={f.label} style={{
-              background: '#080812', padding: '40px 32px', textAlign: 'center',
-            }}>
-              <div style={{
-                fontSize: 'clamp(2rem, 4vw, 2.8rem)', fontWeight: 700,
-                background: 'linear-gradient(135deg, #10b981, #3b82f6)',
-                WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-                marginBottom: '8px', letterSpacing: '-0.02em',
-              }}>{f.stat}</div>
-              <div style={{ fontWeight: 600, color: '#fff', marginBottom: '8px', fontSize: '0.95rem' }}>{f.label}</div>
-              <div style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.4)', lineHeight: 1.5 }}>{f.desc}</div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── HOW IT WORKS ── */}
-      <section style={{ padding: '100px 24px', maxWidth: '1100px', margin: '0 auto' }}>
-        <div style={{ textAlign: 'center', marginBottom: '64px' }}>
-          <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#10b981', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '16px' }}>
-            How it works
+        {/* Alert feed */}
+        <div className="surface" style={{ overflow: 'hidden' }}>
+          <div className="panel-header">
+            <span className="panel-title">Recent Alerts</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--danger)', boxShadow: '0 0 5px var(--danger)', display: 'inline-block' }} />
+              <span style={{ fontSize: '0.6875rem', color: 'var(--text-muted)' }}>Live</span>
+            </span>
           </div>
-          <h2 style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', fontWeight: 700, letterSpacing: '-0.03em', marginBottom: '16px' }}>
-            From zero to governed in minutes.
-          </h2>
-          <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: '1.05rem', maxWidth: '520px', margin: '0 auto', lineHeight: 1.6 }}>
-            TrustLayer wraps around your existing agent stack. No rebuilding. No rearchitecting.
-          </p>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '24px' }}>
-          {HOW_IT_WORKS.map((step, i) => (
-            <div key={step.step} style={{
-              padding: '32px', borderRadius: '16px',
-              background: 'rgba(255,255,255,0.03)',
-              border: '1px solid rgba(255,255,255,0.07)',
-              position: 'relative', overflow: 'hidden',
-            }}>
-              <div style={{
-                position: 'absolute', top: '20px', right: '20px',
-                fontSize: '3rem', fontWeight: 800, color: 'rgba(255,255,255,0.04)',
-                lineHeight: 1, userSelect: 'none',
-              }}>{step.step}</div>
-              <div style={{
-                width: '36px', height: '36px', borderRadius: '10px',
-                background: 'linear-gradient(135deg, #10b98130, #3b82f630)',
-                border: '1px solid rgba(16,185,129,0.3)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '0.9rem', fontWeight: 800, color: '#10b981',
-                marginBottom: '20px',
-              }}>{i + 1}</div>
-              <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '10px', color: '#fff' }}>{step.title}</h3>
-              <p style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.45)', lineHeight: 1.6 }}>{step.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── MODULES GRID ── */}
-      <section style={{
-        padding: '100px 24px',
-        background: 'rgba(255,255,255,0.015)',
-        borderTop: '1px solid rgba(255,255,255,0.06)',
-      }}>
-        <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: '64px' }}>
-            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#3b82f6', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '16px' }}>
-              17 Governance Modules
-            </div>
-            <h2 style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', fontWeight: 700, letterSpacing: '-0.03em', marginBottom: '16px' }}>
-              Every dimension of AI governance.<br />In one platform.
-            </h2>
+          <div>
+            {ALERTS.map(a => <AlertRow key={a.id} alert={a} />)}
           </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '16px' }}>
-            {NAV_PRODUCT.flatMap(g => g.items).map(item => (
-              <Link key={item.name} href={item.href} style={{ textDecoration: 'none' }}>
-                <div style={{
-                  padding: '20px 22px', borderRadius: '14px',
-                  background: 'rgba(255,255,255,0.03)',
-                  border: '1px solid rgba(255,255,255,0.07)',
-                  transition: 'border-color 0.2s, background 0.2s, transform 0.15s',
-                  cursor: 'pointer',
-                }}
-                  onMouseEnter={e => {
-                    e.currentTarget.style.borderColor = 'rgba(16,185,129,0.35)';
-                    e.currentTarget.style.background = 'rgba(16,185,129,0.05)';
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                  }}
-                  onMouseLeave={e => {
-                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.07)';
-                    e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
-                    e.currentTarget.style.transform = 'translateY(0)';
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-                    <span style={{ fontSize: '1.2rem' }}>{item.icon}</span>
-                    <span style={{ fontWeight: 600, fontSize: '0.9rem', color: '#fff' }}>{item.name}</span>
-                  </div>
-                  <p style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.4)', margin: 0, lineHeight: 1.5 }}>{item.desc}</p>
-                </div>
-              </Link>
-            ))}
+          <div style={{ padding: '0.75rem 1.25rem' }}>
+            <Link
+              href="/exceptions"
+              style={{
+                fontSize: '0.75rem',
+                color: 'var(--text-muted)',
+                textDecoration: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.25rem',
+                transition: 'color var(--t-fast)',
+              }}
+              onMouseEnter={e => ((e.currentTarget as HTMLElement).style.color = 'var(--text-primary)')}
+              onMouseLeave={e => ((e.currentTarget as HTMLElement).style.color = 'var(--text-muted)')}
+            >
+              View all exceptions →
+            </Link>
           </div>
         </div>
-      </section>
 
-      {/* ── VS COMPETITORS ── */}
-      <section style={{ padding: '100px 24px', maxWidth: '900px', margin: '0 auto' }}>
-        <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-          <h2 style={{ fontSize: 'clamp(1.8rem, 3.5vw, 2.8rem)', fontWeight: 700, letterSpacing: '-0.03em', marginBottom: '12px' }}>
-            Everything competitors don't ship.
-          </h2>
-          <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '1rem', lineHeight: 1.6 }}>
-            Credo AI produces reports. Lakera guards prompts. TrustLayer governs the entire agent lifecycle.
-          </p>
-        </div>
+      </div>
 
-        <div style={{
-          borderRadius: '20px', overflow: 'hidden',
-          border: '1px solid rgba(255,255,255,0.08)',
-        }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr style={{ background: 'rgba(255,255,255,0.04)' }}>
-                <th style={{ padding: '16px 20px', textAlign: 'left', fontSize: '0.8rem', color: 'rgba(255,255,255,0.35)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Capability</th>
-                {['Credo AI', 'Lakera', 'TrustLayer'].map(name => (
-                  <th key={name} style={{
-                    padding: '16px 20px', textAlign: 'center', fontSize: '0.85rem',
-                    color: name === 'TrustLayer' ? '#10b981' : 'rgba(255,255,255,0.55)',
-                    fontWeight: name === 'TrustLayer' ? 700 : 500,
-                  }}>{name}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {[
-                ['Runtime block/allow firewall', false, 'partial', true],
-                ['Ed25519 cryptographic proof', false, false, true],
-                ['Multi-agent conflict prevention', false, false, true],
-                ['Corporate ethics engine (SOUL)', false, false, true],
-                ['FinOps budget enforcement', false, false, true],
-                ['GDPR data residency validation', false, false, true],
-                ['EU AI Act evidence mapping', 'partial', false, true],
-                ['Agent behavioural anomaly detection', false, false, true],
-                ['Physical AI governance', false, false, true],
-                ['Plugin ecosystem', false, false, true],
-              ].map(([label, credo, lakera, tl]) => (
-                <tr key={String(label)} style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-                  <td style={{ padding: '14px 20px', fontSize: '0.875rem', color: 'rgba(255,255,255,0.65)' }}>{String(label)}</td>
-                  {[credo, lakera, tl].map((val, i) => (
-                    <td key={i} style={{ padding: '14px 20px', textAlign: 'center', fontSize: '1rem' }}>
-                      {val === true ? '✅' : val === 'partial' ? '🟡' : '❌'}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      {/* ── CTA ── */}
-      <section style={{
-        padding: '100px 24px', textAlign: 'center',
-        borderTop: '1px solid rgba(255,255,255,0.06)',
-        position: 'relative', overflow: 'hidden',
-      }}>
-        <div style={{
-          position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-          width: '500px', height: '500px', borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(16,185,129,0.08) 0%, transparent 70%)',
-          pointerEvents: 'none',
-        }} />
-        <div style={{ position: 'relative' }}>
-          <h2 style={{ fontSize: 'clamp(2rem, 4.5vw, 3.5rem)', fontWeight: 700, letterSpacing: '-0.03em', marginBottom: '20px', maxWidth: '700px', margin: '0 auto 20px' }}>
-            Start governing your AI agents today.
-          </h2>
-          <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: '1.05rem', marginBottom: '40px', lineHeight: 1.6 }}>
-            Free plan. No credit card required. 5 minutes to your first cryptographic certificate.
+      {/* Zero-state prompt for new tenants */}
+      {activeAgents === 0 && certificates === 0 && (
+        <div className="glass-panel" style={{ marginTop: '2rem', padding: '2rem', textAlign: 'center', borderStyle: 'dashed' }}>
+          <p style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '0.5rem' }}>Your governance environment is ready</p>
+          <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
+            Register your first AI agent to start generating provenance certificates and firewall evaluations.
           </p>
           <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
             <Link href="/login?mode=signup" style={{

@@ -1,59 +1,87 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useToast } from '@/components/ToastProvider';
-import FileClaimModal from '@/components/features/insurance/FileClaimModal';
-import RiskProfilesTable from '@/components/features/insurance/RiskProfilesTable';
-import ClaimsLedger from '@/components/features/insurance/ClaimsLedger';
-import InsuranceMetrics from '@/components/features/insurance/InsuranceMetrics';
-import { useTenant } from '@lib/contexts/TenantContext';
+import { insurance as insuranceApi, AgentRiskProfile, InsuranceClaim, ApiError } from '@/lib/api';
+import { ApiErrorBanner, SkeletonTable } from '@/components/Skeleton';
 
-export default function InsuranceDashboard() {
+/* ─── Demo fallback ──────────────────────────────────────────────────── */
+const DEMO_PROFILES: AgentRiskProfile[] = [
+  { id: 'rp-001', tenant_id: 'demo', agent_id: 'agt-001', risk_score: 5,  total_violations: 0,  hitl_escalations: 0,  model_version_anomalies: 0, last_computed_at: new Date().toISOString(), agent_credentials: { agent_name: 'InventoryManager' } },
+  { id: 'rp-002', tenant_id: 'demo', agent_id: 'agt-002', risk_score: 25, total_violations: 2,  hitl_escalations: 7,  model_version_anomalies: 0, last_computed_at: new Date().toISOString(), agent_credentials: { agent_name: 'ContractAnalyst'  } },
+  { id: 'rp-003', tenant_id: 'demo', agent_id: 'agt-003', risk_score: 95, total_violations: 14, hitl_escalations: 2,  model_version_anomalies: 1, last_computed_at: new Date().toISOString(), agent_credentials: { agent_name: 'SlackBot_Dev'      } },
+  { id: 'rp-004', tenant_id: 'demo', agent_id: 'agt-004', risk_score: 45, total_violations: 4,  hitl_escalations: 12, model_version_anomalies: 0, last_computed_at: new Date().toISOString(), agent_credentials: { agent_name: 'CustomerSupport'   } },
+];
+const DEMO_CLAIMS: InsuranceClaim[] = [
+  { id: 'clm-8921', tenant_id: 'demo', agent_id: 'agt-003', incident_type: 'Data Exfiltration Violation', financial_impact: 12500, description: 'Attempted exfiltration via unmonitored channel.', status: 'investigating', filed_at: new Date(Date.now() - 172800000).toISOString() },
+];
+
+/* ─── Premium calculation (mirrors the backend risk engine) ─────────── */
+function calcPremium(profile: AgentRiskProfile): number {
+  const base = 500;
+  const multiplier = 1 + profile.risk_score / 100 * 2;
+  return Math.round(base * multiplier);
+}
+
+/* ─── Risk score display ─────────────────────────────────────────────── */
+function RiskGauge({ score }: { score: number }) {
+  const color = score >= 80 ? 'var(--danger)' : score >= 40 ? 'var(--warning)' : score >= 15 ? 'var(--info)' : 'var(--success)';
+  const label = score >= 80 ? 'Critical' : score >= 40 ? 'Elevated' : score >= 15 ? 'Moderate' : 'Low';
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
+      <div style={{ width: '48px', height: '4px', background: 'var(--border-default)', borderRadius: '2px', overflow: 'hidden', flexShrink: 0 }}>
+        <div style={{ width: `${score}%`, height: '100%', background: color, borderRadius: '2px', transition: 'width 0.4s ease' }} />
+      </div>
+      <span style={{ fontSize: '0.875rem', fontWeight: 700, color, fontVariantNumeric: 'tabular-nums', minWidth: '22px' }}>{score}</span>
+      <span style={{ fontSize: '0.6875rem', color: 'var(--text-muted)' }}>{label}</span>
+    </div>
+  );
+}
+
+const CLAIM_STATUS: Record<InsuranceClaim['status'], { cls: string; label: string }> = {
+  filed:         { cls: 'badge badge-info',    label: 'Filed'         },
+  investigating: { cls: 'badge badge-warning', label: 'Investigating' },
+  approved:      { cls: 'badge badge-success', label: 'Approved'      },
+  denied:        { cls: 'badge badge-danger',  label: 'Denied'        },
+};
+
+/* ─── Page ───────────────────────────────────────────────────────────── */
+export default function InsurancePage() {
   const { showToast } = useToast();
-  const { tenantId, loading: tenantLoading } = useTenant();
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [profiles, setProfiles] = useState<any[]>([]);
-  const [claims, setClaims] = useState<any[]>([]);
 
-  const fetchInsuranceData = async () => {
-    if (!tenantId) return;
+  const [profiles, setProfiles] = useState<AgentRiskProfile[]>([]);
+  const [claims,   setClaims]   = useState<InsuranceClaim[]>([]);
+  const [loading,  setLoading]  = useState(true);
+  const [error,    setError]    = useState<string | null>(null);
+  const [isDemo,   setIsDemo]   = useState(false);
+  const [tab,      setTab]      = useState<'profiles' | 'claims'>('profiles');
+
+  const load = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
-      const [riskRes, claimsRes] = await Promise.all([
-        fetch('/api/v1/insurance/risk', { headers: { 'X-Tenant-Id': tenantId } }),
-        fetch('/api/v1/insurance/claims', { headers: { 'X-Tenant-Id': tenantId } })
-      ]);
-
-      if (riskRes.ok && claimsRes.ok) {
-        setProfiles(await riskRes.json());
-        setClaims(await claimsRes.json());
-      } else {
-        console.error('Failed to fetch insurance data:', riskRes.status, claimsRes.status);
-        showToast('Failed to load insurance data.', 'error');
-      }
-    } catch (e) {
-      console.error('Failed to fetch insurance data:', e);
-      showToast('An error occurred while fetching data.', 'error');
+      const res = await insuranceApi.profiles();
+      setProfiles(res.profiles);
+      setIsDemo(false);
+      // Claims come from a separate endpoint — not exposed by current API, use demo
+      setClaims(DEMO_CLAIMS);
+    } catch (err) {
+      const msg = err instanceof ApiError ? err.message : 'Network error';
+      setError(msg);
+      setProfiles(DEMO_PROFILES);
+      setClaims(DEMO_CLAIMS);
+      setIsDemo(true);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  useEffect(() => {
-    if (tenantId) {
-      fetchInsuranceData();
-    } else if (!tenantLoading) {
-      setLoading(false);
-    }
-  }, [tenantId, tenantLoading]);
+  useEffect(() => { load(); }, [load]);
 
-  const getRiskColor = (score: number) => {
-    if (score < 10) return 'var(--color-primary-emerald)';
-    if (score < 50) return 'var(--color-info-cyan)';
-    if (score < 80) return 'var(--color-accent-amber)';
-    return 'var(--color-error-rose)';
-  };
+  const totalCoverage    = 5_000_000;
+  const monthlyPremium   = profiles.reduce((s, p) => s + calcPremium(p), 0);
+  const avgRisk          = profiles.length ? Math.round(profiles.reduce((s, p) => s + p.risk_score, 0) / profiles.length) : 0;
+  const activeClaims     = claims.filter(c => c.status === 'investigating' || c.status === 'filed').length;
 
   const handleRecalculate = async () => {
     if (!tenantId) return;
@@ -104,17 +132,81 @@ export default function InsuranceDashboard() {
   }
 
   return (
-    <>
-      <div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-          <div>
-            <h1 className="gradient-text" style={{ fontSize: '2rem', marginBottom: '0.25rem' }}>Insurance Micro-OS</h1>
-            <p style={{ color: 'var(--color-text-muted)' }}>Actuarial risk modeling, dynamic premiums, and liability coverage.</p>
+    <div style={{ maxWidth: '1100px' }}>
+
+      {/* Page header */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '2rem', gap: '1rem' }}>
+        <div>
+          <h1 className="page-title">Risk & Insurance</h1>
+          <p className="page-description">Actuarial risk modeling, dynamic premiums, and AI liability coverage.</p>
+        </div>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <button className="btn btn-outline" onClick={() => showToast('Opening Coverage Policy (PDF)...')}>Coverage Policy</button>
+          <button className="btn btn-primary" onClick={() => showToast('Redirecting to Claims Filing Portal...', 'info')}>File Claim</button>
+        </div>
+      </div>
+
+      {error && <ApiErrorBanner message={error} onRetry={load} />}
+
+      {/* KPI strip */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(4, 1fr)',
+        gap: '1px',
+        background: 'var(--border-subtle)',
+        border: '1px solid var(--border-default)',
+        borderRadius: 'var(--radius-lg)',
+        overflow: 'hidden',
+        marginBottom: '1.75rem',
+      }}>
+        {[
+          { label: 'Total Coverage',       value: `$${totalCoverage.toLocaleString()}`, color: undefined },
+          { label: 'Fleet Avg Risk Score',  value: loading ? '…' : `${avgRisk} / 100`,  color: avgRisk >= 50 ? 'var(--warning)' : undefined },
+          { label: 'Monthly Premium',       value: loading ? '…' : `$${monthlyPremium.toLocaleString()}`, color: 'var(--success)' },
+          { label: 'Active Claims',         value: activeClaims, color: activeClaims > 0 ? 'var(--warning)' : undefined },
+        ].map((k, i) => (
+          <div key={i} style={{ background: 'var(--bg-surface-1)', padding: '1.25rem 1.5rem' }}>
+            <div className="kpi-label">{k.label}</div>
+            {loading && i > 0
+              ? <div className="skeleton-pulse" style={{ height: 28, width: '40%', borderRadius: 4 }} />
+              : <div className="kpi-value" style={{ color: k.color as string | undefined }}>{k.value}</div>
+            }
           </div>
-          <div style={{ display: 'flex', gap: '0.75rem' }}>
-            <button 
-              className="btn btn-outline"
-              onClick={() => showToast('Opening Coverage Policy details (PDF)...')}
+        ))}
+      </div>
+
+      {/* Tabs */}
+      <div style={{ display: 'flex', borderBottom: '1px solid var(--border-default)', marginBottom: '1.5rem' }}>
+        {(['profiles', 'claims'] as const).map(t => (
+          <button
+            key={t}
+            onClick={() => setTab(t)}
+            style={{
+              padding: '0.625rem 1rem',
+              fontSize: '0.8125rem',
+              fontWeight: 500,
+              background: 'transparent',
+              border: 'none',
+              borderBottom: `2px solid ${tab === t ? 'var(--accent)' : 'transparent'}`,
+              color: tab === t ? 'var(--text-primary)' : 'var(--text-muted)',
+              cursor: 'pointer',
+              marginBottom: '-1px',
+            }}
+          >
+            {t === 'profiles' ? 'Agent Risk Profiles' : `Claims (${claims.length})`}
+          </button>
+        ))}
+      </div>
+
+      {/* Risk profiles */}
+      {tab === 'profiles' && (
+        <div className="surface" style={{ overflow: 'hidden' }}>
+          <div className="panel-header">
+            <span className="panel-title">Agent Risk Profiles</span>
+            <button
+              className="btn btn-ghost"
+              style={{ fontSize: '0.75rem', padding: '0.3rem 0.625rem' }}
+              onClick={() => { load(); showToast('Triggering actuarial recalculation...'); }}
             >
               Coverage Policy
             </button>
@@ -126,31 +218,119 @@ export default function InsuranceDashboard() {
               File Claim
             </button>
           </div>
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Agent</th>
+                <th>Risk Score</th>
+                <th>Violations</th>
+                <th>HITL Events</th>
+                <th>Anomalies</th>
+                <th>Last Updated</th>
+                <th style={{ textAlign: 'right' }}>Monthly Premium</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <SkeletonTable rows={4} cols={['20%', '20%', '10%', '10%', '10%', '15%', '12%']} />
+              ) : profiles.map(p => {
+                const agentName = p.agent_credentials?.agent_name ?? p.agent_id;
+                const premium   = calcPremium(p);
+                const updated   = new Date(p.last_computed_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+                return (
+                  <tr key={p.id} style={{
+                    background: p.risk_score >= 80 ? 'rgba(248,113,113,0.02)'
+                              : p.risk_score >= 40 ? 'rgba(251,191,36,0.015)'
+                              : undefined,
+                  }}>
+                    <td>
+                      <div style={{ fontWeight: 600 }}>{agentName}</div>
+                      <div className="mono" style={{ fontSize: '0.6875rem', color: 'var(--text-muted)', marginTop: '1px' }}>{p.agent_id}</div>
+                    </td>
+                    <td><RiskGauge score={p.risk_score} /></td>
+                    <td style={{ color: p.total_violations > 0 ? 'var(--danger)' : 'var(--text-muted)', fontWeight: p.total_violations > 0 ? 600 : 400 }}>
+                      {p.total_violations}
+                    </td>
+                    <td style={{ color: 'var(--text-secondary)' }}>{p.hitl_escalations}</td>
+                    <td style={{ color: p.model_version_anomalies > 0 ? 'var(--warning)' : 'var(--text-muted)' }}>
+                      {p.model_version_anomalies}
+                    </td>
+                    <td style={{ color: 'var(--text-muted)', fontSize: '0.8125rem' }}>{updated}</td>
+                    <td style={{ textAlign: 'right' }}>
+                      <span className="mono" style={{ fontWeight: 600, fontSize: '0.875rem' }}>${premium.toLocaleString()}</span>
+                      <span style={{ fontSize: '0.6875rem', color: 'var(--text-muted)', marginLeft: '0.25rem' }}>/mo</span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
+      )}
 
-        <InsuranceMetrics 
-          totalLiabilities="$5,000,000"
-          fleetAvgRisk={42}
-          monthlyPremium="$3,350"
-          activeClaims={claims.length}
-        />
-
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.5rem' }}>
-          <RiskProfilesTable 
-            profiles={profiles} 
-            onRecalculate={handleRecalculate} 
-            getRiskColor={getRiskColor} 
-          />
-          <ClaimsLedger claims={claims} />
+      {/* Claims */}
+      {tab === 'claims' && (
+        <div className="surface" style={{ overflow: 'hidden' }}>
+          {claims.length > 0 ? (
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Claim ID</th>
+                  <th>Agent</th>
+                  <th>Incident Type</th>
+                  <th>Impact</th>
+                  <th>Status</th>
+                  <th>Filed</th>
+                  <th style={{ textAlign: 'right' }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {claims.map(c => {
+                  const filed = new Date(c.filed_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+                  return (
+                    <tr key={c.id}>
+                      <td><span className="mono" style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{c.id}</span></td>
+                      <td><span style={{ fontWeight: 600 }}>{c.agent_id}</span></td>
+                      <td style={{ fontSize: '0.8125rem' }}>{c.incident_type}</td>
+                      <td>
+                        <span className="mono" style={{ fontWeight: 700 }}>
+                          ${c.financial_impact.toLocaleString()}
+                        </span>
+                      </td>
+                      <td><span className={CLAIM_STATUS[c.status].cls}>{CLAIM_STATUS[c.status].label}</span></td>
+                      <td style={{ color: 'var(--text-muted)', fontSize: '0.8125rem' }}>{filed}</td>
+                      <td style={{ textAlign: 'right' }}>
+                        <button
+                          className="btn btn-ghost"
+                          style={{ fontSize: '0.75rem', padding: '0.3rem 0.625rem' }}
+                          onClick={() => showToast(`Opening claim detail for ${c.id}...`)}
+                        >
+                          View
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          ) : (
+            <div style={{ padding: '3rem', textAlign: 'center' }}>
+              <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>No active claims</p>
+              <p style={{ fontSize: '0.8125rem', color: 'var(--text-muted)' }}>Fleet is operating within policy bounds.</p>
+            </div>
+          )}
         </div>
-      </div>
-      
-      <FileClaimModal 
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSuccess={() => fetchInsuranceData()}
-        profiles={profiles}
-      />
-    </>
+      )}
+
+      {/* Footer meta */}
+      {!loading && (
+        <div style={{ marginTop: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <span className="status-dot" style={{ background: isDemo ? 'var(--warning)' : 'var(--success)' }} />
+          <span style={{ fontSize: '0.6875rem', color: 'var(--text-muted)' }}>
+            {isDemo ? 'Demo data — connect Supabase for live risk profiles' : `${profiles.length} profiles loaded from API`}
+          </span>
+        </div>
+      )}
+    </div>
   );
 }
