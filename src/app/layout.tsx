@@ -6,6 +6,7 @@ import Header from '@/components/Header';
 import { ToastProvider } from '@/components/ToastProvider';
 import CommandPalette from '@/components/CommandPalette';
 import { SidebarProvider } from '@/components/SidebarContext';
+import { TenantProvider } from '@lib/contexts/TenantContext';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -24,6 +25,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={inter.variable}>
       <body>
         <ToastProvider>
+          <TenantProvider>
           <SidebarProvider>
             <CommandPalette />
             <div className="app-layout">
@@ -36,6 +38,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               </div>
             </div>
           </SidebarProvider>
+          </TenantProvider>
         </ToastProvider>
       </body>
     </html>

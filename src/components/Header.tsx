@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useToast } from '@/components/ToastProvider';
 
 /* ── Route → breadcrumb label ────────────────────────────────────────── */
@@ -40,6 +40,7 @@ const PlusIcon = () => (
 export default function Header() {
   const { showToast } = useToast();
   const pathname = usePathname();
+  const router = useRouter();
   const route = ROUTE_LABELS[pathname] ?? { section: null, title: pathname };
 
   return (
@@ -92,7 +93,7 @@ export default function Header() {
         <button
           className="btn btn-ghost"
           style={{ gap: '0.375rem', fontSize: '0.8125rem' }}
-          onClick={() => showToast('Opening RuneSignal Documentation...')}
+          onClick={() => router.push('/documentation')}
         >
           <DocsIcon />
           Docs
@@ -105,7 +106,7 @@ export default function Header() {
         <button
           className="btn btn-primary"
           style={{ gap: '0.375rem' }}
-          onClick={() => showToast('Opening Agent Connection Wizard...')}
+          onClick={() => router.push('/identity')}
         >
           <PlusIcon />
           Connect Agent
@@ -133,7 +134,7 @@ export default function Header() {
 
         {/* Avatar */}
         <button
-          onClick={() => showToast('Profile settings coming soon...', 'info')}
+          onClick={() => router.push('/account-settings')}
           aria-label="User profile"
           style={{
             width: '28px',

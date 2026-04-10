@@ -1,683 +1,546 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
-/* ─────────────────────────────────────────────
-   DATA
-───────────────────────────────────────────── */
-const NAV_PRODUCT = [
-  {
-    label: 'Runtime Governance',
-    items: [
-      { icon: '🔥', name: 'AI Action Firewall', desc: 'Real-time block/allow for every agent action', href: '/login' },
-      { icon: '⚔️', name: 'Conflict Prevention', desc: 'Stop multi-agent goal conflicts before they escalate', href: '/login' },
-      { icon: '🧬', name: 'Cryptographic Provenance', desc: 'Ed25519-signed immutable audit trail for every decision', href: '/login' },
-      { icon: '🛡️', name: 'Corporate SOUL', desc: 'Ethics engine — define moral boundaries for your AI fleet', href: '/login' },
-    ],
-  },
-  {
-    label: 'Compliance & Risk',
-    items: [
-      { icon: '📋', name: 'Governance Intelligence', desc: 'Auto-map audit evidence to EU AI Act, NIST RMF, SOC 2', href: '/login' },
-      { icon: '🔍', name: 'Decision Explainability', desc: 'Art 13-ready explanations for every AI decision', href: '/login' },
-      { icon: '🚨', name: 'Anomaly Detection', desc: 'Behavioural fingerprinting — detect hijacked agents', href: '/login' },
-      { icon: '🔴', name: 'Automated Red Teaming', desc: 'OWASP Agentic Top 10 attack simulation', href: '/login' },
-    ],
-  },
-  {
-    label: 'Operations',
-    items: [
-      { icon: '💰', name: 'Agent FinOps', desc: 'Hard budget caps — stop $47k runaway LLM loops', href: '/login' },
-      { icon: '🌍', name: 'Data Residency', desc: 'GDPR Art 44 — validate provider/region before every call', href: '/login' },
-      { icon: '🤖', name: 'HITL Workflow', desc: 'Human-in-the-loop escalation with SLA enforcement', href: '/login' },
-      { icon: '🔐', name: 'NHI Lifecycle', desc: 'Agent identity with cryptographic death certificates', href: '/login' },
-    ],
-  },
-  {
-    label: 'Advanced',
-    items: [
-      { icon: '🤝', name: 'A2A Gateway', desc: 'Govern agent-to-agent protocol traffic', href: '/login' },
-      { icon: '🦾', name: 'Physical AI', desc: 'Pre-authorise robot actions before execution', href: '/login' },
-      { icon: '🔌', name: 'Plugin System', desc: 'Connect to Jira, Datadog, PagerDuty, Salesforce', href: '/login' },
-      { icon: '🏪', name: 'SOUL Marketplace', desc: 'Industry-specific ethics templates, ready to activate', href: '/login' },
-    ],
-  },
-];
+/* ─── SVG Icons ─────────────────────────────────────────── */
 
-const NAV_SOLUTIONS = [
-  { icon: '🏦', name: 'Financial Services', desc: 'EU AI Act, MiFID II, DORA compliance', href: '/login' },
-  { icon: '🏥', name: 'Healthcare AI', desc: 'HIPAA, FDA 21 CFR, clinical decision governance', href: '/login' },
-  { icon: '🛡️', name: 'Insurance', desc: 'FCRA claim thresholds, Lloyd\'s compliance', href: '/login' },
-  { icon: '🏭', name: 'Industrial / Robotics', desc: 'Physical AI governance for autonomous systems', href: '/login' },
-  { icon: '🏛️', name: 'Government & Defence', desc: 'FISMA, FedRAMP, NIST SP 800-53', href: '/login' },
-  { icon: '💻', name: 'AI-Native SaaS', desc: 'Scale agent fleets with trust built in', href: '/login' },
-];
-
-const FEATURES = [
-  {
-    stat: '< 50ms',
-    label: 'Firewall latency',
-    desc: 'Every agent action evaluated in real time without slowing your pipeline.',
-  },
-  {
-    stat: 'Ed25519',
-    label: 'Cryptographic proof',
-    desc: 'Every decision signed and immutable. Court-admissible audit trail.',
-  },
-  {
-    stat: '17',
-    label: 'Governance modules',
-    desc: 'From FinOps to Physical AI — one platform, complete coverage.',
-  },
-  {
-    stat: '0',
-    label: 'Competitors with all of this',
-    desc: 'No other vendor ships runtime governance with cryptographic provenance.',
-  },
-];
-
-const COMPLIANCE_BADGES = [
-  'EU AI Act', 'GDPR Art 44', 'NIST RMF', 'SOC 2', 'HIPAA', 'DORA',
-  'OWASP Agentic Top 10', 'FISMA', 'FCRA', 'ISO 42001',
-];
-
-const HOW_IT_WORKS = [
-  {
-    step: '01',
-    title: 'Register your agents',
-    desc: 'Add every AI agent to RuneSignal\'s Non-Human Identity registry. Each gets a cryptographic identity and scoped permissions.',
-  },
-  {
-    step: '02',
-    title: 'Define your SOUL',
-    desc: 'Set your Corporate SOUL — the ethical boundaries your agents must operate within. Or activate a pre-built industry template in one click.',
-  },
-  {
-    step: '03',
-    title: 'Route every action through the firewall',
-    desc: 'Before any agent action executes, RuneSignal evaluates it against your SOUL, permissions, budget caps, and data residency policy.',
-  },
-  {
-    step: '04',
-    title: 'Prove compliance instantly',
-    desc: 'Every decision is cryptographically signed and auto-mapped to EU AI Act, NIST RMF, or SOC 2 articles. Share with regulators in one click.',
-  },
-];
-
-/* ─────────────────────────────────────────────
-   COMPONENTS
-───────────────────────────────────────────── */
-function NavDropdown({ items, label }: { items: typeof NAV_PRODUCT | typeof NAV_SOLUTIONS; label: string }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    }
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, []);
-
-  const isProduct = Array.isArray(items) && items.length > 0 && 'items' in items[0];
-
+function RuneGlyph({ size = 28 }: { size?: number }) {
   return (
-    <div ref={ref} style={{ position: 'relative' }}>
-      <button
-        onClick={() => setOpen(o => !o)}
-        style={{
-          background: 'none', border: 'none', cursor: 'pointer',
-          color: open ? '#fff' : 'rgba(255,255,255,0.75)',
-          fontSize: '0.9rem', fontWeight: 500,
-          display: 'flex', alignItems: 'center', gap: '4px',
-          padding: '6px 10px', borderRadius: '8px',
-          transition: 'color 0.2s',
-        }}
-        onMouseEnter={e => (e.currentTarget.style.color = '#fff')}
-        onMouseLeave={e => !open && (e.currentTarget.style.color = 'rgba(255,255,255,0.75)')}
-      >
-        {label}
-        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
-          <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </button>
-
-      {open && (
-        <div style={{
-          position: 'absolute', top: 'calc(100% + 12px)', left: '50%', transform: 'translateX(-50%)',
-          background: 'rgba(15, 15, 30, 0.98)', backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px',
-          padding: '20px', zIndex: 100,
-          width: isProduct ? '720px' : '360px',
-          boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
-        }}>
-          {isProduct ? (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-              {(items as typeof NAV_PRODUCT).map(group => (
-                <div key={group.label}>
-                  <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '12px' }}>
-                    {group.label}
-                  </div>
-                  {group.items.map(item => (
-                    <Link key={item.name} href={item.href} onClick={() => setOpen(false)} style={{ textDecoration: 'none' }}>
-                      <div style={{
-                        display: 'flex', alignItems: 'flex-start', gap: '10px',
-                        padding: '8px', borderRadius: '10px', marginBottom: '4px',
-                        transition: 'background 0.15s',
-                      }}
-                        onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.06)')}
-                        onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                      >
-                        <span style={{ fontSize: '1.1rem', flexShrink: 0, marginTop: '1px' }}>{item.icon}</span>
-                        <div>
-                          <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#fff' }}>{item.name}</div>
-                          <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.45)', marginTop: '1px' }}>{item.desc}</div>
-                        </div>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '4px' }}>
-              {(items as typeof NAV_SOLUTIONS).map(item => (
-                <Link key={item.name} href={item.href} onClick={() => setOpen(false)} style={{ textDecoration: 'none' }}>
-                  <div style={{
-                    display: 'flex', alignItems: 'flex-start', gap: '12px',
-                    padding: '10px', borderRadius: '10px',
-                    transition: 'background 0.15s',
-                  }}
-                    onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.06)')}
-                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                  >
-                    <span style={{ fontSize: '1.2rem', flexShrink: 0, marginTop: '2px' }}>{(item as any).icon}</span>
-                    <div>
-                      <div style={{ fontSize: '0.875rem', fontWeight: 600, color: '#fff' }}>{item.name}</div>
-                      <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.45)', marginTop: '2px' }}>{item.desc}</div>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-    </div>
+    <svg width={size} height={size} viewBox="0 0 28 28" fill="none" aria-hidden="true">
+      {/* Vertical bar */}
+      <line x1="14" y1="3" x2="14" y2="25" stroke="#10b981" strokeWidth="2.2" strokeLinecap="round" />
+      {/* Upper left arm */}
+      <line x1="14" y1="9" x2="6" y2="4" stroke="#10b981" strokeWidth="2.2" strokeLinecap="round" />
+      {/* Upper right arm */}
+      <line x1="14" y1="9" x2="22" y2="4" stroke="#10b981" strokeWidth="2.2" strokeLinecap="round" />
+      {/* Lower left arm */}
+      <line x1="14" y1="17" x2="6" y2="23" stroke="#3b82f6" strokeWidth="2.2" strokeLinecap="round" />
+      {/* Lower right arm */}
+      <line x1="14" y1="17" x2="22" y2="23" stroke="#3b82f6" strokeWidth="2.2" strokeLinecap="round" />
+    </svg>
   );
 }
 
-/* ─────────────────────────────────────────────
-   PAGE
-───────────────────────────────────────────── */
+function IconReport() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+      <rect x="3" y="2" width="16" height="18" rx="2" stroke="#10b981" strokeWidth="1.6" />
+      <line x1="7" y1="7" x2="15" y2="7" stroke="#10b981" strokeWidth="1.4" strokeLinecap="round" />
+      <line x1="7" y1="11" x2="15" y2="11" stroke="#10b981" strokeWidth="1.4" strokeLinecap="round" />
+      <line x1="7" y1="15" x2="11" y2="15" stroke="#10b981" strokeWidth="1.4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function IconHITL() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+      <circle cx="11" cy="8" r="4" stroke="#10b981" strokeWidth="1.6" />
+      <path d="M4 19c0-3.866 3.134-7 7-7h0c3.866 0 7 3.134 7 7" stroke="#10b981" strokeWidth="1.6" strokeLinecap="round" />
+      <line x1="18" y1="4" x2="22" y2="4" stroke="#3b82f6" strokeWidth="1.4" strokeLinecap="round" />
+      <line x1="18" y1="7" x2="22" y2="7" stroke="#3b82f6" strokeWidth="1.4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function IconInventory() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+      <rect x="2" y="2" width="8" height="8" rx="1.5" stroke="#10b981" strokeWidth="1.6" />
+      <rect x="12" y="2" width="8" height="8" rx="1.5" stroke="#10b981" strokeWidth="1.6" />
+      <rect x="2" y="12" width="8" height="8" rx="1.5" stroke="#3b82f6" strokeWidth="1.6" />
+      <rect x="12" y="12" width="8" height="8" rx="1.5" stroke="#3b82f6" strokeWidth="1.6" />
+    </svg>
+  );
+}
+
+function IconIntegrations() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+      <circle cx="4" cy="11" r="2.5" stroke="#10b981" strokeWidth="1.6" />
+      <circle cx="18" cy="4" r="2.5" stroke="#10b981" strokeWidth="1.6" />
+      <circle cx="18" cy="18" r="2.5" stroke="#3b82f6" strokeWidth="1.6" />
+      <line x1="6.5" y1="10" x2="15.5" y2="5.2" stroke="#10b981" strokeWidth="1.4" strokeLinecap="round" />
+      <line x1="6.5" y1="12" x2="15.5" y2="16.8" stroke="#3b82f6" strokeWidth="1.4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function IconSDK() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+      <polyline points="6,8 2,11 6,14" stroke="#10b981" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <polyline points="16,8 20,11 16,14" stroke="#10b981" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <line x1="13" y1="5" x2="9" y2="17" stroke="#3b82f6" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function CheckIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ display: 'inline', marginRight: 4 }}>
+      <circle cx="8" cy="8" r="7" fill="rgba(16,185,129,0.15)" />
+      <polyline points="4.5,8.5 7,11 11.5,5.5" stroke="#10b981" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function CrossIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ display: 'inline', marginRight: 4 }}>
+      <circle cx="8" cy="8" r="7" fill="rgba(239,68,68,0.1)" />
+      <line x1="5.5" y1="5.5" x2="10.5" y2="10.5" stroke="#ef4444" strokeWidth="1.6" strokeLinecap="round" />
+      <line x1="10.5" y1="5.5" x2="5.5" y2="10.5" stroke="#ef4444" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function PartialIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ display: 'inline', marginRight: 4 }}>
+      <circle cx="8" cy="8" r="7" fill="rgba(234,179,8,0.12)" />
+      <line x1="5" y1="8" x2="11" y2="8" stroke="#eab308" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+/* ─── Data ──────────────────────────────────────────────── */
+
+const FEATURES = [
+  {
+    id: 'eu-ai-act',
+    Icon: IconReport,
+    title: 'EU AI Act Evidence Report Generator',
+    desc: 'Auto-generates Article 13 compliance evidence reports with one-click PDF export. Maps every agent decision to specific EU AI Act articles so auditors get instant, defensible proof.',
+    code: `curl -X POST https://api.runesignal.io/v1/compliance/reports/eu-ai-act \\
+  -H "Authorization: Bearer $RS_API_KEY" \\
+  -H "X-Tenant-Id: $TENANT_ID" \\
+  -d '{"from":"2026-01-01","to":"2026-07-31","format":"pdf"}'`,
+  },
+  {
+    id: 'hitl',
+    Icon: IconHITL,
+    title: 'HITL Approval API with Blast Radius Scoring',
+    desc: 'Human-in-the-loop REST API with automated blast radius scoring on every pending action. Prevents high-impact agent decisions without human sign-off — OpenAPI spec included.',
+    code: `POST /api/v1/exceptions/{id}/resolve
+{
+  "decision": "approved",
+  "blast_radius_score": 7.4,
+  "reviewer": "alice@acme.com",
+  "justification": "Low-risk data read, no PII"
+}`,
+  },
+  {
+    id: 'inventory',
+    Icon: IconInventory,
+    title: 'Agent Inventory & Shadow AI Discovery',
+    desc: 'Discovers undeclared AI agents running anywhere in your infrastructure. Full dashboard with risk scoring, ownership mapping, and compliance status across every agent — declared or not.',
+    code: `GET /api/v1/agent-inventory?include_shadow=true&risk_min=6
+
+# Response
+{ "agents": 142, "shadow_detected": 17,
+  "high_risk": 3, "unowned": 9 }`,
+  },
+  {
+    id: 'adapters',
+    Icon: IconIntegrations,
+    title: 'Slack, ServiceNow & Jira Adapters',
+    desc: 'Unified integration adapter pattern routes HITL approvals to Slack, creates ServiceNow incidents, and opens Jira tickets automatically — all from a single API call.',
+    code: `POST /api/v1/integrations/slack/notify
+{
+  "channel": "#ai-ops",
+  "exception_id": "exc_9f2a4b",
+  "blast_radius_score": 8.1,
+  "action": "approve_or_deny"
+}`,
+  },
+  {
+    id: 'sdk',
+    Icon: IconSDK,
+    title: 'Developer SDK + LangChain Plugin',
+    desc: '`@runesignal/sdk` and `@runesignal/langchain-plugin` packages let you instrument any agent in 3 lines. Full TypeScript types, zero-config tracing, automatic policy enforcement.',
+    code: `import { RuneSignalClient } from '@runesignal/sdk';
+const rs = new RuneSignalClient({ tenantId: process.env.TENANT_ID });
+rs.instrument(myAgent);`,
+  },
+];
+
+const STEPS = [
+  { n: '01', title: 'Register Agents', desc: 'Declare every AI agent — or let Shadow AI Discovery find undeclared ones automatically.' },
+  { n: '02', title: 'Define Policies', desc: 'Set blast radius thresholds, compliance frameworks, HITL escalation rules, and data residency zones.' },
+  { n: '03', title: 'Route Through Firewall', desc: 'Every agent action passes through the RuneSignal firewall for real-time allow/block/escalate decisions.' },
+  { n: '04', title: 'Generate Reports', desc: 'One-click EU AI Act evidence reports and audit exports — always current, always audit-ready.' },
+];
+
+const INTEGRATIONS = [
+  'LangChain', 'OpenAI', 'Anthropic', 'AutoGen', 'CrewAI',
+  'Slack', 'ServiceNow', 'Jira', 'GitHub', 'PagerDuty',
+];
+
+const COMPARE = [
+  { feature: 'EU AI Act Article 13 evidence reports', rs: 'yes', credo: 'partial', lakera: 'no' },
+  { feature: 'HITL API with blast radius scoring', rs: 'yes', credo: 'no', lakera: 'no' },
+  { feature: 'Shadow AI discovery', rs: 'yes', credo: 'no', lakera: 'no' },
+  { feature: 'Slack / ServiceNow / Jira adapters', rs: 'yes', credo: 'partial', lakera: 'no' },
+  { feature: 'Developer SDK + LangChain plugin', rs: 'yes', credo: 'no', lakera: 'partial' },
+  { feature: 'Real-time action firewall', rs: 'yes', credo: 'no', lakera: 'yes' },
+  { feature: 'Cryptographic audit trail (Ed25519)', rs: 'yes', credo: 'no', lakera: 'no' },
+  { feature: 'Multi-framework compliance (5+)', rs: 'yes', credo: 'yes', lakera: 'no' },
+  { feature: 'Agent inventory dashboard', rs: 'yes', credo: 'partial', lakera: 'no' },
+  { feature: 'OpenAPI spec included', rs: 'yes', credo: 'partial', lakera: 'partial' },
+];
+
+/* ─── Component ─────────────────────────────────────────── */
+
 export default function LandingPage() {
   const [scrolled, setScrolled] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
-    const handler = () => setScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', handler);
-    return () => window.removeEventListener('scroll', handler);
+    const onScroll = () => setScrolled(window.scrollY > 24);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  const cellVal = (v: string) => {
+    if (v === 'yes') return <><CheckIcon /><span style={{ color: '#10b981' }}>Yes</span></>;
+    if (v === 'no') return <><CrossIcon /><span style={{ color: '#ef4444' }}>No</span></>;
+    return <><PartialIcon /><span style={{ color: '#eab308' }}>Partial</span></>;
+  };
+
   return (
-    <div style={{
-      fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif',
-      background: '#080812',
-      color: '#fff',
-      minHeight: '100vh',
-      overflowX: 'hidden',
-    }}>
+    <>
+      <style>{`
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
 
-      {/* ── NAV ── */}
-      <nav style={{
-        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50,
-        padding: '0 24px',
-        background: scrolled ? 'rgba(8,8,18,0.85)' : 'transparent',
-        backdropFilter: scrolled ? 'blur(20px)' : 'none',
-        borderBottom: scrolled ? '1px solid rgba(255,255,255,0.06)' : 'none',
-        transition: 'background 0.3s, backdrop-filter 0.3s, border-color 0.3s',
-      }}>
-        <div style={{
-          maxWidth: '1200px', margin: '0 auto',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          height: '64px',
+        .landing-card { transition: all 0.2s ease; }
+        .landing-card:hover {
+          border-color: rgba(16,185,129,0.35) !important;
+          background: rgba(16,185,129,0.04) !important;
+          transform: translateY(-2px);
+        }
+        .landing-nav-link { transition: color 0.2s; }
+        .landing-nav-link:hover { color: #fff !important; }
+        .landing-cta-primary { transition: opacity 0.2s, transform 0.15s; }
+        .landing-cta-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+        .landing-cta-secondary { transition: background 0.2s; }
+        .landing-cta-secondary:hover { background: rgba(255,255,255,0.1) !important; }
+        .badge-pill { transition: background 0.2s, border-color 0.2s; }
+        .badge-pill:hover { background: rgba(16,185,129,0.12) !important; border-color: rgba(16,185,129,0.4) !important; }
+        .compare-row:hover td { background: rgba(255,255,255,0.02) !important; }
+        .step-card:hover { border-color: rgba(59,130,246,0.3) !important; }
+        .step-card { transition: border-color 0.2s; }
+
+        pre { white-space: pre-wrap; word-break: break-all; }
+        code { font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace; }
+
+        @media (max-width: 768px) {
+          .feat-grid { grid-template-columns: 1fr !important; }
+          .stats-strip { grid-template-columns: 1fr 1fr !important; }
+          .steps-grid { grid-template-columns: 1fr 1fr !important; }
+          .hero-btns { flex-direction: column !important; }
+          .compare-scroll { overflow-x: auto; }
+        }
+        @media (max-width: 480px) {
+          .stats-strip { grid-template-columns: 1fr !important; }
+          .steps-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
+
+      <div style={{ background: '#080812', color: '#e2e8f0', minHeight: '100vh', fontFamily: 'system-ui, -apple-system, "Segoe UI", sans-serif' }}>
+
+        {/* ── NAV ───────────────────────────────────────────── */}
+        <nav style={{
+          position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
+          background: scrolled ? 'rgba(8,8,18,0.92)' : 'transparent',
+          backdropFilter: scrolled ? 'blur(12px)' : 'none',
+          borderBottom: scrolled ? '1px solid rgba(255,255,255,0.06)' : '1px solid transparent',
+          transition: 'background 0.3s, border-color 0.3s, backdrop-filter 0.3s',
+          padding: '0 24px',
         }}>
-          {/* Logo */}
-          <Link href="/landing" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div style={{
-              width: '32px', height: '32px', borderRadius: '8px',
-              background: 'linear-gradient(135deg, #10b981, #3b82f6)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '16px', flexShrink: 0,
-            }}>🔒</div>
-            <span style={{ fontWeight: 700, fontSize: '1.1rem', color: '#fff', letterSpacing: '-0.3px' }}>RuneSignal</span>
-          </Link>
+          <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 64 }}>
+            {/* Logo */}
+            <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
+              <RuneGlyph size={28} />
+              <span style={{ fontWeight: 700, fontSize: 18, letterSpacing: '-0.02em', color: '#f1f5f9' }}>RuneSignal</span>
+            </Link>
 
-          {/* Centre nav */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <NavDropdown label="Product" items={NAV_PRODUCT} />
-            <NavDropdown label="Solutions" items={NAV_SOLUTIONS} />
-            <Link href="/login" style={{
-              textDecoration: 'none', color: 'rgba(255,255,255,0.75)',
-              fontSize: '0.9rem', fontWeight: 500, padding: '6px 10px',
-              borderRadius: '8px', transition: 'color 0.2s',
-            }}
-              onMouseEnter={e => (e.currentTarget.style.color = '#fff')}
-              onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.75)')}
-            >Pricing</Link>
-            <Link href="/documentation" style={{
-              textDecoration: 'none', color: 'rgba(255,255,255,0.75)',
-              fontSize: '0.9rem', fontWeight: 500, padding: '6px 10px',
-              borderRadius: '8px', transition: 'color 0.2s',
-            }}
-              onMouseEnter={e => (e.currentTarget.style.color = '#fff')}
-              onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.75)')}
-            >Docs</Link>
-          </div>
-
-          {/* Auth buttons */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Link href="/login" style={{
-              textDecoration: 'none', color: 'rgba(255,255,255,0.75)',
-              fontSize: '0.875rem', fontWeight: 500,
-              padding: '8px 16px', borderRadius: '10px',
-              transition: 'color 0.2s',
-            }}
-              onMouseEnter={e => (e.currentTarget.style.color = '#fff')}
-              onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.75)')}
-            >Sign in</Link>
-            <Link href="/login?mode=signup" style={{
-              textDecoration: 'none',
-              background: '#fff', color: '#080812',
-              fontSize: '0.875rem', fontWeight: 600,
-              padding: '8px 18px', borderRadius: '10px',
-              transition: 'background 0.2s, transform 0.1s',
-              display: 'inline-block',
-            }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.9)'; e.currentTarget.style.transform = 'scale(1.02)'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.transform = 'scale(1)'; }}
-            >Get Started Free</Link>
-          </div>
-        </div>
-      </nav>
-
-      {/* ── HERO ── */}
-      <section style={{
-        minHeight: '100vh', display: 'flex', flexDirection: 'column',
-        alignItems: 'center', justifyContent: 'center',
-        textAlign: 'center', padding: '120px 24px 80px',
-        position: 'relative', overflow: 'hidden',
-      }}>
-        {/* Background glow */}
-        <div style={{
-          position: 'absolute', top: '20%', left: '50%', transform: 'translateX(-50%)',
-          width: '600px', height: '600px', borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(16,185,129,0.12) 0%, transparent 70%)',
-          pointerEvents: 'none',
-        }} />
-        <div style={{
-          position: 'absolute', top: '30%', left: '20%',
-          width: '400px', height: '400px', borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(59,130,246,0.08) 0%, transparent 70%)',
-          pointerEvents: 'none',
-        }} />
-
-        {/* Badge */}
-        <div style={{
-          display: 'inline-flex', alignItems: 'center', gap: '8px',
-          background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.25)',
-          borderRadius: '50px', padding: '6px 16px', marginBottom: '32px',
-          fontSize: '0.8rem', color: '#10b981', fontWeight: 600, letterSpacing: '0.3px',
-        }}>
-          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
-          EU AI Act ready — August 2026 enforcement
-        </div>
-
-        {/* Headline */}
-        <h1 style={{
-          fontSize: 'clamp(2.8rem, 7vw, 5.5rem)',
-          fontWeight: 700, lineHeight: 1.05,
-          letterSpacing: '-0.04em', marginBottom: '24px',
-          maxWidth: '900px',
-        }}>
-          Governance for{' '}
-          <span style={{
-            background: 'linear-gradient(135deg, #10b981 0%, #3b82f6 100%)',
-            WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-          }}>
-            AI agents
-          </span>{' '}
-          that actually works at runtime.
-        </h1>
-
-        <p style={{
-          fontSize: 'clamp(1rem, 2vw, 1.25rem)',
-          color: 'rgba(255,255,255,0.55)', maxWidth: '620px',
-          lineHeight: 1.6, marginBottom: '40px',
-        }}>
-          RuneSignal intercepts every AI agent action before it executes — evaluating intent, checking ethics, enforcing budgets, and signing a cryptographic proof of every decision.
-        </p>
-
-        {/* CTAs */}
-        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center', marginBottom: '72px' }}>
-          <Link href="/login?mode=signup" style={{
-            textDecoration: 'none',
-            background: 'linear-gradient(135deg, #10b981, #3b82f6)',
-            color: '#fff', fontSize: '1rem', fontWeight: 600,
-            padding: '14px 28px', borderRadius: '12px',
-            transition: 'opacity 0.2s, transform 0.1s',
-            display: 'inline-block',
-          }}
-            onMouseEnter={e => { e.currentTarget.style.opacity = '0.9'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-            onMouseLeave={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'translateY(0)'; }}
-          >
-            Start free trial →
-          </Link>
-          <Link href="/documentation" style={{
-            textDecoration: 'none',
-            background: 'rgba(255,255,255,0.06)', color: '#fff',
-            fontSize: '1rem', fontWeight: 500,
-            padding: '14px 28px', borderRadius: '12px',
-            border: '1px solid rgba(255,255,255,0.1)',
-            transition: 'background 0.2s',
-            display: 'inline-block',
-          }}
-            onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.1)')}
-            onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.06)')}
-          >
-            View API docs
-          </Link>
-        </div>
-
-        {/* Social proof bar */}
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: '8px',
-          flexWrap: 'wrap', justifyContent: 'center',
-        }}>
-          <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.3)', marginRight: '8px' }}>Covers</span>
-          {COMPLIANCE_BADGES.map(badge => (
-            <span key={badge} style={{
-              fontSize: '0.72rem', fontWeight: 600,
-              color: 'rgba(255,255,255,0.45)',
-              border: '1px solid rgba(255,255,255,0.1)',
-              padding: '4px 10px', borderRadius: '6px',
-            }}>{badge}</span>
-          ))}
-        </div>
-      </section>
-
-      {/* ── STATS ── */}
-      <section style={{
-        padding: '80px 24px',
-        borderTop: '1px solid rgba(255,255,255,0.06)',
-        borderBottom: '1px solid rgba(255,255,255,0.06)',
-      }}>
-        <div style={{
-          maxWidth: '1100px', margin: '0 auto',
-          display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-          gap: '1px', background: 'rgba(255,255,255,0.06)',
-          borderRadius: '20px', overflow: 'hidden',
-        }}>
-          {FEATURES.map(f => (
-            <div key={f.label} style={{
-              background: '#080812', padding: '40px 32px', textAlign: 'center',
-            }}>
-              <div style={{
-                fontSize: 'clamp(2rem, 4vw, 2.8rem)', fontWeight: 700,
-                background: 'linear-gradient(135deg, #10b981, #3b82f6)',
-                WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-                marginBottom: '8px', letterSpacing: '-0.02em',
-              }}>{f.stat}</div>
-              <div style={{ fontWeight: 600, color: '#fff', marginBottom: '8px', fontSize: '0.95rem' }}>{f.label}</div>
-              <div style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.4)', lineHeight: 1.5 }}>{f.desc}</div>
+            {/* Desktop links */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Link href="/landing" className="landing-nav-link" style={{ color: '#94a3b8', fontSize: 14, fontWeight: 500, padding: '6px 12px', textDecoration: 'none' }}>Product</Link>
+              <Link href="/landing" className="landing-nav-link" style={{ color: '#94a3b8', fontSize: 14, fontWeight: 500, padding: '6px 12px', textDecoration: 'none' }}>Solutions</Link>
+              <Link href="/pricing" className="landing-nav-link" style={{ color: '#94a3b8', fontSize: 14, fontWeight: 500, padding: '6px 12px', textDecoration: 'none' }}>Pricing</Link>
+              <Link href="/documentation" className="landing-nav-link" style={{ color: '#94a3b8', fontSize: 14, fontWeight: 500, padding: '6px 12px', textDecoration: 'none' }}>Docs</Link>
             </div>
-          ))}
-        </div>
-      </section>
 
-      {/* ── HOW IT WORKS ── */}
-      <section style={{ padding: '100px 24px', maxWidth: '1100px', margin: '0 auto' }}>
-        <div style={{ textAlign: 'center', marginBottom: '64px' }}>
-          <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#10b981', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '16px' }}>
-            How it works
+            {/* Auth */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <Link href="/login" className="landing-nav-link" style={{ color: '#94a3b8', fontSize: 14, fontWeight: 500, padding: '6px 12px', textDecoration: 'none' }}>Sign in</Link>
+              <Link href="/login?mode=signup" className="landing-cta-primary" style={{
+                background: '#10b981', color: '#fff', fontSize: 14, fontWeight: 600,
+                padding: '7px 16px', borderRadius: 8, textDecoration: 'none', display: 'inline-block',
+              }}>Get Started Free</Link>
+            </div>
           </div>
-          <h2 style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', fontWeight: 700, letterSpacing: '-0.03em', marginBottom: '16px' }}>
-            From zero to governed in minutes.
-          </h2>
-          <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: '1.05rem', maxWidth: '520px', margin: '0 auto', lineHeight: 1.6 }}>
-            RuneSignal wraps around your existing agent stack. No rebuilding. No rearchitecting.
+        </nav>
+
+        {/* ── HERO ─────────────────────────────────────────── */}
+        <section style={{ paddingTop: 160, paddingBottom: 100, textAlign: 'center', padding: '160px 24px 100px' }}>
+          {/* Badge */}
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.25)', borderRadius: 999, padding: '6px 16px', marginBottom: 32 }}>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
+            <span style={{ fontSize: 13, color: '#10b981', fontWeight: 500, letterSpacing: '0.02em' }}>EU AI Act &middot; August 2026 enforcement</span>
+          </div>
+
+          <h1 style={{ fontSize: 'clamp(36px, 6vw, 72px)', fontWeight: 800, lineHeight: 1.08, letterSpacing: '-0.03em', color: '#f8fafc', maxWidth: 900, margin: '0 auto 24px' }}>
+            Five features to govern<br />
+            <span style={{ color: '#10b981' }}>every AI agent</span> you ship
+          </h1>
+
+          <p style={{ fontSize: 'clamp(17px, 2vw, 21px)', color: '#94a3b8', maxWidth: 680, margin: '0 auto 40px', lineHeight: 1.6 }}>
+            EU AI Act reports, HITL blast-radius scoring, shadow AI discovery, cross-platform adapters, and a 3-line developer SDK — all in one compliance firewall for AI agent fleets.
           </p>
-        </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '24px' }}>
-          {HOW_IT_WORKS.map((step, i) => (
-            <div key={step.step} style={{
-              padding: '32px', borderRadius: '16px',
-              background: 'rgba(255,255,255,0.03)',
-              border: '1px solid rgba(255,255,255,0.07)',
-              position: 'relative', overflow: 'hidden',
-            }}>
-              <div style={{
-                position: 'absolute', top: '20px', right: '20px',
-                fontSize: '3rem', fontWeight: 800, color: 'rgba(255,255,255,0.04)',
-                lineHeight: 1, userSelect: 'none',
-              }}>{step.step}</div>
-              <div style={{
-                width: '36px', height: '36px', borderRadius: '10px',
-                background: 'linear-gradient(135deg, #10b98130, #3b82f630)',
-                border: '1px solid rgba(16,185,129,0.3)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '0.9rem', fontWeight: 800, color: '#10b981',
-                marginBottom: '20px',
-              }}>{i + 1}</div>
-              <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '10px', color: '#fff' }}>{step.title}</h3>
-              <p style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.45)', lineHeight: 1.6 }}>{step.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
+          {/* CTAs */}
+          <div className="hero-btns" style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 60 }}>
+            <Link href="/login?mode=signup" className="landing-cta-primary" style={{
+              background: '#10b981', color: '#fff', fontSize: 16, fontWeight: 700,
+              padding: '14px 28px', borderRadius: 10, textDecoration: 'none', display: 'inline-block',
+            }}>Start free trial &rarr;</Link>
+            <Link href="/documentation" className="landing-cta-secondary" style={{
+              background: 'rgba(255,255,255,0.06)', color: '#e2e8f0', fontSize: 16, fontWeight: 600,
+              padding: '14px 28px', borderRadius: 10, textDecoration: 'none', display: 'inline-block',
+              border: '1px solid rgba(255,255,255,0.1)',
+            }}>View API docs</Link>
+          </div>
 
-      {/* ── MODULES GRID ── */}
-      <section style={{
-        padding: '100px 24px',
-        background: 'rgba(255,255,255,0.015)',
-        borderTop: '1px solid rgba(255,255,255,0.06)',
-      }}>
-        <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: '64px' }}>
-            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#3b82f6', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '16px' }}>
-              17 Governance Modules
-            </div>
-            <h2 style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', fontWeight: 700, letterSpacing: '-0.03em', marginBottom: '16px' }}>
-              Every dimension of AI governance.<br />In one platform.
+          {/* Compliance badges */}
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+            {['EU AI Act', 'GDPR', 'NIST RMF', 'SOC 2', 'HIPAA', 'OWASP Top 10'].map(b => (
+              <span key={b} className="badge-pill" style={{
+                fontSize: 12, fontWeight: 600, color: '#64748b', border: '1px solid rgba(255,255,255,0.1)',
+                borderRadius: 999, padding: '4px 12px', background: 'rgba(255,255,255,0.03)',
+                cursor: 'default', letterSpacing: '0.02em',
+              }}>{b}</span>
+            ))}
+          </div>
+        </section>
+
+        {/* ── FEATURE CARDS ─────────────────────────────────── */}
+        <section style={{ padding: '80px 24px', maxWidth: 1200, margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: 64 }}>
+            <p style={{ fontSize: 13, fontWeight: 600, color: '#10b981', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 12 }}>Platform</p>
+            <h2 style={{ fontSize: 'clamp(28px, 4vw, 48px)', fontWeight: 800, letterSpacing: '-0.03em', color: '#f8fafc' }}>
+              Five features. Unlimited visibility.
             </h2>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '16px' }}>
-            {NAV_PRODUCT.flatMap(g => g.items).map(item => (
-              <Link key={item.name} href={item.href} style={{ textDecoration: 'none' }}>
-                <div style={{
-                  padding: '20px 22px', borderRadius: '14px',
-                  background: 'rgba(255,255,255,0.03)',
-                  border: '1px solid rgba(255,255,255,0.07)',
-                  transition: 'border-color 0.2s, background 0.2s, transform 0.15s',
-                  cursor: 'pointer',
-                }}
-                  onMouseEnter={e => {
-                    e.currentTarget.style.borderColor = 'rgba(16,185,129,0.35)';
-                    e.currentTarget.style.background = 'rgba(16,185,129,0.05)';
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                  }}
-                  onMouseLeave={e => {
-                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.07)';
-                    e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
-                    e.currentTarget.style.transform = 'translateY(0)';
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-                    <span style={{ fontSize: '1.2rem' }}>{item.icon}</span>
-                    <span style={{ fontWeight: 600, fontSize: '0.9rem', color: '#fff' }}>{item.name}</span>
+          <div className="feat-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 20 }}>
+            {FEATURES.map(f => (
+              <div key={f.id} className="landing-card" style={{
+                background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)',
+                borderRadius: 16, padding: 28, display: 'flex', flexDirection: 'column', gap: 16,
+              }}>
+                {/* Icon + title */}
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                  <div style={{ padding: 8, background: 'rgba(16,185,129,0.08)', borderRadius: 10, flexShrink: 0, marginTop: 2 }}>
+                    <f.Icon />
                   </div>
-                  <p style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.4)', margin: 0, lineHeight: 1.5 }}>{item.desc}</p>
+                  <h3 style={{ fontSize: 17, fontWeight: 700, color: '#f1f5f9', lineHeight: 1.35, letterSpacing: '-0.01em' }}>{f.title}</h3>
                 </div>
-              </Link>
+
+                {/* Description */}
+                <p style={{ fontSize: 14, color: '#94a3b8', lineHeight: 1.65 }}>{f.desc}</p>
+
+                {/* Code block */}
+                <pre style={{
+                  background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.07)',
+                  borderRadius: 10, padding: '14px 16px', fontSize: 12, lineHeight: 1.7,
+                  color: '#6ee7b7', overflow: 'hidden', flexGrow: 1,
+                }}>
+                  <code>{f.code}</code>
+                </pre>
+
+                {/* Learn more */}
+                <Link href="/documentation" className="landing-nav-link" style={{ fontSize: 13, fontWeight: 600, color: '#3b82f6', textDecoration: 'none' }}>
+                  Learn more &rarr;
+                </Link>
+              </div>
             ))}
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* ── VS COMPETITORS ── */}
-      <section style={{ padding: '100px 24px', maxWidth: '900px', margin: '0 auto' }}>
-        <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-          <h2 style={{ fontSize: 'clamp(1.8rem, 3.5vw, 2.8rem)', fontWeight: 700, letterSpacing: '-0.03em', marginBottom: '12px' }}>
-            Everything competitors don't ship.
-          </h2>
-          <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '1rem', lineHeight: 1.6 }}>
-            Credo AI produces reports. Lakera guards prompts. RuneSignal governs the entire agent lifecycle.
-          </p>
-        </div>
-
-        <div style={{
-          borderRadius: '20px', overflow: 'hidden',
-          border: '1px solid rgba(255,255,255,0.08)',
-        }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr style={{ background: 'rgba(255,255,255,0.04)' }}>
-                <th style={{ padding: '16px 20px', textAlign: 'left', fontSize: '0.8rem', color: 'rgba(255,255,255,0.35)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Capability</th>
-                {['Credo AI', 'Lakera', 'RuneSignal'].map(name => (
-                  <th key={name} style={{
-                    padding: '16px 20px', textAlign: 'center', fontSize: '0.85rem',
-                    color: name === 'RuneSignal' ? '#10b981' : 'rgba(255,255,255,0.55)',
-                    fontWeight: name === 'RuneSignal' ? 700 : 500,
-                  }}>{name}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {[
-                ['Runtime block/allow firewall', false, 'partial', true],
-                ['Ed25519 cryptographic proof', false, false, true],
-                ['Multi-agent conflict prevention', false, false, true],
-                ['Corporate ethics engine (SOUL)', false, false, true],
-                ['FinOps budget enforcement', false, false, true],
-                ['GDPR data residency validation', false, false, true],
-                ['EU AI Act evidence mapping', 'partial', false, true],
-                ['Agent behavioural anomaly detection', false, false, true],
-                ['Physical AI governance', false, false, true],
-                ['Plugin ecosystem', false, false, true],
-              ].map(([label, credo, lakera, tl]) => (
-                <tr key={String(label)} style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-                  <td style={{ padding: '14px 20px', fontSize: '0.875rem', color: 'rgba(255,255,255,0.65)' }}>{String(label)}</td>
-                  {[credo, lakera, tl].map((val, i) => (
-                    <td key={i} style={{ padding: '14px 20px', textAlign: 'center', fontSize: '1rem' }}>
-                      {val === true ? '✅' : val === 'partial' ? '🟡' : '❌'}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      {/* ── CTA ── */}
-      <section style={{
-        padding: '100px 24px', textAlign: 'center',
-        borderTop: '1px solid rgba(255,255,255,0.06)',
-        position: 'relative', overflow: 'hidden',
-      }}>
-        <div style={{
-          position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-          width: '500px', height: '500px', borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(16,185,129,0.08) 0%, transparent 70%)',
-          pointerEvents: 'none',
-        }} />
-        <div style={{ position: 'relative' }}>
-          <h2 style={{ fontSize: 'clamp(2rem, 4.5vw, 3.5rem)', fontWeight: 700, letterSpacing: '-0.03em', marginBottom: '20px', maxWidth: '700px', margin: '0 auto 20px' }}>
-            Start governing your AI agents today.
-          </h2>
-          <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: '1.05rem', marginBottom: '40px', lineHeight: 1.6 }}>
-            Free plan. No credit card required. 5 minutes to your first cryptographic certificate.
-          </p>
-          <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link href="/login?mode=signup" style={{
-              textDecoration: 'none',
-              background: 'linear-gradient(135deg, #10b981, #3b82f6)',
-              color: '#fff', fontSize: '1rem', fontWeight: 600,
-              padding: '16px 32px', borderRadius: '12px',
-              transition: 'opacity 0.2s, transform 0.1s',
-              display: 'inline-block',
-            }}
-              onMouseEnter={e => { e.currentTarget.style.opacity = '0.9'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-              onMouseLeave={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'translateY(0)'; }}
-            >Create free account →</Link>
-            <Link href="/documentation" style={{
-              textDecoration: 'none',
-              background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.8)',
-              fontSize: '1rem', fontWeight: 500,
-              padding: '16px 32px', borderRadius: '12px',
-              border: '1px solid rgba(255,255,255,0.1)',
-              display: 'inline-block',
-            }}>Read the docs</Link>
-          </div>
-        </div>
-      </section>
-
-      {/* ── FOOTER ── */}
-      <footer style={{
-        borderTop: '1px solid rgba(255,255,255,0.06)',
-        padding: '48px 24px',
-      }}>
-        <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '32px', marginBottom: '48px' }}>
-            <div>
-              <div style={{ fontWeight: 700, fontSize: '1rem', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span>🔒</span> RuneSignal
-              </div>
-              <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.35)', lineHeight: 1.6 }}>
-                Runtime governance for AI agent fleets.
-              </p>
-            </div>
+        {/* ── STATS STRIP ───────────────────────────────────── */}
+        <section style={{ padding: '60px 24px', borderTop: '1px solid rgba(255,255,255,0.06)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+          <div className="stats-strip" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 32, maxWidth: 1000, margin: '0 auto', textAlign: 'center' }}>
             {[
-              { heading: 'Product', links: ['AI Action Firewall', 'Corporate SOUL', 'FinOps Control', 'Red Teaming', 'A2A Gateway'] },
-              { heading: 'Solutions', links: ['Financial Services', 'Healthcare AI', 'Insurance', 'Government', 'Industrial'] },
-              { heading: 'Legal', links: ['Privacy Policy', 'Terms of Service', 'DPA', 'SLA', 'Security'] },
-            ].map(col => (
-              <div key={col.heading}>
-                <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '16px' }}>
-                  {col.heading}
-                </div>
-                {col.links.map(link => (
-                  <div key={link} style={{ marginBottom: '10px' }}>
-                    <Link href="/login" style={{
-                      textDecoration: 'none', fontSize: '0.875rem',
-                      color: 'rgba(255,255,255,0.5)',
-                      transition: 'color 0.2s',
-                    }}
-                      onMouseEnter={e => (e.currentTarget.style.color = '#fff')}
-                      onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.5)')}
-                    >{link}</Link>
-                  </div>
-                ))}
+              { val: '< 50ms', label: 'Firewall latency' },
+              { val: 'Ed25519', label: 'Cryptographic proof' },
+              { val: '5 frameworks', label: 'EU AI Act, NIST, SOC 2, HIPAA, DORA' },
+              { val: '3 lines', label: 'To instrument any agent' },
+            ].map(s => (
+              <div key={s.val}>
+                <div style={{ fontSize: 'clamp(24px, 3.5vw, 40px)', fontWeight: 800, color: '#10b981', letterSpacing: '-0.03em', marginBottom: 6 }}>{s.val}</div>
+                <div style={{ fontSize: 13, color: '#64748b', lineHeight: 1.4 }}>{s.label}</div>
               </div>
             ))}
           </div>
-          <div style={{
-            borderTop: '1px solid rgba(255,255,255,0.06)',
-            paddingTop: '24px', display: 'flex',
-            justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px',
-          }}>
-            <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.25)' }}>
-              © 2026 RuneSignal. All rights reserved.
-            </span>
-            <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.25)' }}>
-              EU AI Act ready · GDPR compliant · SOC 2 in progress
-            </span>
+        </section>
+
+        {/* ── HOW IT WORKS ──────────────────────────────────── */}
+        <section style={{ padding: '80px 24px', maxWidth: 1100, margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: 56 }}>
+            <p style={{ fontSize: 13, fontWeight: 600, color: '#10b981', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 12 }}>How it works</p>
+            <h2 style={{ fontSize: 'clamp(26px, 3.5vw, 42px)', fontWeight: 800, letterSpacing: '-0.03em', color: '#f8fafc' }}>
+              From zero to audit-ready in minutes
+            </h2>
           </div>
-        </div>
-      </footer>
-    </div>
+
+          <div className="steps-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 20 }}>
+            {STEPS.map(s => (
+              <div key={s.n} className="step-card" style={{
+                background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)',
+                borderRadius: 14, padding: '24px 20px',
+              }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: '#3b82f6', letterSpacing: '0.1em', marginBottom: 12 }}>{s.n}</div>
+                <div style={{ fontSize: 16, fontWeight: 700, color: '#f1f5f9', marginBottom: 10 }}>{s.title}</div>
+                <div style={{ fontSize: 13, color: '#64748b', lineHeight: 1.6 }}>{s.desc}</div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ── INTEGRATIONS ──────────────────────────────────── */}
+        <section style={{ padding: '60px 24px', textAlign: 'center', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+          <p style={{ fontSize: 14, color: '#64748b', fontWeight: 500, marginBottom: 28, letterSpacing: '0.04em' }}>Works with your stack</p>
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap', maxWidth: 800, margin: '0 auto' }}>
+            {INTEGRATIONS.map(i => (
+              <span key={i} className="badge-pill" style={{
+                fontSize: 13, fontWeight: 600, color: '#94a3b8',
+                border: '1px solid rgba(255,255,255,0.1)', borderRadius: 999,
+                padding: '6px 16px', background: 'rgba(255,255,255,0.03)', cursor: 'default',
+              }}>{i}</span>
+            ))}
+          </div>
+        </section>
+
+        {/* ── COMPARISON TABLE ──────────────────────────────── */}
+        <section style={{ padding: '80px 24px', maxWidth: 1000, margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: 48 }}>
+            <p style={{ fontSize: 13, fontWeight: 600, color: '#10b981', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 12 }}>Why RuneSignal</p>
+            <h2 style={{ fontSize: 'clamp(26px, 3.5vw, 40px)', fontWeight: 800, letterSpacing: '-0.03em', color: '#f8fafc' }}>
+              Built for agentic AI — not retrofitted
+            </h2>
+          </div>
+
+          <div className="compare-scroll">
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+              <thead>
+                <tr>
+                  <th style={{ textAlign: 'left', padding: '12px 16px', color: '#64748b', fontWeight: 600, borderBottom: '1px solid rgba(255,255,255,0.08)', fontSize: 13 }}>Feature</th>
+                  <th style={{ padding: '12px 16px', color: '#10b981', fontWeight: 700, borderBottom: '1px solid rgba(255,255,255,0.08)', fontSize: 13, textAlign: 'center' }}>RuneSignal</th>
+                  <th style={{ padding: '12px 16px', color: '#64748b', fontWeight: 600, borderBottom: '1px solid rgba(255,255,255,0.08)', fontSize: 13, textAlign: 'center' }}>Credo AI</th>
+                  <th style={{ padding: '12px 16px', color: '#64748b', fontWeight: 600, borderBottom: '1px solid rgba(255,255,255,0.08)', fontSize: 13, textAlign: 'center' }}>Lakera</th>
+                </tr>
+              </thead>
+              <tbody>
+                {COMPARE.map((row, i) => (
+                  <tr key={row.feature} className="compare-row" style={{ background: i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.015)' }}>
+                    <td style={{ padding: '12px 16px', color: '#cbd5e1', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>{row.feature}</td>
+                    <td style={{ padding: '12px 16px', textAlign: 'center', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>{cellVal(row.rs)}</td>
+                    <td style={{ padding: '12px 16px', textAlign: 'center', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>{cellVal(row.credo)}</td>
+                    <td style={{ padding: '12px 16px', textAlign: 'center', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>{cellVal(row.lakera)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        {/* ── CTA SECTION ───────────────────────────────────── */}
+        <section style={{ padding: '80px 24px', textAlign: 'center', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+          <div style={{
+            maxWidth: 680, margin: '0 auto', padding: '60px 40px',
+            background: 'linear-gradient(135deg, rgba(16,185,129,0.07) 0%, rgba(59,130,246,0.07) 100%)',
+            border: '1px solid rgba(16,185,129,0.18)', borderRadius: 24,
+          }}>
+            <RuneGlyph size={40} />
+            <h2 style={{ fontSize: 'clamp(26px, 4vw, 40px)', fontWeight: 800, color: '#f8fafc', marginTop: 20, marginBottom: 14, letterSpacing: '-0.03em' }}>
+              Start governing your AI agents today
+            </h2>
+            <p style={{ fontSize: 16, color: '#94a3b8', marginBottom: 36, lineHeight: 1.6 }}>
+              Free plan available. No credit card required. Deploy in minutes.
+            </p>
+            <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+              <Link href="/login?mode=signup" className="landing-cta-primary" style={{
+                background: '#10b981', color: '#fff', fontSize: 16, fontWeight: 700,
+                padding: '14px 32px', borderRadius: 10, textDecoration: 'none', display: 'inline-block',
+              }}>Start for free &rarr;</Link>
+              <Link href="/documentation" className="landing-cta-secondary" style={{
+                background: 'rgba(255,255,255,0.06)', color: '#e2e8f0', fontSize: 16, fontWeight: 600,
+                padding: '14px 28px', borderRadius: 10, textDecoration: 'none', display: 'inline-block',
+                border: '1px solid rgba(255,255,255,0.1)',
+              }}>Read the docs</Link>
+            </div>
+          </div>
+        </section>
+
+        {/* ── FOOTER ────────────────────────────────────────── */}
+        <footer style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: '48px 24px 32px' }}>
+          <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 32, marginBottom: 40 }}>
+              {/* Brand */}
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                  <RuneGlyph size={22} />
+                  <span style={{ fontWeight: 700, fontSize: 16, color: '#f1f5f9' }}>RuneSignal</span>
+                </div>
+                <p style={{ fontSize: 13, color: '#475569', maxWidth: 220, lineHeight: 1.5 }}>
+                  The AI agent governance firewall for regulated industries.
+                </p>
+              </div>
+
+              {/* Links */}
+              <div style={{ display: 'flex', gap: 48, flexWrap: 'wrap' }}>
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: '#64748b', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 14 }}>Product</div>
+                  {[
+                    { label: 'Features', href: '/landing' },
+                    { label: 'Pricing', href: '/pricing' },
+                    { label: 'Documentation', href: '/documentation' },
+                  ].map(l => (
+                    <div key={l.label} style={{ marginBottom: 10 }}>
+                      <Link href={l.href} className="landing-nav-link" style={{ fontSize: 14, color: '#64748b', textDecoration: 'none' }}>{l.label}</Link>
+                    </div>
+                  ))}
+                </div>
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: '#64748b', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 14 }}>Company</div>
+                  {[
+                    { label: 'GitHub', href: 'https://github.com/richardsplit/TrustLayer' },
+                    { label: 'Privacy', href: '/privacy' },
+                    { label: 'Terms', href: '/terms' },
+                  ].map(l => (
+                    <div key={l.label} style={{ marginBottom: 10 }}>
+                      <Link href={l.href} className="landing-nav-link" style={{ fontSize: 14, color: '#64748b', textDecoration: 'none' }}>{l.label}</Link>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+              <span style={{ fontSize: 13, color: '#334155' }}>&copy; 2026 RuneSignal. All rights reserved.</span>
+              <span style={{ fontSize: 12, color: '#1e293b' }}>
+                Built for EU AI Act Article 13 &middot; NIST RMF &middot; SOC 2 &middot; HIPAA &middot; DORA
+              </span>
+            </div>
+          </div>
+        </footer>
+
+      </div>
+    </>
   );
 }

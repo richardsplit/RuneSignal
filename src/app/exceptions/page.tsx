@@ -180,7 +180,7 @@ export default function ExceptionsPage() {
         </div>
       </div>
 
-      {error && <ApiErrorBanner message={error} onRetry={load} />}
+      {error && !isDemo && <ApiErrorBanner message={error} onRetry={load} />}
 
       {/* KPI strip */}
       <div style={{
