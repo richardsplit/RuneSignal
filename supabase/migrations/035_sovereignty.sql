@@ -23,6 +23,9 @@ ALTER TABLE provider_regions ADD COLUMN IF NOT EXISTS pci_eligible   BOOLEAN  NO
 ALTER TABLE provider_regions ADD COLUMN IF NOT EXISTS notes          TEXT      NULL;
 ALTER TABLE provider_regions ADD COLUMN IF NOT EXISTS updated_at     TIMESTAMPTZ NOT NULL DEFAULT now();
 
+-- country was NOT NULL in 024 but is not meaningful in 035's schema — relax the constraint
+ALTER TABLE provider_regions ALTER COLUMN country DROP NOT NULL;
+
 -- Add (provider, model, region) unique constraint if it doesn't already exist
 DO $$ BEGIN
   IF NOT EXISTS (
@@ -75,20 +78,21 @@ DO $$ BEGIN
 END $$;
 
 -- ─── Seed: Provider region catalog ───────────────────────────────────────────
-INSERT INTO provider_regions (provider, model, region, data_center, gdpr_adequate, hipaa_eligible, pci_eligible, notes) VALUES
-  ('openai',    'gpt-4o',              'us',     'us-east-1',  false, true,  false, 'US data centers. BAA available for HIPAA.'),
-  ('openai',    'gpt-4o',              'eu',     'eu-west-1',  true,  false, false, 'Azure OpenAI EU region via Microsoft.'),
-  ('openai',    'gpt-4o-mini',         'us',     'us-east-1',  false, true,  false, 'US data centers.'),
-  ('anthropic', 'claude-sonnet-4-6',   'us',     'us-east-1',  false, false, false, 'US only. No EU endpoint available Q2 2026.'),
-  ('anthropic', 'claude-opus-4-6',     'us',     'us-east-1',  false, false, false, 'US only.'),
-  ('anthropic', 'claude-haiku-4-5',    'us',     'us-east-1',  false, false, false, 'US only.'),
-  ('azure',     'gpt-4o',              'eu',     'eu-west-1',  true,  true,  true,  'Azure OpenAI EU: GDPR adequate, HIPAA BAA, PCI-DSS.'),
-  ('azure',     'gpt-4o',              'us',     'us-east-1',  false, true,  true,  'Azure OpenAI US.'),
-  ('mistral',   'mistral-large',       'eu',     'eu-west-3',  true,  false, false, 'Mistral AI: EU-based, GDPR compliant.'),
-  ('mistral',   'mistral-medium',      'eu',     'eu-west-3',  true,  false, false, 'Mistral AI: EU-based.'),
-  ('google',    'gemini-1.5-pro',      'us',     'us-central1',false, true,  false, 'Google Cloud US. BAA available.'),
-  ('google',    'gemini-1.5-pro',      'eu',     'eu-west4',   true,  false, false, 'Google Cloud EU.')
+INSERT INTO provider_regions (provider, model, region, country, data_center, gdpr_adequate, hipaa_eligible, pci_eligible, notes) VALUES
+  ('openai',    'gpt-4o',              'us',  'US', 'us-east-1',   false, true,  false, 'US data centers. BAA available for HIPAA.'),
+  ('openai',    'gpt-4o',              'eu',  'IE', 'eu-west-1',   true,  false, false, 'Azure OpenAI EU region via Microsoft.'),
+  ('openai',    'gpt-4o-mini',         'us',  'US', 'us-east-1',   false, true,  false, 'US data centers.'),
+  ('anthropic', 'claude-sonnet-4-6',   'us',  'US', 'us-east-1',   false, false, false, 'US only. No EU endpoint available Q2 2026.'),
+  ('anthropic', 'claude-opus-4-6',     'us',  'US', 'us-east-1',   false, false, false, 'US only.'),
+  ('anthropic', 'claude-haiku-4-5',    'us',  'US', 'us-east-1',   false, false, false, 'US only.'),
+  ('azure',     'gpt-4o',              'eu',  'IE', 'eu-west-1',   true,  true,  true,  'Azure OpenAI EU: GDPR adequate, HIPAA BAA, PCI-DSS.'),
+  ('azure',     'gpt-4o',              'us',  'US', 'us-east-1',   false, true,  true,  'Azure OpenAI US.'),
+  ('mistral',   'mistral-large',       'eu',  'FR', 'eu-west-3',   true,  false, false, 'Mistral AI: EU-based, GDPR compliant.'),
+  ('mistral',   'mistral-medium',      'eu',  'FR', 'eu-west-3',   true,  false, false, 'Mistral AI: EU-based.'),
+  ('google',    'gemini-1.5-pro',      'us',  'US', 'us-central1', false, true,  false, 'Google Cloud US. BAA available.'),
+  ('google',    'gemini-1.5-pro',      'eu',  'BE', 'eu-west4',    true,  false, false, 'Google Cloud EU.')
 ON CONFLICT (provider, model, region) DO UPDATE SET
+  country        = EXCLUDED.country,
   data_center    = EXCLUDED.data_center,
   gdpr_adequate  = EXCLUDED.gdpr_adequate,
   hipaa_eligible = EXCLUDED.hipaa_eligible,
