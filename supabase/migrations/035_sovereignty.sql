@@ -26,14 +26,25 @@ ALTER TABLE provider_regions ADD COLUMN IF NOT EXISTS updated_at     TIMESTAMPTZ
 -- country was NOT NULL in 024 but is not meaningful in 035's schema — relax the constraint
 ALTER TABLE provider_regions ALTER COLUMN country DROP NOT NULL;
 
--- Add (provider, model, region) unique constraint if it doesn't already exist
+-- 024 used PRIMARY KEY (provider, model) — we need (provider, model, region).
+-- Drop the old PK and replace it with the correct three-column PK.
 DO $$ BEGIN
-  IF NOT EXISTS (
+  -- Drop the old two-column primary key if it still exists
+  IF EXISTS (
     SELECT 1 FROM pg_constraint
-    WHERE conname = 'provider_regions_provider_model_region_key'
+    WHERE conname = 'provider_regions_pkey'
       AND conrelid = 'provider_regions'::regclass
   ) THEN
-    ALTER TABLE provider_regions ADD CONSTRAINT provider_regions_provider_model_region_key UNIQUE (provider, model, region);
+    ALTER TABLE provider_regions DROP CONSTRAINT provider_regions_pkey;
+  END IF;
+
+  -- Add the correct three-column primary key
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conname = 'provider_regions_pkey'
+      AND conrelid = 'provider_regions'::regclass
+  ) THEN
+    ALTER TABLE provider_regions ADD PRIMARY KEY (provider, model, region);
   END IF;
 END $$;
 
