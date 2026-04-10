@@ -143,13 +143,13 @@ ON CONFLICT (name) DO UPDATE
 -- ─── Seed: EU AI Act Controls ─────────────────────────────────────────────────
 WITH fw AS (SELECT id FROM compliance_frameworks WHERE short_name = 'EU AI Act')
 INSERT INTO framework_controls (framework_id, control_code, title, description, evidence_types)
-SELECT fw.id, ctrl.code, ctrl.title, ctrl.desc, ctrl.ev FROM fw, (VALUES
+SELECT fw.id, ctrl.code, ctrl.title, ctrl.body, ctrl.ev FROM fw, (VALUES
   ('ART-13', 'Transparency', 'High-risk AI systems must be transparent and provide meaningful information about their logic.', ARRAY['provenance_certificate', 'decision_explanation']),
   ('ART-14', 'Human Oversight', 'Human oversight measures to prevent or minimise risks.', ARRAY['hitl_exception', 'audit_event']),
   ('ART-15', 'Accuracy & Robustness', 'High-risk AI systems must be accurate, robust, and cybersecure.', ARRAY['behavioral_anomaly', 'audit_event']),
   ('ART-17', 'Quality Management', 'Quality management system for high-risk AI.', ARRAY['audit_event', 'provenance_certificate']),
   ('ART-50', 'Transparency for General AI', 'Obligations for general-purpose AI transparency.', ARRAY['decision_explanation'])
-) AS ctrl(code, title, desc, ev) ON CONFLICT (framework_id, control_code) DO UPDATE
+) AS ctrl(code, title, body, ev) ON CONFLICT (framework_id, control_code) DO UPDATE
   SET title          = EXCLUDED.title,
       description    = EXCLUDED.description,
       evidence_types = EXCLUDED.evidence_types;
@@ -157,13 +157,13 @@ SELECT fw.id, ctrl.code, ctrl.title, ctrl.desc, ctrl.ev FROM fw, (VALUES
 -- ─── Seed: NIST RMF Controls ─────────────────────────────────────────────────
 WITH fw AS (SELECT id FROM compliance_frameworks WHERE short_name = 'NIST RMF')
 INSERT INTO framework_controls (framework_id, control_code, title, description, evidence_types)
-SELECT fw.id, ctrl.code, ctrl.title, ctrl.desc, ctrl.ev FROM fw, (VALUES
+SELECT fw.id, ctrl.code, ctrl.title, ctrl.body, ctrl.ev FROM fw, (VALUES
   ('GOVERN-1', 'AI Governance', 'Policies, processes, and practices for AI risk management.', ARRAY['audit_event', 'policy_enforcement']),
   ('MAP-1', 'AI Risk Identification', 'Categorize and contextualize AI risks.', ARRAY['firewall_evaluation', 'risk_score']),
   ('MAP-2', 'AI Inventory', 'Identify and document AI systems in use.', ARRAY['agent_registration']),
   ('MEASURE-1', 'AI Risk Analysis', 'Analyse and assess AI risks.', ARRAY['provenance_certificate', 'behavioral_anomaly']),
   ('MANAGE-1', 'AI Risk Response', 'Prioritize and implement risk responses.', ARRAY['hitl_exception', 'firewall_evaluation'])
-) AS ctrl(code, title, desc, ev) ON CONFLICT (framework_id, control_code) DO UPDATE
+) AS ctrl(code, title, body, ev) ON CONFLICT (framework_id, control_code) DO UPDATE
   SET title          = EXCLUDED.title,
       description    = EXCLUDED.description,
       evidence_types = EXCLUDED.evidence_types;
@@ -171,13 +171,13 @@ SELECT fw.id, ctrl.code, ctrl.title, ctrl.desc, ctrl.ev FROM fw, (VALUES
 -- ─── Seed: SOC 2 Controls ────────────────────────────────────────────────────
 WITH fw AS (SELECT id FROM compliance_frameworks WHERE short_name = 'SOC 2')
 INSERT INTO framework_controls (framework_id, control_code, title, description, evidence_types)
-SELECT fw.id, ctrl.code, ctrl.title, ctrl.desc, ctrl.ev FROM fw, (VALUES
+SELECT fw.id, ctrl.code, ctrl.title, ctrl.body, ctrl.ev FROM fw, (VALUES
   ('CC1.1', 'Control Environment', 'Management demonstrates commitment to integrity and ethical values.', ARRAY['audit_event', 'policy_enforcement']),
   ('CC5.1', 'Risk Assessment', 'Assess risk of achieving objectives.', ARRAY['risk_score', 'behavioral_anomaly']),
   ('CC6.1', 'Logical Access Controls', 'Restrict logical access to systems.', ARRAY['identity_check', 'audit_event']),
   ('CC7.1', 'System Monitoring', 'Monitor system components for anomalies.', ARRAY['behavioral_anomaly', 'audit_event']),
   ('CC9.1', 'Risk Mitigation', 'Identify and mitigate risks from vendors and partners.', ARRAY['firewall_evaluation', 'provenance_certificate'])
-) AS ctrl(code, title, desc, ev) ON CONFLICT (framework_id, control_code) DO UPDATE
+) AS ctrl(code, title, body, ev) ON CONFLICT (framework_id, control_code) DO UPDATE
   SET title          = EXCLUDED.title,
       description    = EXCLUDED.description,
       evidence_types = EXCLUDED.evidence_types;
