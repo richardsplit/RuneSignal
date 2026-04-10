@@ -1,14 +1,14 @@
 /**
- * @trustlayer/sdk — Official Node.js SDK for TrustLayer
+ * @runesignal/sdk — Official Node.js SDK for RuneSignal
  *
- * TrustLayer is the AI Agent Action Firewall for Enterprise Systems.
+ * RuneSignal is the AI Agent Action Firewall for Enterprise Systems.
  * Control what your agents can do, enforce policy, route approvals,
  * and record every decision in a tamper-evident audit trail.
  *
  * @example
- * import { TrustLayerClient } from '@trustlayer/sdk';
+ * import { RuneSignalClient } from '@runesignal/sdk';
  *
- * const tl = new TrustLayerClient({
+ * const tl = new RuneSignalClient({
  *   apiKey: 'tl_your_api_key',
  *   agentId: 'your-agent-uuid',
  * });
@@ -31,9 +31,9 @@ import { FirewallResource } from './firewall';
 import { AgentsResource } from './agents';
 import { ExceptionsResource } from './exceptions';
 import { ProvenanceResource } from './provenance';
-import { TrustLayerClientConfig } from './types';
+import { RuneSignalClientConfig } from './types';
 
-export class TrustLayerClient {
+export class RuneSignalClient {
   public readonly firewall: FirewallResource;
   public readonly agents: AgentsResource;
   public readonly exceptions: ExceptionsResource;
@@ -41,7 +41,7 @@ export class TrustLayerClient {
 
   private readonly _baseClient: BaseClient;
 
-  constructor(config: TrustLayerClientConfig) {
+  constructor(config: RuneSignalClientConfig) {
     this._baseClient = new BaseClient(config);
     this.firewall = new FirewallResource(this._baseClient);
     this.agents = new AgentsResource(this._baseClient);

@@ -135,7 +135,7 @@ export default function PluginsPage() {
     <div className="p-6 max-w-6xl mx-auto">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Plugin System</h1>
-        <p className="text-gray-500 mt-1">Connect TrustLayer governance events to external systems via webhooks</p>
+        <p className="text-gray-500 mt-1">Connect RuneSignal governance events to external systems via webhooks</p>
       </div>
 
       {error && (

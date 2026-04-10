@@ -1,7 +1,7 @@
-import type { TrustLayerConfig, LedgerSignOptions, LedgerEntry } from './types';
+import type { RuneSignalConfig, LedgerSignOptions, LedgerEntry } from './types';
 
 export class LedgerClient {
-  constructor(private config: Required<TrustLayerConfig>) {}
+  constructor(private config: Required<RuneSignalConfig>) {}
 
   /**
    * Cryptographically sign an agent action into the S3 audit ledger.
@@ -23,7 +23,7 @@ export class LedgerClient {
 
     if (!response.ok) {
       const err = await response.json().catch(() => ({}));
-      throw new Error(`[TrustLayer Ledger] Failed to sign: ${(err as any).error || response.status}`);
+      throw new Error(`[RuneSignal Ledger] Failed to sign: ${(err as any).error || response.status}`);
     }
 
     const data = await response.json();

@@ -9,27 +9,27 @@ const CODE_SAMPLES: Record<
   Record<Lang, string>
 > = {
   install: {
-    node: `npm install @trustlayer/sdk`,
-    python: `pip install trustlayer`,
+    node: `npm install @runesignal/sdk`,
+    python: `pip install runesignal`,
     curl: `# No installation needed — use cURL directly`,
   },
   init: {
-    node: `import { TrustLayerClient } from '@trustlayer/sdk';
+    node: `import { RuneSignalClient } from '@runesignal/sdk';
 
-const tl = new TrustLayerClient({
+const tl = new RuneSignalClient({
   apiKey: 'tl_your_api_key_here',
   // Optional: pre-set a default agent
   // agentId: 'your-agent-uuid',
 });`,
-    python: `from trustlayer import TrustLayerClient
+    python: `from runesignal import RuneSignalClient
 
-tl = TrustLayerClient(
+tl = RuneSignalClient(
     api_key="tl_your_api_key_here",
     # agent_id="your-agent-uuid",  # optional default
 )`,
     curl: `# Set your API key and base URL
 export TL_API_KEY="tl_your_api_key_here"
-export TL_BASE="https://your-trustlayer-instance.com"`,
+export TL_BASE="https://your-runesignal-instance.com"`,
   },
   register: {
     node: `const agent = await tl.agents.register({
@@ -181,7 +181,7 @@ const STEPS = [
   {
     id: 'install',
     title: '1. Install the SDK',
-    description: 'Add TrustLayer to your project using your package manager.',
+    description: 'Add RuneSignal to your project using your package manager.',
   },
   {
     id: 'init',
@@ -314,7 +314,7 @@ export default function QuickstartPage() {
           Protect your first AI agent in 5 minutes
         </h1>
         <p style={{ color: '#737373', fontSize: 16, lineHeight: 1.6, margin: 0 }}>
-          TrustLayer is the AI Agent Action Firewall — a policy evaluation layer that sits between
+          RuneSignal is the AI Agent Action Firewall — a policy evaluation layer that sits between
           your AI agent and consequential actions. Every action is checked against your policies,
           risk profile, and compliance rules before execution.
         </p>

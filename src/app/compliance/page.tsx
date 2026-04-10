@@ -65,7 +65,7 @@ export default function ComplianceDashboard() {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `TrustLayer_Compliance_Export_${activeFw.name.replace(/ /g, '_')}.csv`);
+    link.setAttribute("download", `RuneSignal_Compliance_Export_${activeFw.name.replace(/ /g, '_')}.csv`);
     document.body.appendChild(link);
     link.click();
     link.remove();

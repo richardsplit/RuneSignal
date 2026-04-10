@@ -1,4 +1,4 @@
-# TrustLayer — Phases Roadmap
+# RuneSignal — Phases Roadmap
 
 > **Last updated:** 2026-04-09
 > **Current status:** Phases 1–7 complete. Phase 8 (strategic classification) ongoing. Phase 9 (production hardening) in progress.
@@ -78,7 +78,7 @@ For each candidate below, determine: **long-term moat** | **premium product expa
 |-----------|---------------|
 | Full insurance/underwriting micro-OS | Premium product expansion — build only with 3+ insurance enterprise contracts |
 | Cross-org NHI federation | Long-term moat — requires standards body participation (IETF/OpenID) |
-| Agent certification / trust scoring | Long-term moat — "TrustLayer Certified" badge after 12+ months of audit data |
+| Agent certification / trust scoring | Long-term moat — "RuneSignal Certified" badge after 12+ months of audit data |
 | Regulatory explainability packs (S11+S13 bundles) | Premium product — €5k standalone package per regulator type |
 | Physical systems governance beyond S15 | Too early (surgical/automotive) — different liability model, different buyer |
 | FinOps platform beyond S9 | Premium product — only if S9 standalone revenues justify deeper investment |
@@ -123,18 +123,18 @@ Fixed: `POST /api/v1/onboarding/set-admin-role` called after tenant creation; se
 **Auditor:** A-LIGN, Schellman, or Prescient Assurance.
 **Cost:** €15k–€40k total.
 **Timeline:** ~8 months to certification.
-**Note:** TrustLayer's own S13 Governance Intel Hub can be used to track SOC 2 controls — use it.
+**Note:** RuneSignal's own S13 Governance Intel Hub can be used to track SOC 2 controls — use it.
 
 ### 9.7 — Data Processing Agreement / DPA (EXTERNAL — Action Required)
-**What:** GDPR Art. 28 contract between TrustLayer (processor) and each EU customer (controller).
-**Required:** Before any EU company can legally use TrustLayer with personal data in agent logs.
+**What:** GDPR Art. 28 contract between RuneSignal (processor) and each EU customer (controller).
+**Required:** Before any EU company can legally use RuneSignal with personal data in agent logs.
 **Contents:** Purpose limitation, subprocessor list (Supabase/Vercel/Upstash/Stripe/Sentry), data residency, 72h breach notification, deletion on termination.
-**Host at:** `trustlayer.io/legal/dpa`
+**Host at:** `runesignal.io/legal/dpa`
 **Cost:** €2k–€5k with privacy lawyer, or use IAPP template + review.
 **Timeline:** 2 weeks.
 
 ### 9.8 — SLA Document (EXTERNAL — Action Required)
-**What:** Public uptime and support commitment hosted at `trustlayer.io/legal/sla`.
+**What:** Public uptime and support commitment hosted at `runesignal.io/legal/sla`.
 **Commitments:**
 - Uptime: 99.9% monthly (Vercel + Supabase both exceed this)
 - P1 response: 15-minute acknowledgment
@@ -194,7 +194,7 @@ Fixed: `POST /api/v1/onboarding/set-admin-role` called after tenant creation; se
 
 ## Competitive Position
 
-| Capability | Credo AI | Lakera | Protect AI | TrustLayer |
+| Capability | Credo AI | Lakera | Protect AI | RuneSignal |
 |-----------|---------|--------|-----------|-----------|
 | Runtime block/allow firewall | ❌ | Partial | ❌ | ✅ S1/S6/S8 |
 | Cryptographic provenance | ❌ | ❌ | ❌ | ✅ S3 Ed25519 |

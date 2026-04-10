@@ -1,5 +1,5 @@
 /**
- * TrustLayer SIEM Exporter
+ * RuneSignal SIEM Exporter
  *
  * Queries the audit_events table and pushes events to configured SIEM endpoints.
  * Supports both push (real-time) and pull (polling) patterns.
@@ -90,7 +90,7 @@ export class SIEMExporter {
 
           const headers: Record<string, string> = {
             'Content-Type': contentType,
-            'X-TrustLayer-Export': 'audit-events',
+            'X-RuneSignal-Export': 'audit-events',
             'X-Event-Count': String(filteredEvents.length),
           };
 

@@ -653,7 +653,7 @@ Open `http://localhost:3000` and verify:
 2. **Click "S8 MoralOS"** — dashboard loads with metrics, SOUL status, event feed, domain heat map
 3. **Click "Configure SOUL"** — modal opens with 5 tabs (Financial, Compliance, Sensitive Data, Security, Authority)
 4. **Fill in values and click "Review & Sign"** — confirmation step appears
-5. **Design** matches existing TrustLayer aesthetic (dark charcoal, emerald/amber, glassmorphism)
+5. **Design** matches existing RuneSignal aesthetic (dark charcoal, emerald/amber, glassmorphism)
 
 ### Run SQL migration in Supabase Dashboard:
 Copy the contents of `supabase/migrations/009_moral_os.sql` and run it in the Supabase SQL Editor.

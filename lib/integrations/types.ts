@@ -1,5 +1,5 @@
 /**
- * TrustLayer Integration Types
+ * RuneSignal Integration Types
  * Shared contracts for all external approval channel integrations.
  */
 

@@ -1,28 +1,28 @@
 /**
- * TrustLayerTool
+ * RuneSignalTool
  *
  * Wraps any LangChain tool with automatic HITL gating.
  * High-risk tool calls are blocked until a human approves them.
  */
 
-import type { TrustLayer, BlastRadius } from '@trustlayer/sdk';
+import type { RuneSignal, BlastRadius } from '@runesignal/sdk';
 
-export interface TrustLayerToolOptions {
+export interface RuneSignalToolOptions {
   blastRadius?: BlastRadius;
   reversible?: boolean;
   requireApproval?: boolean; // Force approval regardless of policy
 }
 
 /**
- * Wraps a tool's _call method with TrustLayer HITL gating.
+ * Wraps a tool's _call method with RuneSignal HITL gating.
  *
  * Usage with LangChain:
  *   const safeTool = wrapToolWithHITL(myTool, tl, { blastRadius: 'high', reversible: false });
  */
 export function wrapToolWithHITL<T extends { name: string; _call: (input: string) => Promise<string> }>(
   tool: T,
-  tl: TrustLayer,
-  options: TrustLayerToolOptions = {}
+  tl: RuneSignal,
+  options: RuneSignalToolOptions = {}
 ): T {
   const originalCall = tool._call.bind(tool);
 

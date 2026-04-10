@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('TrustLayer Dashboard Navigation', () => {
+test.describe('RuneSignal Dashboard Navigation', () => {
   test('landing page loads without server error', async ({ page }) => {
     const res = await page.goto('/');
     expect(res?.status()).toBeLessThan(500);

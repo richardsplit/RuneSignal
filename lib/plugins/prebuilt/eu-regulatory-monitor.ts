@@ -20,7 +20,7 @@
 export const EU_REGULATORY_MONITOR_TEMPLATE = {
   name: 'EU Regulatory Monitor — Compliance Alerts',
   description:
-    'Sends structured compliance alerts when TrustLayer detects governance gaps mapped to EU AI Act, GDPR, DORA, or other EU regulations. Ideal for DPOs and compliance teams.',
+    'Sends structured compliance alerts when RuneSignal detects governance gaps mapped to EU AI Act, GDPR, DORA, or other EU regulations. Ideal for DPOs and compliance teams.',
   plugin_type: 'reporter',
   category: 'regulatory',
   icon: '🇪🇺',
@@ -36,7 +36,7 @@ export const EU_REGULATORY_MONITOR_TEMPLATE = {
 };
 
 /**
- * Maps TrustLayer event types to relevant EU regulatory articles.
+ * Maps RuneSignal event types to relevant EU regulatory articles.
  */
 const EU_ARTICLE_MAP: Record<string, Array<{ framework: string; article: string; summary: string }>> = {
   'compliance.gap_detected': [
@@ -80,11 +80,11 @@ export function buildRegulatoryAlert(event: {
     timestamp: new Date().toISOString(),
     regulatory_references: refs,
     summary: refs.length > 0
-      ? `TrustLayer detected a governance event (${event.event_type}) potentially relevant to: ${refs.map(r => `${r.framework} ${r.article}`).join(', ')}`
-      : `TrustLayer governance event: ${event.event_type}`,
+      ? `RuneSignal detected a governance event (${event.event_type}) potentially relevant to: ${refs.map(r => `${r.framework} ${r.article}`).join(', ')}`
+      : `RuneSignal governance event: ${event.event_type}`,
     action_required: refs.some(r => r.framework === 'EU AI Act' && r.article.startsWith('Art. 5')),
     review_deadline_hours: 24,
     evidence_payload: event.payload,
-    dashboard_url: `https://app.trustlayer.ai/compliance`,
+    dashboard_url: `https://app.runesignal.ai/compliance`,
   };
 }

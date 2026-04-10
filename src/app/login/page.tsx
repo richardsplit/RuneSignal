@@ -66,8 +66,8 @@ export default function LoginPage() {
       }}>
         <div style={{ marginBottom: '2.5rem' }}>
           <Image 
-            src="/trustlayer-logo.svg" 
-            alt="TrustLayer" 
+            src="/runesignal-logo.svg" 
+            alt="RuneSignal" 
             width={180} 
             height={45} 
             style={{ margin: '0 auto' }}

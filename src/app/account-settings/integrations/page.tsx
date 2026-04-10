@@ -133,7 +133,7 @@ export default function IntegrationsPage() {
       <div style={{ marginBottom: '2rem' }}>
         <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.5rem' }}>Integrations</h1>
         <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
-          Connect TrustLayer to your existing tools. HITL approval requests will be routed through active channels automatically.
+          Connect RuneSignal to your existing tools. HITL approval requests will be routed through active channels automatically.
         </p>
       </div>
 

@@ -1,7 +1,7 @@
 {
-  "name": "@trustlayer/sdk",
+  "name": "@runesignal/sdk",
   "version": "1.0.0",
-  "description": "Official Node.js SDK for TrustLayer — AI Agent Action Firewall for Enterprise Systems",
+  "description": "Official Node.js SDK for RuneSignal — AI Agent Action Firewall for Enterprise Systems",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
@@ -18,8 +18,8 @@
     "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
     "typecheck": "tsc --noEmit"
   },
-  "keywords": ["trustlayer", "ai", "governance", "firewall", "agent", "policy", "audit"],
-  "author": "TrustLayer",
+  "keywords": ["runesignal", "ai", "governance", "firewall", "agent", "policy", "audit"],
+  "author": "RuneSignal",
   "license": "MIT",
   "engines": {
     "node": ">=18.0.0"

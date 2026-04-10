@@ -1,5 +1,5 @@
 /**
- * TrustLayer SSO — Auth0 OIDC Provider
+ * RuneSignal SSO — Auth0 OIDC Provider
  */
 
 import { SSOProvider, SSOProviderConfig, SSOUserClaims } from './provider';

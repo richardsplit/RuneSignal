@@ -1,7 +1,7 @@
-# TrustLayer — Production Readiness Execution Tasks
+# RuneSignal — Production Readiness Execution Tasks
 
 > **For: Gemini Flash or other coding models**
-> **Goal:** Take TrustLayer from a functional prototype to a true production-ready SaaS.
+> **Goal:** Take RuneSignal from a functional prototype to a true production-ready SaaS.
 > **Instructions for the Model:** Work through these phases one by one. Check off `[x]` as you complete them. Maintain existing architectural patterns (Server Components, explicit Supabase Admin vs Anon clients, inline styling with `globals.css` utilities).
 
 ---
@@ -64,7 +64,7 @@
   - Include auth schemes (Bearer token), request/response schemas, and example payloads.
 - [ ] **3.2 API Documentation UI**
   - Create `src/app/documentation/page.tsx`.
-  - Integrate a library like `swagger-ui-react` to render the `openapi.yaml` file natively inside the TrustLayer dashboard shell.
+  - Integrate a library like `swagger-ui-react` to render the `openapi.yaml` file natively inside the RuneSignal dashboard shell.
 - [ ] **3.3 Request Logging / Usage Tracking**
   - Update `middleware.ts` or individual API routes to log request counts per tenant.
   - Add a "Usage" section to the Billing page showing API calls vs. tier limits.

@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
     // Respond to Slack with an ephemeral confirmation
     return NextResponse.json({
       response_type: 'ephemeral',
-      text: `${isApprove ? '✅ Approved' : '❌ Rejected'} by ${slackUserName}. TrustLayer audit ledger updated.`,
+      text: `${isApprove ? '✅ Approved' : '❌ Rejected'} by ${slackUserName}. RuneSignal audit ledger updated.`,
     });
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 });

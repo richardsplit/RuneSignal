@@ -1,5 +1,5 @@
 /**
- * TrustLayer Integration Adapter Interface
+ * RuneSignal Integration Adapter Interface
  *
  * Unified contract for all external integration providers.
  * Allows adding new providers without touching existing code.

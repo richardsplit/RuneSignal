@@ -1,5 +1,5 @@
 /**
- * TrustLayer SSO — Okta OIDC Provider
+ * RuneSignal SSO — Okta OIDC Provider
  */
 
 import { SSOProvider, SSOProviderConfig, SSOUserClaims } from './provider';

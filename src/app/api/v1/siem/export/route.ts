@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
       headers: {
         'Content-Type': contentType,
         'X-Export-Format': format,
-        'X-TrustLayer-Export': 'audit-events',
+        'X-RuneSignal-Export': 'audit-events',
       },
     });
   } catch (e: any) {

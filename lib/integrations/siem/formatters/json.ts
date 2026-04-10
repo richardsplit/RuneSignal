@@ -1,5 +1,5 @@
 /**
- * TrustLayer SIEM — Structured JSON Formatter
+ * RuneSignal SIEM — Structured JSON Formatter
  * Compatible with Elastic SIEM, Datadog, Splunk HEC.
  */
 
@@ -7,7 +7,7 @@ export function formatAsJSON(event: Record<string, unknown>): Record<string, unk
   return {
     '@timestamp': event.created_at || new Date().toISOString(),
     '@version': '1',
-    source: 'trustlayer',
+    source: 'runesignal',
     event: {
       kind: 'event',
       category: getEventCategory(String(event.event_type || '')),
@@ -17,14 +17,14 @@ export function formatAsJSON(event: Record<string, unknown>): Record<string, unk
       id: event.id,
       module: event.module,
     },
-    trustlayer: {
+    runesignal: {
       tenant_id: event.tenant_id,
       agent_id: event.agent_id,
       request_id: event.request_id,
       signature: event.signature,
       payload: event.payload,
     },
-    tags: ['trustlayer', 'ai-governance', `module:${event.module}`],
+    tags: ['runesignal', 'ai-governance', `module:${event.module}`],
   };
 }
 

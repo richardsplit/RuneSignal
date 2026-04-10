@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
       headers: {
         'X-Report-Id': report.id,
         'X-Report-Framework': report.framework,
-        'X-TrustLayer-Report': 'compliance',
+        'X-RuneSignal-Report': 'compliance',
       },
     });
   } catch (e: any) {

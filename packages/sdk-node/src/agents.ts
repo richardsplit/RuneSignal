@@ -1,5 +1,5 @@
 /**
- * TrustLayer Node SDK — Agents Resource
+ * RuneSignal Node SDK — Agents Resource
  */
 
 import { BaseClient } from './client';

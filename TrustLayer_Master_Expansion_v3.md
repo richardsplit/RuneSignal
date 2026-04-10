@@ -1,4 +1,4 @@
-# TrustLayer — Master Expansion Prompt v3.0
+# RuneSignal — Master Expansion Prompt v3.0
 ## For Claude Opus 4.6 / Gemini 2.5 Pro / Any Frontier Model
 ### April 2026 | Builds on top of existing codebase | 14 new modules + critical fixes
 
@@ -6,9 +6,9 @@
 
 ## WHO YOU ARE AND WHAT YOU ARE BUILDING
 
-You are expanding **TrustLayer** — the Agent Trust Platform — the world's first cryptographic runtime governance layer for enterprise AI agent fleets. You are NOT building a compliance dashboard. You are NOT Credo AI. TrustLayer sits INSIDE the agent execution path and makes real-time allow/block/pause decisions before every agent action executes. Every decision is signed with Ed25519, stored in an immutable ledger, and independently verifiable.
+You are expanding **RuneSignal** — the Agent Trust Platform — the world's first cryptographic runtime governance layer for enterprise AI agent fleets. You are NOT building a compliance dashboard. You are NOT Credo AI. RuneSignal sits INSIDE the agent execution path and makes real-time allow/block/pause decisions before every agent action executes. Every decision is signed with Ed25519, stored in an immutable ledger, and independently verifiable.
 
-**Read the entire existing codebase before writing a single line.** The project is on GitHub at `github.com/richardsplit/TrustLayer`, branch `dev`. The stack is Next.js 16 App Router + Supabase + Vercel. Every file you write must honour the existing patterns.
+**Read the entire existing codebase before writing a single line.** The project is on GitHub at `github.com/richardsplit/RuneSignal`, branch `dev`. The stack is Next.js 16 App Router + Supabase + Vercel. Every file you write must honour the existing patterns.
 
 ---
 
@@ -41,27 +41,27 @@ You are expanding **TrustLayer** — the Agent Trust Platform — the world's fi
 
 The AI governance market is projected at **$7.38B by 2030** at 51% CAGR (AWS Marketplace data). Forrester sees 30% CAGR specifically for AI governance *software*. The agentic AI market alone is projected at **$45B–$52B by 2030** (Deloitte, MLMastery). Gartner projects 40% of enterprise apps will embed AI agents by end of 2026, up from under 5% in 2025.
 
-**Key structural shifts that shape TrustLayer's roadmap:**
+**Key structural shifts that shape RuneSignal's roadmap:**
 
 1. **Physical AI governance** — 58% of enterprises already use physical AI (robotics, drones, autonomous vehicles). 80% adoption projected in two years (Deloitte). Governance for physical AI actions is a completely unaddressed market. No vendor has built runtime governance for robot actions.
 
-2. **MCP + A2A protocol standardisation** — MCP hit 97M monthly SDK downloads by Feb 2026. A2A (Agent-to-Agent Protocol, Google) now governs peer-to-peer agent coordination. Both are now under the Linux Foundation's Agentic AI Foundation (AAIF). TrustLayer's S6 MCP proxy is the right foundation — it needs to become an A2A governance gateway too.
+2. **MCP + A2A protocol standardisation** — MCP hit 97M monthly SDK downloads by Feb 2026. A2A (Agent-to-Agent Protocol, Google) now governs peer-to-peer agent coordination. Both are now under the Linux Foundation's Agentic AI Foundation (AAIF). RuneSignal's S6 MCP proxy is the right foundation — it needs to become an A2A governance gateway too.
 
-3. **Agent red teaming** — OWASP Top 10 for Agentic Applications (2026) classifies Agent Goal Hijack (ASI01) and Tool Misuse (ASI02) as highest-priority risks. Cisco, Palo Alto, Microsoft all launched agent red teaming products at RSA 2026. Only 21.9% of organisations treat agents as identity-bearing entities. TrustLayer's S6 identity registry is a direct answer.
+3. **Agent red teaming** — OWASP Top 10 for Agentic Applications (2026) classifies Agent Goal Hijack (ASI01) and Tool Misuse (ASI02) as highest-priority risks. Cisco, Palo Alto, Microsoft all launched agent red teaming products at RSA 2026. Only 21.9% of organisations treat agents as identity-bearing entities. RuneSignal's S6 identity registry is a direct answer.
 
 4. **AI FinOps is now the top priority** — 98% of FinOps teams now manage AI spend, up from 63% last year (FinOps Foundation State of FinOps 2026). Only 44% have financial guardrails. A single LangChain loop ran 11 days undetected and generated a $47,000 bill. No major agent framework ships a native dollar-denominated budget cap.
 
 5. **Sovereign AI** — 93% of executives say AI sovereignty will be a must in 2026 (IBM IBV). $100B invested in sovereign AI compute. Data residency validation before every LLM call is becoming a regulatory requirement in EU healthcare and financial services.
 
-6. **Domain-specific models (DSLMs)** — enterprises are replacing general-purpose LLMs with fine-tuned vertical models. Each new model needs provenance, version fingerprinting, and behavioural baseline comparison — all TrustLayer capabilities.
+6. **Domain-specific models (DSLMs)** — enterprises are replacing general-purpose LLMs with fine-tuned vertical models. Each new model needs provenance, version fingerprinting, and behavioural baseline comparison — all RuneSignal capabilities.
 
-7. **Post-quantum cryptography transition** — NIST finalised PQC standards. Ed25519 (TrustLayer's current signer) is quantum-resistant (part of the Bernstein curve family), but long-lived signatures (certificates stored for 7+ years for regulatory purposes) need quantum-resistant archive signatures.
+7. **Post-quantum cryptography transition** — NIST finalised PQC standards. Ed25519 (RuneSignal's current signer) is quantum-resistant (part of the Bernstein curve family), but long-lived signatures (certificates stored for 7+ years for regulatory purposes) need quantum-resistant archive signatures.
 
 ### What Credo AI still cannot do (your competitive gaps to fill)
 
-Credo AI ($39.3M raised, Forrester Wave Leader) is a **dashboard and assessment tool**, not a runtime enforcement platform. Here is what they provably cannot do that TrustLayer can or should:
+Credo AI ($39.3M raised, Forrester Wave Leader) is a **dashboard and assessment tool**, not a runtime enforcement platform. Here is what they provably cannot do that RuneSignal can or should:
 
-| Capability | Credo AI | TrustLayer |
+| Capability | Credo AI | RuneSignal |
 |-----------|---------|-----------|
 | Runtime block/allow before action executes | ❌ | ✅ S6/S1/S8 |
 | Cryptographic proof of AI output (court-admissible) | ❌ | ✅ S3 Ed25519 |
@@ -356,7 +356,7 @@ Each module gets:
 
 **Market signal**: 98% of FinOps teams now manage AI spend (FinOps Foundation 2026). Only 44% have financial guardrails. A LangChain loop ran undetected for 11 days generating $47,000. No major agent framework ships a native dollar-denominated budget cap. Credo AI has nothing here.
 
-**Mission**: Every agent action carries a cost estimate. TrustLayer enforces per-agent, per-workflow, and per-tenant budget caps BEFORE the action executes — not after the bill arrives.
+**Mission**: Every agent action carries a cost estimate. RuneSignal enforces per-agent, per-workflow, and per-tenant budget caps BEFORE the action executes — not after the bill arrives.
 
 **Revenue**: Add to Pro ($48k/yr) and Enterprise tiers. Standalone usage-based option: $0.01 per budget-check call.
 
@@ -477,7 +477,7 @@ CREATE TABLE data_residency_policies (
   created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Curated provider region registry (TrustLayer maintains this)
+-- Curated provider region registry (RuneSignal maintains this)
 CREATE TABLE provider_regions (
   provider         TEXT NOT NULL,
   model            TEXT NOT NULL,
@@ -524,7 +524,7 @@ Key methods:
 
 ### MODULE S11 — AI Decision Explainability Engine
 
-**Market signal**: EU AI Act Article 13 mandates "meaningful information about the logic involved" for high-risk AI decisions. GDPR Article 22 gives individuals rights against automated decisions. Credo AI generates generic risk reports. TrustLayer's ledger has per-call evidence — S11 generates per-decision explanations linked to specific certificates.
+**Market signal**: EU AI Act Article 13 mandates "meaningful information about the logic involved" for high-risk AI decisions. GDPR Article 22 gives individuals rights against automated decisions. Credo AI generates generic risk reports. RuneSignal's ledger has per-call evidence — S11 generates per-decision explanations linked to specific certificates.
 
 **Mission**: For every certified AI decision (S3), generate a structured explanation of what inputs drove the output. Store it cryptographically linked to the certificate. Expose a public auditor endpoint that regulators and individuals can query by certificate ID.
 
@@ -666,7 +666,7 @@ Key methods:
 
 ### MODULE S13 — Governance Intelligence Hub
 
-**Market signal**: Credo AI's strongest feature is their top-down regulation-to-policy mapping. The way to beat them is to invert the approach: TrustLayer has 90 days of actual agent behaviour in its immutable ledger. S13 mines that ledger bottom-up to automatically generate evidence packages for regulators — no manual questionnaire filling, no static checklists.
+**Market signal**: Credo AI's strongest feature is their top-down regulation-to-policy mapping. The way to beat them is to invert the approach: RuneSignal has 90 days of actual agent behaviour in its immutable ledger. S13 mines that ledger bottom-up to automatically generate evidence packages for regulators — no manual questionnaire filling, no static checklists.
 
 **Mission**: Given a tenant's audit ledger, automatically map existing evidence (certificates, HITL tickets, moral events, anomalies) to the specific regulatory articles they satisfy. Identify gaps. Export a regulator-ready evidence package with cryptographic provenance.
 
@@ -763,7 +763,7 @@ Key methods:
 
 ### MODULE S14 — Agent Behaviour Anomaly Detector
 
-**Market signal**: Cisco, Palo Alto, and Microsoft all launched agent-specific security tools at RSA 2026. OWASP Top 10 for Agentic Applications classifies Goal Hijack (ASI01) and Tool Misuse (ASI02) as highest-priority risks. Only TrustLayer has per-action agent behaviour data in an immutable ledger — the raw material for real behavioural fingerprinting.
+**Market signal**: Cisco, Palo Alto, and Microsoft all launched agent-specific security tools at RSA 2026. OWASP Top 10 for Agentic Applications classifies Goal Hijack (ASI01) and Tool Misuse (ASI02) as highest-priority risks. Only RuneSignal has per-action agent behaviour data in an immutable ledger — the raw material for real behavioural fingerprinting.
 
 **Mission**: Learn each agent's normal behaviour from its audit trail. Alert and auto-suspend when deviation is detected — unusual tool combinations, off-hours activity, cost spikes, privilege escalation patterns, or data exfiltration signatures.
 
@@ -927,7 +927,7 @@ physical?: {
 
 **Market signal**: MCP hit 97M monthly SDK downloads (Feb 2026). A2A (Agent-to-Agent Protocol, Google) is now under the Linux Foundation. By 2027, most enterprise agent communication will use MCP (agent↔tool) and A2A (agent↔agent). NIST's AI Agent Standards Initiative identified MCP and A2A as interoperability baselines. **No governance vendor has built a governance proxy for A2A traffic.**
 
-**Mission**: Act as a governance proxy sitting between A2A agents. Every cross-agent task delegation passes through TrustLayer: validate identities, check conflict policies (S1), apply SOUL rules (S8), log the interaction, and sign the transaction.
+**Mission**: Act as a governance proxy sitting between A2A agents. Every cross-agent task delegation passes through RuneSignal: validate identities, check conflict policies (S1), apply SOUL rules (S8), log the interaction, and sign the transaction.
 
 **Revenue**: This becomes the mandatory control plane for multi-agent enterprises. Bill per A2A transaction or as platform fee. Enterprise-scale agent fleets ($100M+ customers) will pay significant amounts for this.
 
@@ -1123,9 +1123,9 @@ CREATE TABLE soul_templates (
   jurisdiction  TEXT[],
   regulations   TEXT[],  -- regulations this template satisfies
   soul_json     JSONB NOT NULL,
-  is_official   BOOLEAN DEFAULT false,  -- TrustLayer-curated
+  is_official   BOOLEAN DEFAULT false,  -- RuneSignal-curated
   price_usd     NUMERIC DEFAULT 0,
-  author_id     UUID REFERENCES tenants(id),  -- NULL = TrustLayer official
+  author_id     UUID REFERENCES tenants(id),  -- NULL = RuneSignal official
   downloads     INTEGER DEFAULT 0,
   created_at    TIMESTAMPTZ DEFAULT NOW()
 );
@@ -1367,7 +1367,7 @@ Every file written throughout this entire build must follow these rules. No exce
 
 1. **The audit ledger is sacred.** Never write `UPDATE` or `DELETE` against `audit_events`, `moral_events`, `cost_events`, `physical_action_log`, `a2a_messages`, or `credential_rotations`. Every state change is a new row.
 
-2. **Ed25519 signs everything important.** SOUL profiles, S3 certificates, S15 physical action pre-authorisations, S12 death certificates, and A2A session establishments must be signed with `LedgerSigner`. A signed record is independently verifiable without trusting TrustLayer's infrastructure.
+2. **Ed25519 signs everything important.** SOUL profiles, S3 certificates, S15 physical action pre-authorisations, S12 death certificates, and A2A session establishments must be signed with `LedgerSigner`. A signed record is independently verifiable without trusting RuneSignal's infrastructure.
 
 3. **Secrets from environment variables only.** No hardcoded API keys, signing keys, webhook URLs, or connection strings anywhere in the codebase. If a required key is missing, throw a descriptive error in production.
 
@@ -1383,7 +1383,7 @@ Every file written throughout this entire build must follow these rules. No exce
 
 9. **Keep the SDK drop-in simple.** The `ATPClient` SDK is the primary customer integration point. Every new capability must be reachable with at most one additional method call. Complexity lives in the platform, not the SDK.
 
-10. **No agent framework lock-in.** TrustLayer governs LangChain, CrewAI, AutoGen, LlamaIndex, AWS Bedrock AgentCore, Google Vertex Agent Builder, and custom agents equally. No SDK should assume or import any of these frameworks.
+10. **No agent framework lock-in.** RuneSignal governs LangChain, CrewAI, AutoGen, LlamaIndex, AWS Bedrock AgentCore, Google Vertex Agent Builder, and custom agents equally. No SDK should assume or import any of these frameworks.
 
 ---
 
@@ -1391,19 +1391,19 @@ Every file written throughout this entire build must follow these rules. No exce
 
 When a prospect asks "how is this different from Credo AI?":
 
-> **Credo AI tells you what your AI governance policy should be. TrustLayer enforces it at runtime — before the action executes — and proves it happened with a cryptographic certificate that holds up in court.**
+> **Credo AI tells you what your AI governance policy should be. RuneSignal enforces it at runtime — before the action executes — and proves it happened with a cryptographic certificate that holds up in court.**
 
 When a CISO asks "how is this different from Cisco AI Defense?":
 
-> **Cisco defends the perimeter. TrustLayer governs the agent — its identity, its spending, its behaviour, its cross-agent interactions, and its physical actions. From inside the execution path, not the network edge.**
+> **Cisco defends the perimeter. RuneSignal governs the agent — its identity, its spending, its behaviour, its cross-agent interactions, and its physical actions. From inside the execution path, not the network edge.**
 
 When an insurance carrier asks "what makes this relevant to us?":
 
-> **TrustLayer is the only platform with a pre-wired insurance vertical: Guidewire integration, FCRA/NAIC compliance rules, HITL reviewer routing, cryptographic claim evidence, and a pre-built UK Insurance SOUL template. Your MGA can be live in 30 minutes.**
+> **RuneSignal is the only platform with a pre-wired insurance vertical: Guidewire integration, FCRA/NAIC compliance rules, HITL reviewer routing, cryptographic claim evidence, and a pre-built UK Insurance SOUL template. Your MGA can be live in 30 minutes.**
 
 ---
 
-*TrustLayer Master Expansion Prompt v3.0 — April 2026*
+*RuneSignal Master Expansion Prompt v3.0 — April 2026*
 
 *New modules: S9 (FinOps) · S10 (Sovereignty) · S11 (Explainability) · S12 (NHI Lifecycle) · S13 (Governance Intelligence) · S14 (Anomaly Detection) · S15 (Physical AI) · S16 (A2A Gateway) · S17 (Red Teaming) · Plugin System · SOUL Marketplace*
 

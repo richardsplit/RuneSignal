@@ -1,18 +1,18 @@
-# @trustlayer/crewai-plugin
+# @runesignal/crewai-plugin
 
-TrustLayer integration for CrewAI.
+RuneSignal integration for CrewAI.
 
-> **Status:** Coming soon. Subscribe to updates at https://trustlayer.io/sdk
+> **Status:** Coming soon. Subscribe to updates at https://runesignal.io/sdk
 
 ## Planned API
 
 ```python
-from trustlayer.crewai import TrustLayerObserver
+from runesignal.crewai import RuneSignalObserver
 
-# Add TrustLayer observer to any CrewAI crew
+# Add RuneSignal observer to any CrewAI crew
 crew = Crew(
     agents=[...],
     tasks=[...],
-    observers=[TrustLayerObserver(api_key=os.environ["TL_API_KEY"])]
+    observers=[RuneSignalObserver(api_key=os.environ["TL_API_KEY"])]
 )
 ```

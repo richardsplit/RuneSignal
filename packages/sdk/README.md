@@ -1,4 +1,4 @@
-# @trustlayer/sdk
+# @runesignal/sdk
 
 AI Agent Compliance Middleware — EU AI Act ready.
 
@@ -7,15 +7,15 @@ Cryptographically sign every agent action, route high-risk actions to human appr
 ## Installation
 
 ```bash
-npm install @trustlayer/sdk
+npm install @runesignal/sdk
 ```
 
 ## Quick Start
 
 ```typescript
-import { TrustLayer } from '@trustlayer/sdk';
+import { RuneSignal } from '@runesignal/sdk';
 
-const tl = new TrustLayer({ apiKey: process.env.TL_API_KEY });
+const tl = new RuneSignal({ apiKey: process.env.TL_API_KEY });
 
 // Wrap any action requiring human oversight
 const result = await tl.hitl.requestApproval({
@@ -71,11 +71,11 @@ await tl.wrap(
 ## LangChain Integration
 
 ```typescript
-import { TrustLayerCallbackHandler } from '@trustlayer/langchain-plugin';
+import { RuneSignalCallbackHandler } from '@runesignal/langchain-plugin';
 
 const agent = AgentExecutor.fromAgentAndTools({
   // ...
-  callbacks: [new TrustLayerCallbackHandler(tl)],
+  callbacks: [new RuneSignalCallbackHandler(tl)],
 });
 ```
 

@@ -1,6 +1,6 @@
 openapi: 3.1.0
 info:
-  title: TrustLayer HITL Approval API
+  title: RuneSignal HITL Approval API
   version: 1.0.0
   description: |
     Human-in-the-Loop Approval API for AI agent actions.
@@ -8,11 +8,11 @@ info:
     
     Enforcement: EU AI Act Article 14 (Human Oversight)
   contact:
-    name: TrustLayer API Support
-    url: https://docs.trustlayer.io
+    name: RuneSignal API Support
+    url: https://docs.runesignal.io
 
 servers:
-  - url: https://app.trustlayer.io/api/v1
+  - url: https://app.runesignal.io/api/v1
     description: Production
 
 security:
@@ -105,7 +105,7 @@ paths:
   /hitl/approvals/{approval_id}/decide:
     post:
       summary: Submit human decision
-      description: Used by the TrustLayer review UI when a human reviewer approves or rejects.
+      description: Used by the RuneSignal review UI when a human reviewer approves or rejects.
       operationId: decideApproval
       parameters:
         - name: approval_id

@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 /**
  * SDK Auto-Registration endpoint.
- * Called automatically on first use of @trustlayer/sdk.
+ * Called automatically on first use of @runesignal/sdk.
  */
 export async function POST(req: NextRequest) {
   try {

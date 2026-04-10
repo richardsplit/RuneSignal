@@ -1,5 +1,5 @@
 /**
- * TrustLayer SSO — Microsoft Entra ID (Azure AD) OIDC Provider
+ * RuneSignal SSO — Microsoft Entra ID (Azure AD) OIDC Provider
  */
 
 import { SSOProvider, SSOProviderConfig, SSOUserClaims } from './provider';

@@ -1,3 +1,3 @@
-export { TrustLayerCallbackHandler } from './TrustLayerCallbackHandler';
-export { wrapToolWithHITL } from './TrustLayerTool';
-export type { TrustLayerToolOptions } from './TrustLayerTool';
+export { RuneSignalCallbackHandler } from './RuneSignalCallbackHandler';
+export { wrapToolWithHITL } from './RuneSignalTool';
+export type { RuneSignalToolOptions } from './RuneSignalTool';

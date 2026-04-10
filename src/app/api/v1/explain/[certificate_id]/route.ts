@@ -28,7 +28,7 @@ export async function GET(
     {
       headers: {
         'Cache-Control': 'public, max-age=3600',
-        'X-TrustLayer-Public': 'true',
+        'X-RuneSignal-Public': 'true',
       },
     }
   );

@@ -1,5 +1,5 @@
 /**
- * TrustLayer Node SDK — Firewall Resource
+ * RuneSignal Node SDK — Firewall Resource
  * POST /api/v1/firewall/evaluate
  */
 
@@ -14,7 +14,7 @@ export class FirewallResource {
   constructor(private readonly client: BaseClient) {}
 
   /**
-   * Evaluates an agent action through the full TrustLayer governance pipeline.
+   * Evaluates an agent action through the full RuneSignal governance pipeline.
    *
    * @param request - The action to evaluate
    * @param options - Optional agentId override

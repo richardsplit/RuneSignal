@@ -1,4 +1,4 @@
-name: TrustLayer CI/CD
+name: RuneSignal CI/CD
 
 on:
   push:

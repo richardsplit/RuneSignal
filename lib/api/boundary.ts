@@ -1,5 +1,5 @@
 /**
- * TrustLayer API Boundary Definition
+ * RuneSignal API Boundary Definition
  *
  * Defines which routes are accessible via API key (public product surface)
  * versus which require a dashboard session (internal operations).
@@ -9,7 +9,7 @@
 
 /**
  * PUBLIC API — accessible via Bearer tl_* API key.
- * These are the routes that form the TrustLayer product API.
+ * These are the routes that form the RuneSignal product API.
  */
 export const PUBLIC_API_ROUTES: string[] = [
   // Firewall (core wedge — unified action evaluation)

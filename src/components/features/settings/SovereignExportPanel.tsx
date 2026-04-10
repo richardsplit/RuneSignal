@@ -81,7 +81,7 @@ export default function SovereignExportPanel() {
 
          <div>
              <label className="block text-sm text-neutral-300 mb-1">Destination URI / Bucket ARN</label>
-             <input type="text" value={destUri} onChange={e => setDestUri(e.target.value)} placeholder="e.g., s3://trustlayer-secure-us-east/tenant/logs/" className="w-full bg-neutral-900 border border-neutral-700 rounded p-2 text-white outline-none font-mono text-sm" />
+             <input type="text" value={destUri} onChange={e => setDestUri(e.target.value)} placeholder="e.g., s3://runesignal-secure-us-east/tenant/logs/" className="w-full bg-neutral-900 border border-neutral-700 rounded p-2 text-white outline-none font-mono text-sm" />
          </div>
 
          <div className="grid grid-cols-2 gap-4">

@@ -16,7 +16,7 @@ export default function DocumentationPage() {
       <div style={{ marginBottom: '2rem' }}>
         <h1 className="gradient-text" style={{ fontSize: '2rem', marginBottom: '0.25rem' }}>API Documentation</h1>
         <p style={{ color: 'var(--color-text-muted)' }}>
-          Explore and test the TrustLayer Governance APIs directly from your browser. 
+          Explore and test the RuneSignal Governance APIs directly from your browser. 
           Use your Developer API Keys for external integration.
         </p>
       </div>
@@ -28,7 +28,7 @@ export default function DocumentationPage() {
         overflow: 'hidden'
       }}>
         <style jsx global>{`
-          /* Custom TrustLayer styling for Swagger UI */
+          /* Custom RuneSignal styling for Swagger UI */
           .swagger-ui {
             font-family: inherit !important;
           }

@@ -1,7 +1,7 @@
 {
-  "name": "@trustlayer/sdk",
+  "name": "@runesignal/sdk",
   "version": "1.0.0",
-  "description": "TrustLayer SDK — AI Agent compliance middleware for EU AI Act",
+  "description": "RuneSignal SDK — AI Agent compliance middleware for EU AI Act",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",

@@ -92,7 +92,7 @@ export default function ApiKeysTab() {
   return (
     <div className="animate-fade-in">
       <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '1.5rem', color: 'var(--color-text-main)' }}>Developer API Keys</h2>
-      <p style={{ color: 'var(--color-text-muted)', marginBottom: '2rem', fontSize: '0.9rem' }}>Use these keys to authenticate your AI agents with the TrustLayer SDK.</p>
+      <p style={{ color: 'var(--color-text-muted)', marginBottom: '2rem', fontSize: '0.9rem' }}>Use these keys to authenticate your AI agents with the RuneSignal SDK.</p>
       
       <div style={{ display: 'grid', gap: '1rem', marginBottom: '2rem' }}>
         {loading ? (

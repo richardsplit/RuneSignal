@@ -326,7 +326,7 @@ export class EuAiActReportGenerator {
         severity: a.severity || 'unknown',
       })),
       attestation: {
-        signed_by: 'TrustLayer Compliance Engine v1.0',
+        signed_by: 'RuneSignal Compliance Engine v1.0',
         signature: attestationSig,
         timestamp: new Date().toISOString(),
       },

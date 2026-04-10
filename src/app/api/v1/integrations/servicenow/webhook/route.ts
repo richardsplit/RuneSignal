@@ -9,7 +9,7 @@ import { HitlService } from '../../../../../../../lib/modules/s7-hitl/service';
  * Configure via ServiceNow Business Rules → REST Message integration.
  *
  * Expected payload:
- * { sys_id, number, state, resolved_by, close_notes, u_trustlayer_ticket_id }
+ * { sys_id, number, state, resolved_by, close_notes, u_runesignal_ticket_id }
  */
 export async function POST(request: NextRequest) {
   let body: any;
@@ -19,10 +19,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
   }
 
-  const { sys_id, state, resolved_by, close_notes, u_trustlayer_ticket_id } = body;
+  const { sys_id, state, resolved_by, close_notes, u_runesignal_ticket_id } = body;
 
-  if (!u_trustlayer_ticket_id) {
-    return NextResponse.json({ message: 'No TrustLayer ticket ID — ignoring' });
+  if (!u_runesignal_ticket_id) {
+    return NextResponse.json({ message: 'No RuneSignal ticket ID — ignoring' });
   }
 
   // ServiceNow incident states: 1=New, 2=In Progress, 6=Resolved, 7=Closed, 8=Cancelled
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
   const { data: tickets } = await supabase
     .from('hitl_exceptions')
     .select('id, tenant_id, status')
-    .eq('id', u_trustlayer_ticket_id)
+    .eq('id', u_runesignal_ticket_id)
     .eq('status', 'open')
     .limit(1);
 

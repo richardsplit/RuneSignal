@@ -1,9 +1,9 @@
 export type BlastRadius = 'low' | 'medium' | 'high' | 'critical';
 export type ApprovalStatus = 'pending' | 'approved' | 'rejected' | 'expired' | 'escalated';
 
-export interface TrustLayerConfig {
+export interface RuneSignalConfig {
   apiKey: string;
-  baseUrl?: string; // defaults to https://app.trustlayer.io
+  baseUrl?: string; // defaults to https://app.runesignal.io
   agentId?: string;
   timeout?: number; // ms, default 30000
 }

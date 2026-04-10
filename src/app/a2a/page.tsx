@@ -51,7 +51,7 @@ export default function A2ADashboard() {
         <div className="p-8 max-w-7xl mx-auto space-y-8">
            <div className="bg-neutral-800/40 p-8 rounded-xl border border-neutral-700/50">
                <h2 className="text-xl font-medium text-white mb-2">Multi-Agent Escrow Pipelines</h2>
-               <p className="text-sm text-neutral-400 mb-8">TrustLayer neutral clearinghouse enforcing cryptographic handshakes between autonomous systems.</p>
+               <p className="text-sm text-neutral-400 mb-8">RuneSignal neutral clearinghouse enforcing cryptographic handshakes between autonomous systems.</p>
                
                <div className="space-y-6">
                    {handshakes.map(h => {

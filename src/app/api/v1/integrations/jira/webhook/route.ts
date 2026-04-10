@@ -6,7 +6,7 @@ import { HitlService } from '../../../../../../../lib/modules/s7-hitl/service';
  * POST /api/v1/integrations/jira/webhook
  *
  * Receives Jira webhook events (issue updated, transitioned).
- * When a TrustLayer-linked Jira issue is resolved, approves/rejects the HITL ticket.
+ * When a RuneSignal-linked Jira issue is resolved, approves/rejects the HITL ticket.
  *
  * Configure in Jira: Project Settings → Webhooks → Add Webhook
  * Events: Issue Updated, Issue Transitioned
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
   const statusName: string = issue.fields?.status?.name?.toLowerCase() || '';
   const issueKey: string = issue.key || '';
 
-  // Map Jira status to TrustLayer action
+  // Map Jira status to RuneSignal action
   const approvedStatuses = ['done', 'approved', 'closed', 'resolved'];
   const rejectedStatuses = ['rejected', 'declined', 'cancelled', 'wont do'];
 

@@ -1,5 +1,5 @@
 /**
- * TrustLayer SSO Provider — Abstract Interface
+ * RuneSignal SSO Provider — Abstract Interface
  *
  * All SSO providers implement this interface.
  * The concrete implementations (okta.ts, entra.ts, auth0.ts) handle

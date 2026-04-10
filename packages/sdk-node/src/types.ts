@@ -1,12 +1,12 @@
 /**
- * TrustLayer Node SDK — Type Definitions
+ * RuneSignal Node SDK — Type Definitions
  */
 
 // ─── Client Config ───────────────────────────────────────────────────────────
 
-export interface TrustLayerClientConfig {
+export interface RuneSignalClientConfig {
   apiKey: string;
-  baseUrl?: string;      // Default: https://app.trustlayer.ai
+  baseUrl?: string;      // Default: https://app.runesignal.ai
   agentId?: string;      // Default agent ID sent as X-Agent-Id
   timeout?: number;      // Request timeout in ms (default: 10000)
   maxRetries?: number;   // Number of retries on 5xx (default: 2)
@@ -135,7 +135,7 @@ export interface ProvenanceCertificate {
 
 // ─── Errors ───────────────────────────────────────────────────────────────────
 
-export class TrustLayerError extends Error {
+export class RuneSignalError extends Error {
   constructor(
     message: string,
     public readonly status: number,
@@ -143,25 +143,25 @@ export class TrustLayerError extends Error {
     public readonly detail?: unknown
   ) {
     super(message);
-    this.name = 'TrustLayerError';
+    this.name = 'RuneSignalError';
   }
 }
 
-export class AuthenticationError extends TrustLayerError {
+export class AuthenticationError extends RuneSignalError {
   constructor(message = 'Invalid API key') {
     super(message, 401, 'AUTHENTICATION_ERROR');
     this.name = 'AuthenticationError';
   }
 }
 
-export class RateLimitError extends TrustLayerError {
+export class RateLimitError extends RuneSignalError {
   constructor(message = 'Rate limit exceeded') {
     super(message, 429, 'RATE_LIMIT_ERROR');
     this.name = 'RateLimitError';
   }
 }
 
-export class FirewallBlockError extends TrustLayerError {
+export class FirewallBlockError extends RuneSignalError {
   public readonly evaluation: EvaluateResponse;
   constructor(evaluation: EvaluateResponse) {
     super(`Action blocked: ${evaluation.reasons.join('; ')}`, 403, 'FIREWALL_BLOCK');

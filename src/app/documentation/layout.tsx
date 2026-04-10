@@ -39,12 +39,12 @@ const NAV = [
     items: [
       {
         label: 'Node.js SDK',
-        href: 'https://www.npmjs.com/package/@trustlayer/sdk',
+        href: 'https://www.npmjs.com/package/@runesignal/sdk',
         external: true,
       },
       {
         label: 'Python SDK',
-        href: 'https://pypi.org/project/trustlayer',
+        href: 'https://pypi.org/project/runesignal',
         external: true,
       },
     ],
@@ -87,7 +87,7 @@ export default function DocumentationLayout({
           }}
         >
           <div style={{ fontSize: 12, fontWeight: 700, color: '#10b981', letterSpacing: 1 }}>
-            TRUSTLAYER
+            RUNESIGNAL
           </div>
           <div style={{ fontSize: 11, color: '#525252', marginTop: 2 }}>
             Developer Docs

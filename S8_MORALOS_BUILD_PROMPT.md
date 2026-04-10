@@ -1,7 +1,7 @@
 # S8 MoralOS (PromptGuard) — COMPLETE BUILD PROMPT
 
 > **For: Gemini 3 Flash execution**
-> **Project: TrustLayer** at `C:\Users\Richard.Georgiev\OneDrive - DIGITALL Nature\Documents\TrustLayer`
+> **Project: RuneSignal** at `C:\Users\Richard.Georgiev\OneDrive - DIGITALL Nature\Documents\RuneSignal`
 > **Branch: dev**
 
 ## CRITICAL RULES

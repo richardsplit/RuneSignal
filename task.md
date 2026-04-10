@@ -13,7 +13,7 @@
 - [x] Build shared auth layer (JWT functions & middleware)
 - [x] Create API health route
 - [x] Build webhook emitter (`lib/webhooks/emitter.ts`)
-- [x] Create TrustLayer dashboard UI shell (layout, Sidebar, Home page)
+- [x] Create RuneSignal dashboard UI shell (layout, Sidebar, Home page)
 - [x] Generate modern emerald/amber styles (`globals.css`)
 
 ## Phase 1: Module S3 — AI Output Provenance Engine
@@ -65,7 +65,7 @@
 - [x] Full audit chain integration test
 - [x] End-to-end Dashboard linking (Sidebar)
 - [x] Finalize README setup instructions
-- [x] TrustLayer logo design finalization
+- [x] RuneSignal logo design finalization
 - [x] Vercel deploy validation
 - [x] Connect all UI buttons (interactivity)
 - [x] Final UI/UX review & polish

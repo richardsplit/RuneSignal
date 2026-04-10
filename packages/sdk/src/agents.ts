@@ -1,4 +1,4 @@
-import type { TrustLayerConfig } from './types';
+import type { RuneSignalConfig } from './types';
 
 export interface AgentRegistration {
   agentId: string;
@@ -6,11 +6,11 @@ export interface AgentRegistration {
 }
 
 export class AgentsClient {
-  constructor(private config: Required<TrustLayerConfig>) {}
+  constructor(private config: Required<RuneSignalConfig>) {}
 
   /**
    * Auto-register this agent in the organization's agent inventory.
-   * Called automatically on TrustLayer client instantiation if autoRegister is true.
+   * Called automatically on RuneSignal client instantiation if autoRegister is true.
    */
   async register(options: {
     agentId?: string;
@@ -37,7 +37,7 @@ export class AgentsClient {
     });
 
     if (!response.ok) {
-      console.warn('[TrustLayer] Agent auto-registration failed (non-fatal)');
+      console.warn('[RuneSignal] Agent auto-registration failed (non-fatal)');
       return { agentId: this.config.agentId, registered: false };
     }
 

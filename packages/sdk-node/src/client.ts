@@ -1,15 +1,15 @@
 /**
- * TrustLayer Node SDK — Base HTTP Client
+ * RuneSignal Node SDK — Base HTTP Client
  */
 
 import {
-  TrustLayerClientConfig,
-  TrustLayerError,
+  RuneSignalClientConfig,
+  RuneSignalError,
   AuthenticationError,
   RateLimitError,
 } from './types';
 
-const DEFAULT_BASE_URL = 'https://app.trustlayer.ai';
+const DEFAULT_BASE_URL = 'https://app.runesignal.ai';
 const DEFAULT_TIMEOUT = 10_000;
 const DEFAULT_MAX_RETRIES = 2;
 
@@ -20,10 +20,10 @@ export class BaseClient {
   protected readonly timeout: number;
   protected readonly maxRetries: number;
 
-  constructor(config: TrustLayerClientConfig) {
-    if (!config.apiKey) throw new Error('TrustLayer SDK: apiKey is required');
+  constructor(config: RuneSignalClientConfig) {
+    if (!config.apiKey) throw new Error('RuneSignal SDK: apiKey is required');
     if (!config.apiKey.startsWith('tl_')) {
-      throw new Error('TrustLayer SDK: apiKey must start with "tl_"');
+      throw new Error('RuneSignal SDK: apiKey must start with "tl_"');
     }
 
     this.apiKey = config.apiKey;
@@ -80,7 +80,7 @@ export class BaseClient {
         if (response.status === 429) throw new RateLimitError(data.message || data.error);
 
         if (!response.ok && response.status < 500) {
-          throw new TrustLayerError(
+          throw new RuneSignalError(
             data.error || data.message || `Request failed: ${response.status}`,
             response.status,
             data.code
@@ -90,7 +90,7 @@ export class BaseClient {
         if (!response.ok && response.status >= 500 && attempt < this.maxRetries) {
           // Retry on server errors
           await sleep(Math.pow(2, attempt) * 500);
-          lastError = new TrustLayerError(
+          lastError = new RuneSignalError(
             data.error || `Server error: ${response.status}`,
             response.status
           );
@@ -100,9 +100,9 @@ export class BaseClient {
         return data as T;
       } catch (e) {
         clearTimeout(timer);
-        if (e instanceof TrustLayerError) throw e;
+        if (e instanceof RuneSignalError) throw e;
         if ((e as any).name === 'AbortError') {
-          throw new TrustLayerError('Request timed out', 408, 'TIMEOUT');
+          throw new RuneSignalError('Request timed out', 408, 'TIMEOUT');
         }
         lastError = e as Error;
         if (attempt < this.maxRetries) {
@@ -111,7 +111,7 @@ export class BaseClient {
       }
     }
 
-    throw lastError || new TrustLayerError('Request failed after retries', 500);
+    throw lastError || new RuneSignalError('Request failed after retries', 500);
   }
 }
 

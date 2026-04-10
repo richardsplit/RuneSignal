@@ -148,7 +148,7 @@ export default function ExceptionsPage() {
         },
         body: JSON.stringify({
           action,
-          reason: `Resolved via TrustLayer Dashboard`,
+          reason: `Resolved via RuneSignal Dashboard`,
           reviewer_id: 'admin-001' // Mock reviewer ID for MVP
         })
       });

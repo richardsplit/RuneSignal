@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('TrustLayer Authentication', () => {
+test.describe('RuneSignal Authentication', () => {
   test('should show login page when unauthenticated', async ({ page }) => {
     // Navigate to the root (should redirect to /login if middleware is active)
     await page.goto('/');
@@ -22,7 +22,7 @@ test.describe('TrustLayer Authentication', () => {
     await page.goto('/');
     
     // If not redirected, check for the brand logo or sidebar
-    const brandLogo = page.getByAltText(/TrustLayer/i);
+    const brandLogo = page.getByAltText(/RuneSignal/i);
     // If logo is visible, we are on a dashboard page
     if (await brandLogo.isVisible()) {
       await expect(brandLogo).toBeVisible();

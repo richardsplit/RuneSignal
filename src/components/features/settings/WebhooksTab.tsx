@@ -100,7 +100,7 @@ export default function WebhooksTab() {
           <input 
             type="url" 
             className="form-input" 
-            placeholder="https://your-api.com/webhooks/trustlayer" 
+            placeholder="https://your-api.com/webhooks/runesignal" 
             value={settings.custom_url}
             onChange={e => setSettings({ ...settings, custom_url: e.target.value })}
           />

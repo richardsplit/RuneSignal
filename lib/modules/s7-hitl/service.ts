@@ -155,7 +155,7 @@ export class HitlService {
 
     // 2. Mock Training Pipeline Webhook (Item 11)
     if (newStatus === 'approved') {
-       const trainingWebhook = process.env.TENANT_TRAINING_WEBHOOK || 'https://api.trustlayer.com/v1/training/webhook';
+       const trainingWebhook = process.env.TENANT_TRAINING_WEBHOOK || 'https://api.runesignal.com/v1/training/webhook';
        console.log(`[TRAINING] Triggering pipeline update for ticket ${ticketId} via ${trainingWebhook}...`);
        
        await fetch(trainingWebhook, {

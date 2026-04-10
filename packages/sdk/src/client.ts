@@ -1,25 +1,25 @@
-import type { TrustLayerConfig } from './types';
+import type { RuneSignalConfig } from './types';
 import { HitlClient } from './hitl';
 import { LedgerClient } from './ledger';
 import { AgentsClient } from './agents';
 import { PolicyClient } from './policy';
 
-export class TrustLayer {
+export class RuneSignal {
   readonly hitl: HitlClient;
   readonly ledger: LedgerClient;
   readonly agents: AgentsClient;
   readonly policy: PolicyClient;
 
-  private readonly config: Required<TrustLayerConfig>;
+  private readonly config: Required<RuneSignalConfig>;
 
-  constructor(config: TrustLayerConfig) {
+  constructor(config: RuneSignalConfig) {
     if (!config.apiKey) {
-      throw new Error('[TrustLayer] apiKey is required. Set TL_API_KEY environment variable.');
+      throw new Error('[RuneSignal] apiKey is required. Set TL_API_KEY environment variable.');
     }
 
     this.config = {
       apiKey: config.apiKey,
-      baseUrl: config.baseUrl || 'https://app.trustlayer.io',
+      baseUrl: config.baseUrl || 'https://app.runesignal.io',
       agentId: config.agentId || 'unknown-agent',
       timeout: config.timeout || 30000,
     };
@@ -51,9 +51,9 @@ export class TrustLayer {
     }
 
     if (approval.status === 'rejected') {
-      throw new Error(`[TrustLayer] Action rejected by human reviewer. Note: ${approval.reviewerNote || 'none'}`);
+      throw new Error(`[RuneSignal] Action rejected by human reviewer. Note: ${approval.reviewerNote || 'none'}`);
     }
 
-    throw new Error(`[TrustLayer] Action expired or could not be reviewed. Status: ${approval.status}`);
+    throw new Error(`[RuneSignal] Action expired or could not be reviewed. Status: ${approval.status}`);
   }
 }

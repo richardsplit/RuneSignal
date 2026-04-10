@@ -1,5 +1,5 @@
 /**
- * TrustLayer Plugin Executor
+ * RuneSignal Plugin Executor
  *
  * Called non-blocking from AuditLedgerService.appendEvent() after every ledger write.
  * Finds active plugins whose trigger list matches the event type, then fires them
@@ -127,9 +127,9 @@ export class PluginExecutor {
 
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      'X-TrustLayer-Event': event.event_type,
-      'X-TrustLayer-Tenant': event.tenant_id,
-      'X-TrustLayer-Delivery': event.id,
+      'X-RuneSignal-Event': event.event_type,
+      'X-RuneSignal-Tenant': event.tenant_id,
+      'X-RuneSignal-Delivery': event.id,
     };
 
     if (plugin.auth_header) {

@@ -1,5 +1,5 @@
 /**
- * TrustLayer Integration Dispatcher
+ * RuneSignal Integration Dispatcher
  *
  * Central routing layer that dispatches HITL ticket events to all active
  * integration channels for a tenant (Slack, Teams, Jira, ServiceNow, webhook).
@@ -205,7 +205,7 @@ export class IntegrationDispatcher {
         type: 'section',
         text: {
           type: 'mrkdwn',
-          text: `${statusEmoji} *HITL ${ticket.status.toUpperCase()}*\n*${ticket.title}*\n_Decision recorded in TrustLayer audit ledger._`,
+          text: `${statusEmoji} *HITL ${ticket.status.toUpperCase()}*\n*${ticket.title}*\n_Decision recorded in RuneSignal audit ledger._`,
         },
       },
     ];
@@ -298,7 +298,7 @@ export class IntegrationDispatcher {
       body: JSON.stringify({
         fields: {
           project: { key: config.project_key },
-          summary: `[TrustLayer HITL] ${ticket.title}`,
+          summary: `[RuneSignal HITL] ${ticket.title}`,
           description: {
             type: 'doc', version: 1,
             content: [{
@@ -308,7 +308,7 @@ export class IntegrationDispatcher {
           },
           issuetype: { name: config.issue_type || 'Task' },
           priority: { name: priorityMap[ticket.priority] || 'Medium' },
-          labels: ['trustlayer-hitl', `priority-${ticket.priority}`],
+          labels: ['runesignal-hitl', `priority-${ticket.priority}`],
         },
       }),
     });
@@ -346,7 +346,7 @@ export class IntegrationDispatcher {
           type: 'doc', version: 1,
           content: [{
             type: 'paragraph',
-            content: [{ type: 'text', text: `TrustLayer HITL resolved as: ${ticket.status.toUpperCase()}` }],
+            content: [{ type: 'text', text: `RuneSignal HITL resolved as: ${ticket.status.toUpperCase()}` }],
           }],
         },
       }),
@@ -371,12 +371,12 @@ export class IntegrationDispatcher {
         Authorization: `Basic ${Buffer.from(`${config.username}:${config.password}`).toString('base64')}`,
       },
       body: JSON.stringify({
-        short_description: `[TrustLayer HITL] ${ticket.title}`,
+        short_description: `[RuneSignal HITL] ${ticket.title}`,
         description: ticket.description,
         urgency: urgencyMap[ticket.priority] || '3',
         category: config.category || 'AI Governance',
-        caller_id: 'TrustLayer',
-        u_trustlayer_ticket_id: ticket.id,
+        caller_id: 'RuneSignal',
+        u_runesignal_ticket_id: ticket.id,
       }),
     });
 
@@ -414,7 +414,7 @@ export class IntegrationDispatcher {
 
     const headersToSend: Record<string, string> = {
       'Content-Type': 'application/json',
-      'X-TrustLayer-Event': event,
+      'X-RuneSignal-Event': event,
       ...(config.headers || {}),
     };
 
@@ -427,7 +427,7 @@ export class IntegrationDispatcher {
         false, ['sign']
       );
       const sig = await crypto.subtle.sign('HMAC', key, encoder.encode(body));
-      headersToSend['X-TrustLayer-Signature'] = Array.from(new Uint8Array(sig))
+      headersToSend['X-RuneSignal-Signature'] = Array.from(new Uint8Array(sig))
         .map(b => b.toString(16).padStart(2, '0')).join('');
     }
 

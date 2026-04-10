@@ -1,5 +1,5 @@
 /**
- * TrustLayer Compliance Report Generator
+ * RuneSignal Compliance Report Generator
  *
  * Generates point-in-time compliance evidence reports covering:
  * - SOC 2 Type II evidence (audit trail, access controls, change management)

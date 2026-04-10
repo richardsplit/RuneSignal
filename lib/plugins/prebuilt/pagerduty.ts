@@ -11,7 +11,7 @@
 export const PAGERDUTY_PLUGIN_TEMPLATE = {
   name: 'PagerDuty — Critical Alert Routing',
   description:
-    'Routes critical TrustLayer events to PagerDuty on-call engineer. Triggers on: critical S8 SOUL conflicts, S14 critical behavioral anomalies, and S15 physical AI emergency stops.',
+    'Routes critical RuneSignal events to PagerDuty on-call engineer. Triggers on: critical S8 SOUL conflicts, S14 critical behavioral anomalies, and S15 physical AI emergency stops.',
   plugin_type: 'webhook',
   category: 'alerting',
   icon: '🚨',
@@ -27,7 +27,7 @@ export const PAGERDUTY_PLUGIN_TEMPLATE = {
 };
 
 /**
- * Formats a TrustLayer event into a PagerDuty Events API v2 payload.
+ * Formats a RuneSignal event into a PagerDuty Events API v2 payload.
  * Only creates PagerDuty incidents for truly critical events.
  */
 export function buildPagerDutyEvent(
@@ -53,11 +53,11 @@ export function buildPagerDutyEvent(
     routing_key: routingKey,
     event_action: 'trigger',
     payload: {
-      summary: `[TrustLayer ${severity.toUpperCase()}] ${event.event_type} — Agent ${event.agent_id?.slice(0, 8) || 'unknown'}`,
+      summary: `[RuneSignal ${severity.toUpperCase()}] ${event.event_type} — Agent ${event.agent_id?.slice(0, 8) || 'unknown'}`,
       severity,
-      source: `trustlayer-tenant-${event.tenant_id.slice(0, 8)}`,
+      source: `runesignal-tenant-${event.tenant_id.slice(0, 8)}`,
       timestamp: new Date().toISOString(),
-      component: 'trustlayer-governance',
+      component: 'runesignal-governance',
       group: 'agent-security',
       class: event.event_type,
       custom_details: {
@@ -67,11 +67,11 @@ export function buildPagerDutyEvent(
         ...event.payload,
       },
     },
-    dedup_key: `trustlayer-${event.event_type}-${event.agent_id}-${Date.now()}`,
+    dedup_key: `runesignal-${event.event_type}-${event.agent_id}-${Date.now()}`,
     links: [
       {
-        href: `https://app.trustlayer.ai/anomaly?agent=${event.agent_id}`,
-        text: 'View in TrustLayer',
+        href: `https://app.runesignal.ai/anomaly?agent=${event.agent_id}`,
+        text: 'View in RuneSignal',
       },
     ],
   };

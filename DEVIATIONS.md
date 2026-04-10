@@ -1,6 +1,6 @@
-# TrustLayer Architectural Deviations
+# RuneSignal Architectural Deviations
 
-This document tracks all variations and refinements made to the TrustLayer platform during its implementation compared to the original high-level specifications.
+This document tracks all variations and refinements made to the RuneSignal platform during its implementation compared to the original high-level specifications.
 
 ### 1. Database & State Management
 - **Supabase Transition**: Migrated from a purely transient/Redis-only architecture to a persistent Supabase-backed persistence layer. This provides long-term audit immutability and real-time dashboard sync via PostgreSQL.

@@ -16,7 +16,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'TrustLayer | Enterprise AI Governance',
+  title: 'RuneSignal | Enterprise AI Governance',
   description: 'Governance, accountability, and operational control for AI agent fleets in production.',
 };
 

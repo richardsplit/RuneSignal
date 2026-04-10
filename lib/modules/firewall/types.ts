@@ -1,5 +1,5 @@
 /**
- * TrustLayer Firewall Types
+ * RuneSignal Firewall Types
  * Unified action evaluation request/response contracts.
  */
 

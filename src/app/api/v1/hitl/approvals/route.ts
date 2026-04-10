@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
     slaDeadline.setMinutes(slaDeadline.getMinutes() + escalationMinutes);
 
     const approvalId = uuidv4();
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.trustlayer.io';
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.runesignal.io';
 
     // Insert into hitl_exceptions (reuse existing table)
     const { error: insertError } = await supabase

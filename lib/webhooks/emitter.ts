@@ -57,7 +57,7 @@ export class WebhookEmitter {
       // 1. Notify Slack
       if (settings.slack_url) {
         const slackPayload = {
-          text: `*TrustLayer Alert (Tenant: ${tenantId.split('-')[0]}...)*\n${message}`,
+          text: `*RuneSignal Alert (Tenant: ${tenantId.split('-')[0]}...)*\n${message}`,
           attachments: eventDetails ? [
             {
               color: '#f59e0b',

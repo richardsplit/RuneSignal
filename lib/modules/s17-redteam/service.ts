@@ -89,7 +89,7 @@ export class RedTeamService {
             let agentResponse = '';
 
             try {
-                // Use X-TrustLayer-Simulate header to bypass real execution / billing
+                // Use X-RuneSignal-Simulate header to bypass real execution / billing
                 const res = await fetch(targetEndpointUrl, {
                     method: 'POST',
                     headers: {
@@ -97,7 +97,7 @@ export class RedTeamService {
                         'Authorization': `Bearer ${process.env.REDTEAM_PROBE_TOKEN || 'redteam-probe'}`,
                         'X-RedTeam-Campaign': campaignId,
                         'X-Agent-Id': targetAgentId,
-                        'X-TrustLayer-Simulate': 'true'  // Safety bypass flag
+                        'X-RuneSignal-Simulate': 'true'  // Safety bypass flag
                     },
                     body: JSON.stringify({
                         message: attack.prompt,

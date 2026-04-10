@@ -1,5 +1,5 @@
 /**
- * TrustLayer LangChain Callback Handler
+ * RuneSignal LangChain Callback Handler
  *
  * Intercepts all LangChain agent tool calls and:
  * 1. Signs every tool call and result into the S3 ledger
@@ -7,11 +7,11 @@
  *
  * Usage:
  *   const agent = AgentExecutor.fromAgentAndTools({
- *     callbacks: [new TrustLayerCallbackHandler(tl)]
+ *     callbacks: [new RuneSignalCallbackHandler(tl)]
  *   });
  */
 
-import type { TrustLayer } from '@trustlayer/sdk';
+import type { RuneSignal } from '@runesignal/sdk';
 
 // Minimal interface to avoid requiring langchain as a hard dep at type-check time
 interface BaseCallbackHandlerInput {
@@ -20,13 +20,13 @@ interface BaseCallbackHandlerInput {
   ignoreAgent?: boolean;
 }
 
-export class TrustLayerCallbackHandler {
-  name = 'TrustLayerCallbackHandler';
+export class RuneSignalCallbackHandler {
+  name = 'RuneSignalCallbackHandler';
   ignoreLLM = false;
   ignoreChain = true;
   ignoreAgent = false;
 
-  constructor(private tlClient: TrustLayer) {}
+  constructor(private tlClient: RuneSignal) {}
 
   /**
    * Called when a LangChain tool starts execution.
@@ -45,7 +45,7 @@ export class TrustLayerCallbackHandler {
         },
       });
     } catch (err) {
-      console.warn('[TrustLayer] ledger.sign failed (non-fatal):', err);
+      console.warn('[RuneSignal] ledger.sign failed (non-fatal):', err);
     }
   }
 
@@ -60,7 +60,7 @@ export class TrustLayerCallbackHandler {
         payload: { output: output.slice(0, 2000) }, // Truncate large outputs
       });
     } catch (err) {
-      console.warn('[TrustLayer] ledger.sign failed (non-fatal):', err);
+      console.warn('[RuneSignal] ledger.sign failed (non-fatal):', err);
     }
   }
 
@@ -106,7 +106,7 @@ export class TrustLayerCallbackHandler {
 
         if (approval.status !== 'approved') {
           throw new Error(
-            `[TrustLayer] Action "${action.tool}" rejected by human reviewer. ` +
+            `[RuneSignal] Action "${action.tool}" rejected by human reviewer. ` +
             `Status: ${approval.status}. Note: ${approval.reviewerNote || 'none'}`
           );
         }
@@ -116,7 +116,7 @@ export class TrustLayerCallbackHandler {
       if (String(err).includes('rejected by human reviewer')) {
         throw err;
       }
-      console.warn('[TrustLayer] policy evaluation failed (non-fatal):', err);
+      console.warn('[RuneSignal] policy evaluation failed (non-fatal):', err);
     }
   }
 

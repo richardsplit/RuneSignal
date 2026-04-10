@@ -6,7 +6,7 @@ import { ArbiterService } from '../lib/modules/s1-conflict/service';
 import { CertificateService } from '../lib/modules/s3-provenance/certificate';
 import { HitlService } from '../lib/modules/s7-hitl/service';
 
-describe('TrustLayer 5-Event Audit Chain', () => {
+describe('RuneSignal 5-Event Audit Chain', () => {
   const tenantId = uuidv4();
   let agentId: string;
   let ticketId: string;

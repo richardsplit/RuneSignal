@@ -9,17 +9,17 @@
  * auth_header = DD-API-KEY: <your_datadog_api_key>
  *
  * Metrics sent (as Datadog events with tags):
- *   - trustlayer.certificates.created (count)
- *   - trustlayer.firewall.blocks (count)
- *   - trustlayer.hitl.open (gauge)
- *   - trustlayer.anomalies.detected (count)
- *   - trustlayer.cost.usd (gauge per agent)
+ *   - runesignal.certificates.created (count)
+ *   - runesignal.firewall.blocks (count)
+ *   - runesignal.hitl.open (gauge)
+ *   - runesignal.anomalies.detected (count)
+ *   - runesignal.cost.usd (gauge per agent)
  */
 
 export const DATADOG_PLUGIN_TEMPLATE = {
   name: 'Datadog — Agent Observability',
   description:
-    'Streams TrustLayer governance metrics to Datadog as custom events. Track certificate rates, firewall block rates, HITL open counts, anomaly rates, and per-agent cost in real time.',
+    'Streams RuneSignal governance metrics to Datadog as custom events. Track certificate rates, firewall block rates, HITL open counts, anomaly rates, and per-agent cost in real time.',
   plugin_type: 'reporter',
   category: 'observability',
   icon: '🐶',
@@ -36,7 +36,7 @@ export const DATADOG_PLUGIN_TEMPLATE = {
 };
 
 /**
- * Formats a TrustLayer audit event into a Datadog Event API payload.
+ * Formats a RuneSignal audit event into a Datadog Event API payload.
  */
 export function buildDatadogEvent(event: {
   event_type: string;
@@ -52,15 +52,15 @@ export function buildDatadogEvent(event: {
   };
 
   return {
-    title: `TrustLayer: ${event.event_type}`,
+    title: `RuneSignal: ${event.event_type}`,
     text: `%%% \n**Tenant:** ${event.tenant_id}\n**Agent:** ${event.agent_id || 'n/a'}\n**Payload:** \`\`\`json\n${JSON.stringify(event.payload, null, 2).slice(0, 800)}\n\`\`\`\n %%%`,
     alert_type: severityMap[event.event_type] || 'info',
     tags: [
-      `trustlayer:true`,
+      `runesignal:true`,
       `event_type:${event.event_type.replace(/\./g, '_')}`,
       `tenant:${event.tenant_id}`,
       event.agent_id ? `agent:${event.agent_id}` : 'agent:none',
     ],
-    source_type_name: 'trustlayer',
+    source_type_name: 'runesignal',
   };
 }

@@ -13,7 +13,7 @@
 export const SALESFORCE_PLUGIN_TEMPLATE = {
   name: 'Salesforce — Insurance Case Sync',
   description:
-    'Creates and updates Salesforce Cases from TrustLayer insurance claim events. Syncs claim state transitions (FNOL → triaged → investigating → decided → paid/denied) in real time.',
+    'Creates and updates Salesforce Cases from RuneSignal insurance claim events. Syncs claim state transitions (FNOL → triaged → investigating → decided → paid/denied) in real time.',
   plugin_type: 'connector',
   category: 'crm',
   icon: '☁️',
@@ -30,7 +30,7 @@ export const SALESFORCE_PLUGIN_TEMPLATE = {
 };
 
 /**
- * Formats a TrustLayer insurance claim event into a Salesforce Case object.
+ * Formats a RuneSignal insurance claim event into a Salesforce Case object.
  */
 export function buildSalesforceCase(event: {
   event_type: string;
@@ -49,15 +49,15 @@ export function buildSalesforceCase(event: {
 
   return {
     Subject: `Insurance Claim ${p.claim_id?.slice(0, 8) || 'New'} — ${p.claim_type || 'General'}`,
-    Description: `TrustLayer Claim ID: ${p.claim_id}\nState: ${p.claim_state || 'fnol'}\nFinancial Impact: $${p.financial_impact || 0}\nFraud Score: ${p.fraud_score || 0}`,
+    Description: `RuneSignal Claim ID: ${p.claim_id}\nState: ${p.claim_state || 'fnol'}\nFinancial Impact: $${p.financial_impact || 0}\nFraud Score: ${p.fraud_score || 0}`,
     Status: statusMap[event.event_type] || 'In Progress',
     Priority: (p.financial_impact || 0) > 50000 ? 'High' : 'Medium',
-    Origin: 'TrustLayer AI',
+    Origin: 'RuneSignal AI',
     Type: 'Insurance Claim',
     // Custom fields (requires Salesforce admin setup)
-    TrustLayer_Claim_ID__c: p.claim_id,
-    TrustLayer_State__c: p.claim_state,
-    TrustLayer_Fraud_Score__c: p.fraud_score,
-    TrustLayer_Financial_Impact__c: p.financial_impact,
+    RuneSignal_Claim_ID__c: p.claim_id,
+    RuneSignal_State__c: p.claim_state,
+    RuneSignal_Fraud_Score__c: p.fraud_score,
+    RuneSignal_Financial_Impact__c: p.financial_impact,
   };
 }

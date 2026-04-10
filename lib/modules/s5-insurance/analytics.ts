@@ -1,5 +1,5 @@
 /**
- * TrustLayer Risk Analytics
+ * RuneSignal Risk Analytics
  *
  * Provides time-series risk aggregation and trend analysis for the insurance module.
  * Powers the /api/v1/insurance/analytics endpoint.

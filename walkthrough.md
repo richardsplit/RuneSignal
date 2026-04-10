@@ -5,14 +5,14 @@ The issue was caused by a strict TypeScript union for `agent_type` that only all
 ## Changes Made
 
 ### 1. Expanded Type Union
-I updated the [types.ts](file:///c:/Users/Richard.Georgiev/OneDrive%20-%20DIGITALL%20Nature/Documents/TrustLayer/lib/modules/s6-identity/types.ts) file to include `'finance'` and `'orchestrator'` in the `agent_type` union for both [AgentCredential](file:///c:/Users/Richard.Georgiev/OneDrive%20-%20DIGITALL%20Nature/Documents/TrustLayer/lib/modules/s6-identity/types.ts#1-14) and [RegisterAgentRequest](file:///c:/Users/Richard.Georgiev/OneDrive%20-%20DIGITALL%20Nature/Documents/TrustLayer/lib/modules/s6-identity/types.ts#26-38).
+I updated the [types.ts](file:///c:/Users/Richard.Georgiev/OneDrive%20-%20DIGITALL%20Nature/Documents/RuneSignal/lib/modules/s6-identity/types.ts) file to include `'finance'` and `'orchestrator'` in the `agent_type` union for both [AgentCredential](file:///c:/Users/Richard.Georgiev/OneDrive%20-%20DIGITALL%20Nature/Documents/RuneSignal/lib/modules/s6-identity/types.ts#1-14) and [RegisterAgentRequest](file:///c:/Users/Richard.Georgiev/OneDrive%20-%20DIGITALL%20Nature/Documents/RuneSignal/lib/modules/s6-identity/types.ts#26-38).
 
 ### 2. Synchronized Documentation
-I updated the [002_agent_identity.sql](file:///c:/Users/Richard.Georgiev/OneDrive%20-%20DIGITALL%20Nature/Documents/TrustLayer/supabase/migrations/002_agent_identity.sql) comment to reflect the newly supported types, ensuring consistency between the database schema and the code.
+I updated the [002_agent_identity.sql](file:///c:/Users/Richard.Georgiev/OneDrive%20-%20DIGITALL%20Nature/Documents/RuneSignal/supabase/migrations/002_agent_identity.sql) comment to reflect the newly supported types, ensuring consistency between the database schema and the code.
 
 ## Verification Results
 
-- **TypeScript IDE check**: The error "Type 'finance' is not assignable..." at line 22 of [s1-conflict-verify.ts](file:///c:/Users/Richard.Georgiev/OneDrive%20-%20DIGITALL%20Nature/Documents/TrustLayer/tests/s1-conflict-verify.ts) is now resolved.
+- **TypeScript IDE check**: The error "Type 'finance' is not assignable..." at line 22 of [s1-conflict-verify.ts](file:///c:/Users/Richard.Georgiev/OneDrive%20-%20DIGITALL%20Nature/Documents/RuneSignal/tests/s1-conflict-verify.ts) is now resolved.
 - **S1 Conflict Verification**: The script now correctly falls back to direct database injection if the local server is missing.
 - **S6 Identity Verification**: Successfully passed after adding test tenant creation.
 - **S3 Provenance Verification**: Successfully passed after adding test tenant creation and fixing the `ATP_SIGNING_KEY` environment variable.
@@ -21,7 +21,7 @@ I updated the [002_agent_identity.sql](file:///c:/Users/Richard.Georgiev/OneDriv
 
 1. **Environment Loading**: Always use `npx tsx --env-file=.env.local` to ensure local variables are picked up by Node 20+.
 2. **Database Constraints**: Verification scripts using random UUIDs must insert a matching record into the `tenants` table to satisfy foreign key constraints.
-3. **OpenAI Quota**: Modified [lib/ai/embeddings.ts](file:///c:/Users/Richard.Georgiev/OneDrive%20-%20DIGITALL%20Nature/Documents/TrustLayer/lib/ai/embeddings.ts) to automatically fall back to deterministic mock embeddings for development/testing if the API quota is exceeded.
+3. **OpenAI Quota**: Modified [lib/ai/embeddings.ts](file:///c:/Users/Richard.Georgiev/OneDrive%20-%20DIGITALL%20Nature/Documents/RuneSignal/lib/ai/embeddings.ts) to automatically fall back to deterministic mock embeddings for development/testing if the API quota is exceeded.
 4. **Audit Signing**: Generated a valid Ed25519 PKCS8 DER key for `ATP_SIGNING_KEY` to enable the Immutable Audit Ledger.
 
 ## Phase 8.3: Critical Regression Fixes & Resource Locking
@@ -41,7 +41,7 @@ We have resolved three critical regressions identified during final platform ver
 - **`audit-chain-verify.ts`**: PASSED. Confirmed the full 5-event audit chain is intact and functional with the new locking logic.
 
 ### Final Technical State
-The TrustLayer platform is now core-complete, verified, and hardened against both semantic and exact-match resource collisions.
+The RuneSignal platform is now core-complete, verified, and hardened against both semantic and exact-match resource collisions.
 
 ## Phase 8.4: Closing Gaps & Production Hardening
 
@@ -77,4 +77,4 @@ We have eliminated the "security red flag" of passing AI provider API keys throu
 - **Security Audit**: ✅ CERTIFIED (No client-side credentials detected in request paths).
 
 ### Final Technical State
-The TrustLayer platform is now core-complete, verified, production-hardened, and **Technical-Trust-Ready**.
+The RuneSignal platform is now core-complete, verified, production-hardened, and **Technical-Trust-Ready**.

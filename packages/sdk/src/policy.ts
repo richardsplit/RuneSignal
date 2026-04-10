@@ -1,7 +1,7 @@
-import type { TrustLayerConfig, PolicyEvaluationResult, BlastRadius } from './types';
+import type { RuneSignalConfig, PolicyEvaluationResult, BlastRadius } from './types';
 
 export class PolicyClient {
-  constructor(private config: Required<TrustLayerConfig>) {}
+  constructor(private config: Required<RuneSignalConfig>) {}
 
   /**
    * Evaluate whether an action requires human oversight based on org policy.

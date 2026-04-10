@@ -1,5 +1,5 @@
 /**
- * TrustLayer Node SDK — Provenance Resource
+ * RuneSignal Node SDK — Provenance Resource
  */
 
 import { BaseClient } from './client';

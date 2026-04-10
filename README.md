@@ -1,10 +1,10 @@
-# TrustLayer : Enterprise AI Governance Platform
+# RuneSignal : Enterprise AI Governance Platform
 
-TrustLayer is a centralized, cryptographic control plane for enterprise AI agents. It provides provenance, accountability, identity, and operational control over autonomous AI actors acting on behalf of an enterprise.
+RuneSignal is a centralized, cryptographic control plane for enterprise AI agents. It provides provenance, accountability, identity, and operational control over autonomous AI actors acting on behalf of an enterprise.
 
 ## Core Capabilities
 
-TrustLayer provides three core compliance capabilities:
+RuneSignal provides three core compliance capabilities:
 
 1. **Cryptographic Agent Action Signing (S3)** — Every agent action is signed with Ed25519, creating an immutable, tamper-proof audit ledger.
 2. **Human-in-the-Loop Approval Routing (S7)** — High-risk agent actions are automatically routed to human reviewers with configurable blast-radius thresholds.
@@ -30,8 +30,8 @@ The platform is built on three core governance modules:
 
 1. **Clone & Install Dependencies**
    ```bash
-   git clone https://github.com/richardsplit/TrustLayer.git
-   cd TrustLayer
+   git clone https://github.com/richardsplit/RuneSignal.git
+   cd RuneSignal
    npm install
    ```
 
@@ -51,4 +51,4 @@ The platform is built on three core governance modules:
    Open [http://localhost:3000](http://localhost:3000)
 
 ## Design System
-TrustLayer uses a bespoke design system focusing on professional fintech aesthetics components. It embraces a deep charcoal background with electric emerald and warm amber accents, combined with glassmorphism to present an advanced cyber-physical command center feel.
+RuneSignal uses a bespoke design system focusing on professional fintech aesthetics components. It embraces a deep charcoal background with electric emerald and warm amber accents, combined with glassmorphism to present an advanced cyber-physical command center feel.

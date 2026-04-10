@@ -13,9 +13,9 @@ export default function ManageTeamModal({ isOpen, onClose, workspaceName }: Mana
   const [email, setEmail] = useState('');
   const [role, setRole] = useState('Member');
   const [members, setMembers] = useState([
-    { name: 'Admin User', email: 'admin@trustlayer.dev', role: 'Owner', status: 'Active' },
-    { name: 'Sarah Chen', email: 's.chen@trustlayer.dev', role: 'Member', status: 'Active' },
-    { name: 'Alex Rivera', email: 'a.rivera@trustlayer.dev', role: 'Viewer', status: 'Pending' }
+    { name: 'Admin User', email: 'admin@runesignal.dev', role: 'Owner', status: 'Active' },
+    { name: 'Sarah Chen', email: 's.chen@runesignal.dev', role: 'Member', status: 'Active' },
+    { name: 'Alex Rivera', email: 'a.rivera@runesignal.dev', role: 'Viewer', status: 'Pending' }
   ]);
 
   const handleInvite = (e: React.FormEvent) => {

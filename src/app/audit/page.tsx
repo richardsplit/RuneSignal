@@ -86,7 +86,7 @@ const EVENTS: AuditEvent[] = [
   },
   {
     id: 'evt-0082', ts: '09:01:00', date: 'Yesterday',
-    severity: 'info', category: 'system', actorType: 'system', actor: 'TrustLayer',
+    severity: 'info', category: 'system', actorType: 'system', actor: 'RuneSignal',
     title: 'Scheduled risk recalculation completed',
     detail: 'Fleet-wide actuarial snapshot complete. 4 agents evaluated. No critical escalations.',
     ref: undefined,

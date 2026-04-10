@@ -1,5 +1,5 @@
 /**
- * TrustLayer Firewall Service (S0 — Unified Control Plane)
+ * RuneSignal Firewall Service (S0 — Unified Control Plane)
  *
  * Orchestrates all governance modules into a single evaluation pipeline:
  *   S6 Identity  →  S1 Policy + S8 Moral (parallel)  →  S5 Risk  →  S7 HITL  →  S3 Audit
@@ -28,7 +28,7 @@ const DEFAULT_RISK_THRESHOLD = 50;
 
 export class FirewallService {
   /**
-   * Evaluates an agent action through the full TrustLayer governance pipeline.
+   * Evaluates an agent action through the full RuneSignal governance pipeline.
    * Returns a composite verdict: allow | block | escalate.
    */
   static async evaluate(tenantId: string, req: FirewallRequest): Promise<FirewallResponse> {

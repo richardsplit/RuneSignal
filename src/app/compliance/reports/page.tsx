@@ -148,7 +148,7 @@ export default function ComplianceReportsPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `TrustLayer_Compliance_${report.framework.toUpperCase()}_${report.period.from.slice(0, 10)}_${report.period.to.slice(0, 10)}.json`;
+    a.download = `RuneSignal_Compliance_${report.framework.toUpperCase()}_${report.period.from.slice(0, 10)}_${report.period.to.slice(0, 10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
   };

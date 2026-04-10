@@ -1,6 +1,6 @@
 #!/usr/bin/env npx tsx
 /**
- * TrustLayer End-to-End Demo Walkthrough
+ * RuneSignal End-to-End Demo Walkthrough
  * =======================================
  * Demonstrates the full AI Agent Action Firewall lifecycle:
  *
@@ -14,9 +14,9 @@
  *   npx tsx scripts/demo-walkthrough.ts
  *
  * Prerequisites:
- *   .env.local with TRUSTLAYER_API_KEY and TRUSTLAYER_BASE_URL set
+ *   .env.local with RUNESIGNAL_API_KEY and RUNESIGNAL_BASE_URL set
  *   OR set env vars directly:
- *   TRUSTLAYER_API_KEY=tl_xxx TRUSTLAYER_BASE_URL=http://localhost:3000 npx tsx scripts/demo-walkthrough.ts
+ *   RUNESIGNAL_API_KEY=tl_xxx RUNESIGNAL_BASE_URL=http://localhost:3000 npx tsx scripts/demo-walkthrough.ts
  */
 
 import * as dotenv from 'dotenv';
@@ -24,11 +24,11 @@ import * as path from 'path';
 
 dotenv.config({ path: path.join(process.cwd(), '.env.local') });
 
-const BASE_URL = process.env.TRUSTLAYER_BASE_URL || 'http://localhost:3000';
-const API_KEY = process.env.TRUSTLAYER_API_KEY;
+const BASE_URL = process.env.RUNESIGNAL_BASE_URL || 'http://localhost:3000';
+const API_KEY = process.env.RUNESIGNAL_API_KEY;
 
 if (!API_KEY) {
-  console.error('\n❌ Missing TRUSTLAYER_API_KEY environment variable.');
+  console.error('\n❌ Missing RUNESIGNAL_API_KEY environment variable.');
   console.error('   Set it in .env.local or export it before running this script.\n');
   process.exit(1);
 }
@@ -79,7 +79,7 @@ function separator() {
 
 async function main() {
   console.log('\n╔══════════════════════════════════════════════════════════╗');
-  console.log('║      TrustLayer — Action Firewall Demo Walkthrough      ║');
+  console.log('║      RuneSignal — Action Firewall Demo Walkthrough      ║');
   console.log('╚══════════════════════════════════════════════════════════╝');
   console.log(`\nBase URL: ${BASE_URL}`);
   console.log(`API Key:  ${API_KEY!.slice(0, 8)}…`);

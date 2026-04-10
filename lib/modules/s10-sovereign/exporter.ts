@@ -52,7 +52,7 @@ export class SovereignExporterService {
              const bucketPath = config.destination_uri.replace('s3://', '');
              const [bucketName, ...restPath] = bucketPath.split('/');
              const keyPrefix = restPath.join('/');
-             const fileName = `${keyPrefix ? keyPrefix + '/' : ''}trustlayer_export_${new Date().toISOString().split('T')[0]}.json`;
+             const fileName = `${keyPrefix ? keyPrefix + '/' : ''}runesignal_export_${new Date().toISOString().split('T')[0]}.json`;
 
              const s3Client = new S3Client({
                  region: creds.region || 'us-east-1',

@@ -1,12 +1,12 @@
 /**
- * @trustlayer/sdk
+ * @runesignal/sdk
  *
  * AI Agent Compliance Middleware — EU AI Act ready
  *
  * @example
- * import { TrustLayer } from '@trustlayer/sdk';
+ * import { RuneSignal } from '@runesignal/sdk';
  *
- * const tl = new TrustLayer({ apiKey: process.env.TL_API_KEY });
+ * const tl = new RuneSignal({ apiKey: process.env.TL_API_KEY });
  *
  * const result = await tl.hitl.requestApproval({
  *   agentId: 'sales-agent-v2',
@@ -21,13 +21,13 @@
  * }
  */
 
-export { TrustLayer } from './client';
+export { RuneSignal } from './client';
 export { HitlClient } from './hitl';
 export { LedgerClient } from './ledger';
 export { AgentsClient } from './agents';
 export { PolicyClient } from './policy';
 export type {
-  TrustLayerConfig,
+  RuneSignalConfig,
   RequestApprovalOptions,
   ApprovalResponse,
   ApprovalStatus,

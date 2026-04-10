@@ -308,7 +308,7 @@ export default function DashboardPage() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '32px', marginBottom: '48px' }}>
             <div>
               <div style={{ fontWeight: 700, fontSize: '1rem', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span>🔒</span> TrustLayer
+                <span>🔒</span> RuneSignal
               </div>
               <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.35)', lineHeight: 1.6 }}>
                 Runtime governance for AI agent fleets.
@@ -344,7 +344,7 @@ export default function DashboardPage() {
             justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px',
           }}>
             <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.25)' }}>
-              © 2026 TrustLayer. All rights reserved.
+              © 2026 RuneSignal. All rights reserved.
             </span>
             <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.25)' }}>
               EU AI Act ready · GDPR compliant · SOC 2 in progress

@@ -12,7 +12,7 @@
 export const JIRA_PLUGIN_TEMPLATE = {
   name: 'Jira — HITL Ticket Sync',
   description:
-    'Creates a Jira issue every time a Human-in-the-Loop (HITL) exception is raised. Keeps the Jira summary and status in sync with the TrustLayer exception.',
+    'Creates a Jira issue every time a Human-in-the-Loop (HITL) exception is raised. Keeps the Jira summary and status in sync with the RuneSignal exception.',
   plugin_type: 'webhook',
   category: 'ticketing',
   icon: '🎯',
@@ -23,7 +23,7 @@ export const JIRA_PLUGIN_TEMPLATE = {
 };
 
 /**
- * Formats a TrustLayer audit event into a Jira issue creation body.
+ * Formats a RuneSignal audit event into a Jira issue creation body.
  * Called by the plugin executor before posting to the tenant's Jira endpoint.
  */
 export function buildJiraIssueBody(event: {
@@ -36,8 +36,8 @@ export function buildJiraIssueBody(event: {
   return {
     fields: {
       summary: isCreate
-        ? `[TrustLayer HITL] ${p.title || 'Agent action requires review'}`
-        : `[TrustLayer HITL Resolved] ${p.title || 'Exception resolved'}`,
+        ? `[RuneSignal HITL] ${p.title || 'Agent action requires review'}`
+        : `[RuneSignal HITL Resolved] ${p.title || 'Exception resolved'}`,
       description: {
         type: 'doc',
         version: 1,
@@ -59,7 +59,7 @@ export function buildJiraIssueBody(event: {
       },
       issuetype: { name: isCreate ? 'Task' : 'Task' },
       priority: { name: p.priority === 'critical' ? 'Highest' : p.priority === 'high' ? 'High' : 'Medium' },
-      labels: ['trustlayer', 'hitl', `agent-governance`],
+      labels: ['runesignal', 'hitl', `agent-governance`],
     },
   };
 }

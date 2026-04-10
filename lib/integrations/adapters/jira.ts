@@ -60,7 +60,7 @@ export class JiraAdapter implements IntegrationAdapter {
         body: JSON.stringify({
           fields: {
             project: { key: cfg.project_key },
-            summary: `[TrustLayer HITL] ${payload.action_type}: ${payload.action_description.slice(0, 200)}`,
+            summary: `[RuneSignal HITL] ${payload.action_type}: ${payload.action_description.slice(0, 200)}`,
             description: {
               type: 'doc', version: 1,
               content: [{
@@ -121,7 +121,7 @@ export class JiraAdapter implements IntegrationAdapter {
               type: 'paragraph',
               content: [{
                 type: 'text',
-                text: `TrustLayer HITL Decision: ${payload.decision.toUpperCase()}\nDecided by: ${payload.decided_by || 'unknown'}\nNote: ${payload.reviewer_note || 'none'}\nTimestamp: ${payload.decided_at}`,
+                text: `RuneSignal HITL Decision: ${payload.decision.toUpperCase()}\nDecided by: ${payload.decided_by || 'unknown'}\nNote: ${payload.reviewer_note || 'none'}\nTimestamp: ${payload.decided_at}`,
               }],
             }],
           },

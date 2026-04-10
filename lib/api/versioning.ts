@@ -1,12 +1,12 @@
 /**
- * TrustLayer API Versioning
+ * RuneSignal API Versioning
  *
  * Parses Accept header for explicit version requests and provides
  * response header helpers.
  *
  * Versioning strategy:
  *   - Default: v1 (current stable)
- *   - Explicit: Accept: application/vnd.trustlayer.v1+json
+ *   - Explicit: Accept: application/vnd.runesignal.v1+json
  *   - Response header: X-API-Version: 1
  */
 
@@ -20,8 +20,8 @@ export const SUPPORTED_API_VERSIONS = ['1'];
 export function parseApiVersion(acceptHeader: string | null): string {
   if (!acceptHeader) return CURRENT_API_VERSION;
 
-  // Match: application/vnd.trustlayer.v{N}+json
-  const match = acceptHeader.match(/application\/vnd\.trustlayer\.v(\d+)\+json/);
+  // Match: application/vnd.runesignal.v{N}+json
+  const match = acceptHeader.match(/application\/vnd\.runesignal\.v(\d+)\+json/);
   if (match && SUPPORTED_API_VERSIONS.includes(match[1])) {
     return match[1];
   }
@@ -35,6 +35,6 @@ export function parseApiVersion(acceptHeader: string | null): string {
 export function apiVersionHeaders(version: string = CURRENT_API_VERSION): Record<string, string> {
   return {
     'X-API-Version': version,
-    'X-TrustLayer-Version': `trustlayer/${version}`,
+    'X-RuneSignal-Version': `runesignal/${version}`,
   };
 }

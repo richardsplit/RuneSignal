@@ -14,7 +14,7 @@ export default function TenantManagementPage() {
 
   // Load from localStorage
   useEffect(() => {
-    const saved = localStorage.getItem('trustlayer_workspaces');
+    const saved = localStorage.getItem('runesignal_workspaces');
     if (saved) {
       setWorkspaces(JSON.parse(saved));
     } else {
@@ -23,14 +23,14 @@ export default function TenantManagementPage() {
         { id: 'org-staging-441f', name: 'Staging Environment', plan: 'Pro', agents: 12, status: 'ACTIVE', color: 'var(--color-info-cyan)' }
       ];
       setWorkspaces(initial);
-      localStorage.setItem('trustlayer_workspaces', JSON.stringify(initial));
+      localStorage.setItem('runesignal_workspaces', JSON.stringify(initial));
     }
   }, []);
 
   // Save to localStorage
   useEffect(() => {
     if (workspaces.length > 0) {
-      localStorage.setItem('trustlayer_workspaces', JSON.stringify(workspaces));
+      localStorage.setItem('runesignal_workspaces', JSON.stringify(workspaces));
     }
   }, [workspaces]);
 

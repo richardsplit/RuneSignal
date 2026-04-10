@@ -21,7 +21,7 @@ export class ATPClient {
     this.apiKey = config.apiKey;
     this.atpKey = config.atpKey;
     this.agentId = config.agentId;
-    this.atpEndpoint = config.atpEndpoint || 'https://api.trustlayer.com';
+    this.atpEndpoint = config.atpEndpoint || 'https://api.runesignal.com';
 
     if (this.provider === 'openai') {
       this.openaiClient = new OpenAI({ apiKey: this.apiKey });
@@ -72,9 +72,9 @@ export class ATPClient {
       
       const residencyData = await residencyRes.json();
       if (!residencyRes.ok) {
-        console.warn(`[TrustLayer S10] Data residency violation: ${residencyData.violation_reason}`);
+        console.warn(`[RuneSignal S10] Data residency violation: ${residencyData.violation_reason}`);
         if (residencyData.alternative_provider) {
-          console.info(`[TrustLayer S10] Suggested compliant alternative: ${residencyData.alternative_provider.provider}/${residencyData.alternative_provider.model}`);
+          console.info(`[RuneSignal S10] Suggested compliant alternative: ${residencyData.alternative_provider.provider}/${residencyData.alternative_provider.model}`);
         }
         // Throw if hard-blocked (451), warn and continue otherwise
         if (residencyRes.status === 451) {
@@ -101,7 +101,7 @@ export class ATPClient {
     const atpPreOverhead = Date.now() - checkStart;
 
     if (checkRes.status === 402) {
-       throw new Error('TrustLayer FinOps Error: Budget Exceeded. Call blocked prior to execution.');
+       throw new Error('RuneSignal FinOps Error: Budget Exceeded. Call blocked prior to execution.');
     }
 
     // 2. Upstream LLM Call
@@ -135,7 +135,7 @@ export class ATPClient {
 
     const upstreamLatency = Date.now() - startTime - atpPreOverhead;
 
-    // 3. Certification via TrustLayer API
+    // 3. Certification via RuneSignal API
     // We send payload hashes + original metadata for archival
     const inputHash = this.generateHash(JSON.stringify(params.messages));
     const outputHash = this.generateHash(completionText);

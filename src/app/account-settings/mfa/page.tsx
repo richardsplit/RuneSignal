@@ -114,7 +114,7 @@ export default function MFAPage() {
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Multi-Factor Authentication</h1>
         <p className="text-gray-500 mt-1">
-          Add an extra layer of security to your TrustLayer account using an authenticator app.
+          Add an extra layer of security to your RuneSignal account using an authenticator app.
         </p>
       </div>
 

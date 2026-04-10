@@ -58,12 +58,12 @@ export class ServiceNowAdapter implements IntegrationAdapter {
             Authorization: this.authHeader(cfg),
           },
           body: JSON.stringify({
-            short_description: `[TrustLayer HITL] ${payload.action_type}: ${payload.action_description.slice(0, 160)}`,
+            short_description: `[RuneSignal HITL] ${payload.action_type}: ${payload.action_description.slice(0, 160)}`,
             description: `Agent: ${payload.agent_id}\nAction: ${payload.action_type}\nBlast Radius: ${payload.blast_radius}\nReversible: ${payload.reversible}\n\n${payload.action_description}`,
             urgency: urgencyMap[payload.blast_radius] || '3',
             category: cfg.category || 'AI Governance',
-            caller_id: 'TrustLayer',
-            u_trustlayer_approval_id: payload.approval_id,
+            caller_id: 'RuneSignal',
+            u_runesignal_approval_id: payload.approval_id,
             u_review_url: payload.review_url || '',
           }),
         }
@@ -111,7 +111,7 @@ export class ServiceNowAdapter implements IntegrationAdapter {
           },
           body: JSON.stringify({
             state: stateMap[payload.decision],
-            close_notes: `TrustLayer HITL Decision: ${payload.decision.toUpperCase()}\nReviewer: ${payload.decided_by || 'unknown'}\nNote: ${payload.reviewer_note || ''}`,
+            close_notes: `RuneSignal HITL Decision: ${payload.decision.toUpperCase()}\nReviewer: ${payload.decided_by || 'unknown'}\nNote: ${payload.reviewer_note || ''}`,
             close_code: payload.decision === 'approved' ? 'Approved' : 'Rejected',
           }),
         }

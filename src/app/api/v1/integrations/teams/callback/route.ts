@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       type: 'message',
-      text: `${action === 'approve' ? '✅ Approved' : '❌ Rejected'} — TrustLayer audit ledger updated.`,
+      text: `${action === 'approve' ? '✅ Approved' : '❌ Rejected'} — RuneSignal audit ledger updated.`,
     });
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 });

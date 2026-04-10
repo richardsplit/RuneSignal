@@ -204,13 +204,21 @@ export default function Sidebar() {
         gap: '0.625rem',
         flexShrink: 0,
       }}>
+        {/* RuneSignal logomark — rune pillar with signal arcs */}
         <svg width="22" height="22" viewBox="0 0 22 22" fill="none" style={{ flexShrink: 0 }}>
-          <rect width="22" height="22" rx="5" fill="var(--accent)"/>
-          <path d="M6 8h10M11 8v7M8 11h6" stroke="#09090b" strokeWidth="1.8" strokeLinecap="round"/>
+          <rect width="22" height="22" rx="5" fill="#0f1013" stroke="var(--accent)" strokeWidth="1"/>
+          {/* center vertical pillar */}
+          <line x1="11" y1="5" x2="11" y2="17" stroke="var(--accent)" strokeWidth="1.6" strokeLinecap="round"/>
+          {/* left arm */}
+          <line x1="11" y1="9" x2="7" y2="13" stroke="var(--accent)" strokeWidth="1.4" strokeLinecap="round"/>
+          {/* right arm */}
+          <line x1="11" y1="9" x2="15" y2="13" stroke="var(--accent)" strokeWidth="1.4" strokeLinecap="round"/>
+          {/* signal dot */}
+          <circle cx="11" cy="5" r="1.25" fill="var(--accent)"/>
         </svg>
         {!collapsed && (
           <span style={{ fontSize: '0.9375rem', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em', whiteSpace: 'nowrap' }}>
-            TrustLayer
+            RuneSignal
           </span>
         )}
       </div>

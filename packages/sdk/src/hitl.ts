@@ -1,7 +1,7 @@
-import type { TrustLayerConfig, RequestApprovalOptions, ApprovalResponse, ApprovalStatus } from './types';
+import type { RuneSignalConfig, RequestApprovalOptions, ApprovalResponse, ApprovalStatus } from './types';
 
 export class HitlClient {
-  constructor(private config: Required<TrustLayerConfig>) {}
+  constructor(private config: Required<RuneSignalConfig>) {}
 
   /**
    * Submit an agent action for human approval.
@@ -42,7 +42,7 @@ export class HitlClient {
 
     const created = await response.json();
     if (!response.ok) {
-      throw new Error(`[TrustLayer HITL] Failed to create approval: ${created.error || response.status}`);
+      throw new Error(`[RuneSignal HITL] Failed to create approval: ${created.error || response.status}`);
     }
 
     return this._pollUntilDecision(created.approval_id);
@@ -68,7 +68,7 @@ export class HitlClient {
     });
 
     const data = await response.json();
-    if (!response.ok) throw new Error(`[TrustLayer HITL] ${data.error || response.status}`);
+    if (!response.ok) throw new Error(`[RuneSignal HITL] ${data.error || response.status}`);
 
     return {
       approvalId: data.approval_id,
@@ -82,7 +82,7 @@ export class HitlClient {
    */
   async getApproval(approvalId: string): Promise<ApprovalResponse> {
     const response = await this._fetch(`/api/v1/hitl/approvals/${approvalId}`);
-    if (!response.ok) throw new Error(`[TrustLayer HITL] Approval not found: ${approvalId}`);
+    if (!response.ok) throw new Error(`[RuneSignal HITL] Approval not found: ${approvalId}`);
     const data = await response.json();
     return this._mapResponse(data);
   }

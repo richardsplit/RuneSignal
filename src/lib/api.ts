@@ -1,5 +1,5 @@
 /**
- * TrustLayer typed API client
+ * RuneSignal typed API client
  *
  * All requests inject X-Tenant-Id from NEXT_PUBLIC_TENANT_ID env var.
  * When the env var is absent (local dev without Supabase) every call rejects

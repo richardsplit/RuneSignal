@@ -75,7 +75,7 @@ export class SlackAdapter implements IntegrationAdapter {
               type: 'actions',
               elements: [{
                 type: 'button',
-                text: { type: 'plain_text', text: 'Review in TrustLayer' },
+                text: { type: 'plain_text', text: 'Review in RuneSignal' },
                 url: payload.review_url,
                 style: 'primary',
               }],

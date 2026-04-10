@@ -1,12 +1,12 @@
 /**
- * TrustLayer SIEM — CEF (Common Event Format) Formatter
+ * RuneSignal SIEM — CEF (Common Event Format) Formatter
  * Compatible with Splunk, QRadar, ArcSight.
  *
  * CEF format: CEF:Version|Device Vendor|Device Product|Device Version|Signature ID|Name|Severity|Extension
  */
 
 const CEF_VERSION = '0';
-const DEVICE_VENDOR = 'TrustLayer';
+const DEVICE_VENDOR = 'RuneSignal';
 const DEVICE_PRODUCT = 'ActionFirewall';
 const DEVICE_VERSION = '1.0';
 
@@ -44,7 +44,7 @@ export function formatAsCEF(event: Record<string, unknown>): string {
   const payload = (event.payload as Record<string, unknown>) || {};
   const ext: string[] = [
     `rt=${new Date(String(event.created_at || '')).getTime() || Date.now()}`,
-    `dvchost=trustlayer-edge`,
+    `dvchost=runesignal-edge`,
     `src=${event.tenant_id || 'unknown'}`,
     `suser=${event.agent_id || 'system'}`,
     `requestMethod=${eventType}`,

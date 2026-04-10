@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('TrustLayer Billing & Usage', () => {
+test.describe('RuneSignal Billing & Usage', () => {
   test('should display pricing plans correctly', async ({ page }) => {
     // Navigate to the billing page
     await page.goto('/billing');

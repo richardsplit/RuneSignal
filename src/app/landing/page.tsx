@@ -86,7 +86,7 @@ const HOW_IT_WORKS = [
   {
     step: '01',
     title: 'Register your agents',
-    desc: 'Add every AI agent to TrustLayer\'s Non-Human Identity registry. Each gets a cryptographic identity and scoped permissions.',
+    desc: 'Add every AI agent to RuneSignal\'s Non-Human Identity registry. Each gets a cryptographic identity and scoped permissions.',
   },
   {
     step: '02',
@@ -96,7 +96,7 @@ const HOW_IT_WORKS = [
   {
     step: '03',
     title: 'Route every action through the firewall',
-    desc: 'Before any agent action executes, TrustLayer evaluates it against your SOUL, permissions, budget caps, and data residency policy.',
+    desc: 'Before any agent action executes, RuneSignal evaluates it against your SOUL, permissions, budget caps, and data residency policy.',
   },
   {
     step: '04',
@@ -251,7 +251,7 @@ export default function LandingPage() {
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: '16px', flexShrink: 0,
             }}>🔒</div>
-            <span style={{ fontWeight: 700, fontSize: '1.1rem', color: '#fff', letterSpacing: '-0.3px' }}>TrustLayer</span>
+            <span style={{ fontWeight: 700, fontSize: '1.1rem', color: '#fff', letterSpacing: '-0.3px' }}>RuneSignal</span>
           </Link>
 
           {/* Centre nav */}
@@ -356,7 +356,7 @@ export default function LandingPage() {
           color: 'rgba(255,255,255,0.55)', maxWidth: '620px',
           lineHeight: 1.6, marginBottom: '40px',
         }}>
-          TrustLayer intercepts every AI agent action before it executes — evaluating intent, checking ethics, enforcing budgets, and signing a cryptographic proof of every decision.
+          RuneSignal intercepts every AI agent action before it executes — evaluating intent, checking ethics, enforcing budgets, and signing a cryptographic proof of every decision.
         </p>
 
         {/* CTAs */}
@@ -446,7 +446,7 @@ export default function LandingPage() {
             From zero to governed in minutes.
           </h2>
           <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: '1.05rem', maxWidth: '520px', margin: '0 auto', lineHeight: 1.6 }}>
-            TrustLayer wraps around your existing agent stack. No rebuilding. No rearchitecting.
+            RuneSignal wraps around your existing agent stack. No rebuilding. No rearchitecting.
           </p>
         </div>
 
@@ -534,7 +534,7 @@ export default function LandingPage() {
             Everything competitors don't ship.
           </h2>
           <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '1rem', lineHeight: 1.6 }}>
-            Credo AI produces reports. Lakera guards prompts. TrustLayer governs the entire agent lifecycle.
+            Credo AI produces reports. Lakera guards prompts. RuneSignal governs the entire agent lifecycle.
           </p>
         </div>
 
@@ -546,11 +546,11 @@ export default function LandingPage() {
             <thead>
               <tr style={{ background: 'rgba(255,255,255,0.04)' }}>
                 <th style={{ padding: '16px 20px', textAlign: 'left', fontSize: '0.8rem', color: 'rgba(255,255,255,0.35)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Capability</th>
-                {['Credo AI', 'Lakera', 'TrustLayer'].map(name => (
+                {['Credo AI', 'Lakera', 'RuneSignal'].map(name => (
                   <th key={name} style={{
                     padding: '16px 20px', textAlign: 'center', fontSize: '0.85rem',
-                    color: name === 'TrustLayer' ? '#10b981' : 'rgba(255,255,255,0.55)',
-                    fontWeight: name === 'TrustLayer' ? 700 : 500,
+                    color: name === 'RuneSignal' ? '#10b981' : 'rgba(255,255,255,0.55)',
+                    fontWeight: name === 'RuneSignal' ? 700 : 500,
                   }}>{name}</th>
                 ))}
               </tr>
@@ -634,7 +634,7 @@ export default function LandingPage() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '32px', marginBottom: '48px' }}>
             <div>
               <div style={{ fontWeight: 700, fontSize: '1rem', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span>🔒</span> TrustLayer
+                <span>🔒</span> RuneSignal
               </div>
               <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.35)', lineHeight: 1.6 }}>
                 Runtime governance for AI agent fleets.
@@ -670,7 +670,7 @@ export default function LandingPage() {
             justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px',
           }}>
             <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.25)' }}>
-              © 2026 TrustLayer. All rights reserved.
+              © 2026 RuneSignal. All rights reserved.
             </span>
             <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.25)' }}>
               EU AI Act ready · GDPR compliant · SOC 2 in progress

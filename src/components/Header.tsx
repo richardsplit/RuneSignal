@@ -92,7 +92,7 @@ export default function Header() {
         <button
           className="btn btn-ghost"
           style={{ gap: '0.375rem', fontSize: '0.8125rem' }}
-          onClick={() => showToast('Opening TrustLayer Documentation...')}
+          onClick={() => showToast('Opening RuneSignal Documentation...')}
         >
           <DocsIcon />
           Docs

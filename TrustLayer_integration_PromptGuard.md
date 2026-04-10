@@ -2,17 +2,17 @@ INTEGRATION BRIEF
 
 PromptGuard Enterprise
 
-× TrustLayer
+× RuneSignal
 
 Integration Architecture, Corporate Enterprise Concept & Master Build Prompt
 
-Platform	TrustLayer - Enterprise AI Governance Platform (Next.js 16, Supabase, Ed25519, pgvector)
+Platform	RuneSignal - Enterprise AI Governance Platform (Next.js 16, Supabase, Ed25519, pgvector)
 Extension	PromptGuard - AI Agent Identity, Moral Profile & Manager-RoboDeveloper Security Layer
-Relationship	PromptGuard as a native TrustLayer module (S8 - MoralOS), not a separate product
+Relationship	PromptGuard as a native RuneSignal module (S8 - MoralOS), not a separate product
 Date	April 2026
 Status	Concept + Build Prompt - Ready for Claude Code / Opus 4.6 implementation
-Part 1: TrustLayer - What You Built
-TrustLayer is a cryptographic AI governance control plane for enterprises. Based on the codebase review, it currently implements five production modules:
+Part 1: RuneSignal - What You Built
+RuneSignal is a cryptographic AI governance control plane for enterprises. Based on the codebase review, it currently implements five production modules:
 
 S3 - Provenance	Cryptographic hashing & Ed25519 signing of all LLM I/O. SHA-256 certificates. Immutable audit ledger in Supabase. Drop-in ATPClient SDK wrapping OpenAI & Anthropic.
 S6 - Identity	Agent credential registry. RS256 JWT issuance. Typed PermissionScope enforcement. MCP proxy layer validating tool calls against scopes.
@@ -22,7 +22,7 @@ S5 - Insurance	Actuarial risk scoring (0-100) from agent telemetry. Dynamic prem
 Tech stack: Next.js 16 App Router, Supabase (PostgreSQL 15, pgvector, RLS), Ed25519 Web Crypto, @panva/jose, Upstash Redis rate limiting, Vercel deployment.
 
 Part 2: PromptGuard Enterprise - The New Concept
-PromptGuard adds two capabilities that TrustLayer currently does not have:
+PromptGuard adds two capabilities that RuneSignal currently does not have:
 
 Layer 1 - Security Identity (Father/Son Trust Hierarchy)
 
@@ -43,13 +43,13 @@ Each RoboDeveloper operates within both Manager authority AND the Corporate SOUL
 Managers can delegate within their scope but cannot override the Corporate SOUL.
 Part 3: Integration Recommendation
 Recommendation: PromptGuard as Module S8 - MoralOS
-PromptGuard should be built as a native TrustLayer module, not a standalone product. Here's why:
+PromptGuard should be built as a native RuneSignal module, not a standalone product. Here's why:
 
-Shared Infrastructure	TrustLayer already has Ed25519 signing (LedgerSigner), JWT identity (S6), HITL approval routing (S7), and audit ledger - all of which PromptGuard needs. Building separately would duplicate all of this.
+Shared Infrastructure	RuneSignal already has Ed25519 signing (LedgerSigner), JWT identity (S6), HITL approval routing (S7), and audit ledger - all of which PromptGuard needs. Building separately would duplicate all of this.
 Natural Extension	S6 registers agents. S8 adds the moral profile to each registered agent. S7 routes HITL approvals. S8 adds a second OOB moral-conflict approval channel. Every touchpoint already exists.
-Audit Integration	Every PromptGuard moral pause or block should be written to the TrustLayer S3 audit ledger with a new event_type: moral.conflict. Compliance teams then have a unified chain of custody.
+Audit Integration	Every PromptGuard moral pause or block should be written to the RuneSignal S3 audit ledger with a new event_type: moral.conflict. Compliance teams then have a unified chain of custody.
 Risk Score Feed	PromptGuard moral conflict frequency feeds directly into S5 Insurance actuarial scoring. Repeated moral violations elevate risk scores and can trigger agent suspension - a completely new signal type.
-SOUL.md as Schema	The Corporate SOUL can be stored in Supabase as a tenant-scoped, Ed25519-signed JSON document, versioned and immutable. This fits naturally into TrustLayer's existing cryptographic architecture.
+SOUL.md as Schema	The Corporate SOUL can be stored in Supabase as a tenant-scoped, Ed25519-signed JSON document, versioned and immutable. This fits naturally into RuneSignal's existing cryptographic architecture.
 S8 Architecture - What Needs to Be Built
 Scenario	Security	Moral Check	Outcome
 New Supabase table: moral_profiles	Corporate SOUL	Per-tenant, Ed25519-signed JSON moral profile. Versioned. Immutable rows.	
@@ -117,15 +117,15 @@ created_at TIMESTAMPTZ DEFAULT NOW()
 ALTER TABLE moral_events ENABLE ROW LEVEL SECURITY;
 
 Part 5: Master Build Prompt
-Use this prompt with Claude Code (claude-opus-4-6) or in a new Claude conversation. It is self-contained and includes full context from both TrustLayer and PromptGuard.
+Use this prompt with Claude Code (claude-opus-4-6) or in a new Claude conversation. It is self-contained and includes full context from both RuneSignal and PromptGuard.
 
 ─── MASTER BUILD PROMPT - START COPY BELOW THIS LINE ───
 
-# TRUSTLAYER × PROMPTGUARD - MODULE S8 (MORALOS) BUILD
+# RUNESIGNAL × PROMPTGUARD - MODULE S8 (MORALOS) BUILD
 
 ## CONTEXT: EXISTING PLATFORM
 
-You are extending TrustLayer, an enterprise AI governance platform built in Next.js 16
+You are extending RuneSignal, an enterprise AI governance platform built in Next.js 16
 
 (App Router), Supabase (PostgreSQL 15 + pgvector + RLS), Ed25519 cryptography via Web
 
@@ -469,7 +469,7 @@ A "block" verdict counts as 3x a "pause" verdict in the moral_conflict_rate.
 
 Create app/moral/page.tsx - S8 MoralOS Dashboard Panel.
 
-Follow the existing TrustLayer design system exactly:
+Follow the existing RuneSignal design system exactly:
 
 - Dark charcoal background (#1a1a2e)
 
@@ -577,7 +577,7 @@ Automatically attach the corresponding domain to agent metadata.
 
 The ConscienceEngine will use this domain as default if none specified in the request.
 
-### CODING RULES (follow existing TrustLayer patterns)
+### CODING RULES (follow existing RuneSignal patterns)
 
 - Use @lib/* path aliases (already configured in tsconfig)
 
@@ -637,18 +637,18 @@ The ConscienceEngine will use this domain as default if none specified in the re
 
 Part 6: Why This Integration Is the Best Solution
 Option A - Native Module S8 (Recommended)
-Integrate PromptGuard directly into TrustLayer as Module S8 - MoralOS.
+Integrate PromptGuard directly into RuneSignal as Module S8 - MoralOS.
 
 Pros	Reuses all existing infrastructure. Single audit ledger. S5 risk scoring gets moral signal. S7 HITL handles OOB approvals. S6 identity extended with robo-* roles. Single dashboard. Single deployment.
 Cons	Deeper coupling. Changes to S6/S7/S5 required. Single codebase to maintain.
 Best for	Your case: you own both products, the architecture is complementary, and shared infrastructure gives you a stronger enterprise offering.
 Option B - Standalone PromptGuard SDK
-Build PromptGuard as a separate package that TrustLayer integrates via npm.
+Build PromptGuard as a separate package that RuneSignal integrates via npm.
 
-Pros	Independent release cycle. Can be adopted by any AI agent framework, not just TrustLayer.
+Pros	Independent release cycle. Can be adopted by any AI agent framework, not just RuneSignal.
 Cons	Duplicates audit ledger, identity, HITL, and approval infrastructure. Much more work. Weaker integrated story for enterprise buyers.
-Best for	If you want to sell PromptGuard to companies that don't use TrustLayer.
+Best for	If you want to sell PromptGuard to companies that don't use RuneSignal.
 Verdict
-Start with Option A (native S8 module). The integration is deep and natural - every PromptGuard feature maps to existing TrustLayer infrastructure. Once S8 is stable, you can extract the conscience engine into a standalone package (Option B) as a secondary SKU. This gives you both: a strong integrated enterprise product and a distributable SDK.
+Start with Option A (native S8 module). The integration is deep and natural - every PromptGuard feature maps to existing RuneSignal infrastructure. Once S8 is stable, you can extract the conscience engine into a standalone package (Option B) as a secondary SKU. This gives you both: a strong integrated enterprise product and a distributable SDK.
 
-PromptGuard Enterprise × TrustLayer - April 2026
+PromptGuard Enterprise × RuneSignal - April 2026

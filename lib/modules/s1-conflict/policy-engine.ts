@@ -95,7 +95,7 @@ export class PolicyEngine {
           max_tokens: 500,
           messages: [{
             role: 'user',
-            content: `You are the TrustLayer S1 Arbiter. Evaluate the following AI agent intent against our corporate policies.
+            content: `You are the RuneSignal S1 Arbiter. Evaluate the following AI agent intent against our corporate policies.
             
             POLICIES:
             ${policyContext}

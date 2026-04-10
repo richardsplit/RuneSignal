@@ -5,7 +5,7 @@ const apiKey = process.env.STRIPE_SECRET_KEY || '';
 export const stripe = new Stripe(apiKey, {
   apiVersion: '2025-01-27.acacia' as any,
   appInfo: {
-    name: 'TrustLayer Platform',
+    name: 'RuneSignal Platform',
     version: '0.1.0',
   },
 });

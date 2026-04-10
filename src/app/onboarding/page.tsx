@@ -85,8 +85,8 @@ export default function OnboardingPage() {
       }}>
         <div style={{ marginBottom: '2.5rem' }}>
           <Image 
-            src="/trustlayer-logo.svg" 
-            alt="TrustLayer" 
+            src="/runesignal-logo.svg" 
+            alt="RuneSignal" 
             width={180} 
             height={45} 
             style={{ margin: '0 auto' }}
@@ -97,7 +97,7 @@ export default function OnboardingPage() {
           Initialize Your Workspace
         </h1>
         <p style={{ color: 'var(--color-text-muted)', marginBottom: '2.5rem', fontSize: '0.95rem' }}>
-          Welcome to TrustLayer. Please provide your company details to set up your secure governance environment.
+          Welcome to RuneSignal. Please provide your company details to set up your secure governance environment.
         </p>
 
         {error && (
@@ -146,7 +146,7 @@ export default function OnboardingPage() {
         </form>
 
         <p style={{ marginTop: '2rem', fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
-          By creating a workspace, you agree to the TrustLayer Enterprise Governance Terms.
+          By creating a workspace, you agree to the RuneSignal Enterprise Governance Terms.
         </p>
       </div>
     </div>

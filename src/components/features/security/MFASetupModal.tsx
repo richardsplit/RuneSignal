@@ -26,7 +26,7 @@ export default function MFASetupModal({ isOpen, onClose, onSuccess }: MFASetupMo
     try {
       const { data, error } = await supabase.auth.mfa.enroll({
         factorType: 'totp',
-        issuer: 'TrustLayer'
+        issuer: 'RuneSignal'
       });
       if (error) throw error;
       

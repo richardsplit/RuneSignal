@@ -166,11 +166,11 @@ function buildCommands(
     {
       id: 'act-docs',
       label: 'Open Documentation',
-      description: 'TrustLayer developer docs',
+      description: 'RuneSignal developer docs',
       group: 'Actions',
       kind: 'action',
       icon: null,
-      action: () => showToast('Opening TrustLayer Documentation...'),
+      action: () => showToast('Opening RuneSignal Documentation...'),
     },
   ];
 }

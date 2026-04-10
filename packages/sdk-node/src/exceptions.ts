@@ -1,5 +1,5 @@
 /**
- * TrustLayer Node SDK — Exceptions (HITL) Resource
+ * RuneSignal Node SDK — Exceptions (HITL) Resource
  */
 
 import { BaseClient } from './client';

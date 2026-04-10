@@ -1,8 +1,8 @@
 openapi: 3.1.0
 info:
-  title: TrustLayer API
+  title: RuneSignal API
   description: |
-    **TrustLayer** is the AI Agent Action Firewall for Enterprise Systems.
+    **RuneSignal** is the AI Agent Action Firewall for Enterprise Systems.
 
     Every consequential agent action is evaluated against identity, policy, moral alignment,
     and risk rules before execution. Ed25519-signed audit certificates provide tamper-evident
@@ -24,10 +24,10 @@ info:
     - Enterprise: unlimited
   version: 2.0.0
   contact:
-    name: TrustLayer Support
-    url: https://trustlayer.com
+    name: RuneSignal Support
+    url: https://runesignal.com
 servers:
-  - url: https://api.trustlayer.com/api/v1
+  - url: https://api.runesignal.com/api/v1
     description: Production API
   - url: http://localhost:3000/api/v1
     description: Local Development
@@ -301,7 +301,7 @@ paths:
     post:
       summary: Evaluate Agent Action
       description: |
-        The core TrustLayer firewall endpoint. Chains identity → policy + moral (parallel) →
+        The core RuneSignal firewall endpoint. Chains identity → policy + moral (parallel) →
         risk → HITL auto-escalation. Returns a composite verdict in <500ms p95.
 
         **Verdicts:**

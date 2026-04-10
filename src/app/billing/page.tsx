@@ -79,7 +79,7 @@ export default function BillingPage() {
     if (planId === currentTier) return;
     
     if (!priceId && planId === 'enterprise') {
-       window.location.href = 'mailto:sales@trustlayer.dev';
+       window.location.href = 'mailto:sales@runesignal.dev';
        return;
     }
 
