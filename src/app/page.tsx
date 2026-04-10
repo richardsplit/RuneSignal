@@ -275,11 +275,83 @@ export default function DashboardPage() {
           <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
             Register your first AI agent to start generating provenance certificates and firewall evaluations.
           </p>
-          <a href="/identity" style={{ display: 'inline-block', marginTop: '1rem', padding: '0.6rem 1.5rem', background: 'var(--color-primary-emerald)', color: '#fff', borderRadius: '6px', fontSize: '0.875rem', fontWeight: 600, textDecoration: 'none' }}>
-            Register First Agent
-          </a>
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <Link href="/login?mode=signup" style={{
+              textDecoration: 'none',
+              background: 'linear-gradient(135deg, #10b981, #3b82f6)',
+              color: '#fff', fontSize: '1rem', fontWeight: 600,
+              padding: '16px 32px', borderRadius: '12px',
+              transition: 'opacity 0.2s, transform 0.1s',
+              display: 'inline-block',
+            }}
+              onMouseEnter={e => { e.currentTarget.style.opacity = '0.9'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+              onMouseLeave={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'translateY(0)'; }}
+            >Create free account →</Link>
+            <Link href="/documentation" style={{
+              textDecoration: 'none',
+              background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.8)',
+              fontSize: '1rem', fontWeight: 500,
+              padding: '16px 32px', borderRadius: '12px',
+              border: '1px solid rgba(255,255,255,0.1)',
+              display: 'inline-block',
+            }}>Read the docs</Link>
+          </div>
         </div>
-      )}
+      </section>
+
+      {/* ── FOOTER ── */}
+      <footer style={{
+        borderTop: '1px solid rgba(255,255,255,0.06)',
+        padding: '48px 24px',
+      }}>
+        <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '32px', marginBottom: '48px' }}>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: '1rem', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span>🔒</span> TrustLayer
+              </div>
+              <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.35)', lineHeight: 1.6 }}>
+                Runtime governance for AI agent fleets.
+              </p>
+            </div>
+            {[
+              { heading: 'Product', links: ['AI Action Firewall', 'Corporate SOUL', 'FinOps Control', 'Red Teaming', 'A2A Gateway'] },
+              { heading: 'Solutions', links: ['Financial Services', 'Healthcare AI', 'Insurance', 'Government', 'Industrial'] },
+              { heading: 'Legal', links: ['Privacy Policy', 'Terms of Service', 'DPA', 'SLA', 'Security'] },
+            ].map(col => (
+              <div key={col.heading}>
+                <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '16px' }}>
+                  {col.heading}
+                </div>
+                {col.links.map(link => (
+                  <div key={link} style={{ marginBottom: '10px' }}>
+                    <Link href="/login" style={{
+                      textDecoration: 'none', fontSize: '0.875rem',
+                      color: 'rgba(255,255,255,0.5)',
+                      transition: 'color 0.2s',
+                    }}
+                      onMouseEnter={e => (e.currentTarget.style.color = '#fff')}
+                      onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.5)')}
+                    >{link}</Link>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+          <div style={{
+            borderTop: '1px solid rgba(255,255,255,0.06)',
+            paddingTop: '24px', display: 'flex',
+            justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px',
+          }}>
+            <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.25)' }}>
+              © 2026 TrustLayer. All rights reserved.
+            </span>
+            <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.25)' }}>
+              EU AI Act ready · GDPR compliant · SOC 2 in progress
+            </span>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

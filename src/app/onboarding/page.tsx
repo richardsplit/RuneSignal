@@ -59,7 +59,7 @@ export default function OnboardingPage() {
       });
 
       // 4. Success -> Redirect to dashboard
-      router.push('/');
+      router.push('/dashboard');
       router.refresh();
     } catch (err: any) {
       setError(err.message || 'Onboarding failed');
