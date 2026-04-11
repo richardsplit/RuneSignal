@@ -986,51 +986,6 @@ paths:
                   summary:
                     type: object
 
-  /insurance/analytics:
-    get:
-      summary: Risk Analytics
-      description: Returns 30/60/90-day risk score trends and per-agent summaries.
-      tags: [Risk]
-      security:
-        - ApiKeyAuth: []
-      parameters:
-        - name: X-Tenant-Id
-          in: header
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: Risk analytics data
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  overall:
-                    type: object
-                    properties:
-                      avg_risk_score:
-                        type: number
-                      max_risk_score:
-                        type: number
-                      total_agents:
-                        type: integer
-                      high_risk_agents:
-                        type: integer
-                      risk_trend:
-                        type: string
-                        enum: [improving, stable, worsening]
-                  trend_30d:
-                    type: array
-                    items:
-                      type: object
-                  agent_summaries:
-                    type: array
-                    items:
-                      type: object
-
   /intent:
     post:
       summary: Mediate Agent Intent

@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 
 /* ─── Types ──────────────────────────────────────────────────────────── */
 type EventSeverity = 'critical' | 'warning' | 'info' | 'success';
-type EventCategory = 'exception' | 'policy' | 'identity' | 'provenance' | 'conflict' | 'insurance' | 'system';
+type EventCategory = 'exception' | 'policy' | 'identity' | 'provenance' | 'conflict' | 'system';
 
 interface AuditEvent {
   id: string;
@@ -78,17 +78,10 @@ const EVENTS: AuditEvent[] = [
     ref: 'agt-005',
   },
   {
-    id: 'evt-0083', ts: '11:22:30', date: 'Yesterday',
-    severity: 'warning', category: 'insurance', actorType: 'system', actor: 'Risk Engine',
-    title: 'Risk score escalated — SlackBot_Dev (55 → 95)',
-    detail: 'Actuarial model recalculated following 8 new violations. Premium adjusted to $1,500/mo.',
-    ref: 'agt-003',
-  },
-  {
     id: 'evt-0082', ts: '09:01:00', date: 'Yesterday',
     severity: 'info', category: 'system', actorType: 'system', actor: 'RuneSignal',
     title: 'Scheduled risk recalculation completed',
-    detail: 'Fleet-wide actuarial snapshot complete. 4 agents evaluated. No critical escalations.',
+    detail: 'Fleet-wide risk snapshot complete. 4 agents evaluated. No critical escalations.',
     ref: undefined,
   },
 ];
@@ -107,7 +100,6 @@ const CAT_LABELS: Record<EventCategory, string> = {
   identity:   'Identity',
   provenance: 'Provenance',
   conflict:   'Conflict',
-  insurance:  'Insurance',
   system:     'System',
 };
 

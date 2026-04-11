@@ -65,16 +65,6 @@ const MODULES: Module[] = [
     delta: '1 critical',
   },
   {
-    label: 'Risk & Insurance',
-    href: '/insurance',
-    kpi: '42',
-    kpiUnit: 'fleet score',
-    kpiColor: 'var(--warning)',
-    description: 'Actuarial modeling, premiums and active claim tracking.',
-    status: 'warning',
-    delta: '1 active claim',
-  },
-  {
     label: 'Policy Engine',
     href: '/moral',
     kpi: 'v2.1',

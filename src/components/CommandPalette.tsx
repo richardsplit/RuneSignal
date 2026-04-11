@@ -78,7 +78,6 @@ function buildCommands(
     { id: 'nav-conflict',    label: 'Conflict Arbiter',     description: 'Intent collision detection',             group: 'Navigate', kind: 'navigate', href: '/conflict',   icon: null },
     { id: 'nav-exceptions',  label: 'Review Queue',         description: 'Human-in-the-loop approvals',            group: 'Navigate', kind: 'navigate', href: '/exceptions', icon: null },
     { id: 'nav-identity',    label: 'Agent Identity',       description: 'Registered agents and credentials',      group: 'Navigate', kind: 'navigate', href: '/identity',   icon: null },
-    { id: 'nav-insurance',   label: 'Risk & Insurance',     description: 'Actuarial modeling and premiums',        group: 'Navigate', kind: 'navigate', href: '/insurance',  icon: null },
     { id: 'nav-audit',       label: 'Audit Trail',          description: 'Governance event timeline',              group: 'Navigate', kind: 'navigate', href: '/audit',      icon: null },
 
     /* Actions */
@@ -99,15 +98,6 @@ function buildCommands(
       kind: 'action',
       icon: null,
       action: () => { router.push('/provenance'); showToast('Generating cryptographic certificate...'); },
-    },
-    {
-      id: 'act-file-claim',
-      label: 'File Insurance Claim',
-      description: 'Open the claims filing portal',
-      group: 'Actions',
-      kind: 'action',
-      icon: null,
-      action: () => { router.push('/insurance'); showToast('Redirecting to Claims Filing Portal...', 'info'); },
     },
     {
       id: 'act-new-policy',

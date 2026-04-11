@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { createBrowserClient } from '@lib/db/supabase';
 import { useRouter, usePathname } from 'next/navigation';
+import { setSessionTenantId } from '@/lib/api';
 
 interface TenantContextType {
   tenantId: string | null;
@@ -48,6 +49,7 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
         }
 
         setTenantId(membership.tenant_id);
+        setSessionTenantId(membership.tenant_id);
       } catch (err: any) {
         setError(err.message);
       } finally {

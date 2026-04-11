@@ -12,7 +12,6 @@ const ROUTE_LABELS: Record<string, { section: string | null; title: string }> = 
   '/exceptions': { section: 'Governance',      title: 'Review Queue'    },
   '/audit':      { section: 'Governance',      title: 'Audit Trail'     },
   '/identity':   { section: 'Risk & Identity', title: 'Agent Identity'  },
-  '/insurance':  { section: 'Risk & Identity', title: 'Risk & Insurance'},
 };
 
 /* ── Icons ───────────────────────────────────────────────────────────── */

@@ -2,7 +2,21 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import { useToast } from '@/components/ToastProvider';
-import { insurance as insuranceApi, AgentRiskProfile, InsuranceClaim, ApiError } from '@/lib/api';
+import { AgentRiskProfile, ApiError } from '@/lib/api';
+
+// InsuranceClaim type kept locally — S5 insurance is admin-gated and not
+// exported from the public API client.
+interface InsuranceClaim {
+  id: string;
+  tenant_id: string;
+  agent_id: string;
+  incident_type: string;
+  financial_impact: number;
+  description: string;
+  status: 'filed' | 'investigating' | 'approved' | 'denied';
+  filed_at: string;
+  resolved_at?: string;
+}
 import { ApiErrorBanner, SkeletonTable } from '@/components/Skeleton';
 
 /* ─── Demo fallback ──────────────────────────────────────────────────── */
@@ -60,11 +74,9 @@ export default function InsurancePage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await insuranceApi.profiles();
-      setProfiles(res.profiles);
-      setIsDemo(false);
-      // Claims come from a separate endpoint — not exposed by current API, use demo
-      setClaims(DEMO_CLAIMS);
+      // S5 Insurance is admin-gated — API client methods removed from public surface.
+      // Always show demo data. Live data requires direct API access.
+      throw new Error('Insurance module is admin-gated');
     } catch (err) {
       const msg = err instanceof ApiError ? err.message : 'Network error';
       setError(msg);

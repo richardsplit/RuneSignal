@@ -2,7 +2,7 @@ import { createAdminClient } from '../lib/db/supabase';
 import { v4 as uuidv4 } from 'uuid';
 
 async function runS6Tests() {
-  const tenantId = '7da27c93-6889-4fda-8b22-df4689fbbcd6';
+  const tenantId = process.env.TEST_TENANT_ID || 'test-tenant-id';
   const agentId = uuidv4();
   const supabase = createAdminClient();
 

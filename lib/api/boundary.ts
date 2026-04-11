@@ -34,9 +34,6 @@ export const PUBLIC_API_ROUTES: string[] = [
   // Moral Evaluation (S8)
   '/api/v1/moral',
 
-  // Risk Scoring (S5)
-  '/api/v1/insurance/risk',
-
   // Enforcement (S6 + S8 combined)
   '/api/v1/enforce/tool-call',
 

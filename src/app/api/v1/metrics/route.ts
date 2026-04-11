@@ -19,13 +19,11 @@ export async function GET(request: NextRequest) {
       { count: totalAgents },
       { count: activeIntents },
       { count: openExceptions },
-      { count: totalClaims },
       { count: violationsToday }
     ] = await Promise.all([
       supabase.from('agent_credentials').select('*', { count: 'exact', head: true }).eq('tenant_id', tenantId),
       supabase.from('agent_intents').select('*', { count: 'exact', head: true }).eq('tenant_id', tenantId).gt('expires_at', new Date().toISOString()),
       supabase.from('hitl_exceptions').select('*', { count: 'exact', head: true }).eq('tenant_id', tenantId).eq('status', 'open'),
-      supabase.from('insurance_claims').select('*', { count: 'exact', head: true }).eq('tenant_id', tenantId),
       supabase.from('audit_events').select('*', { count: 'exact', head: true }).eq('tenant_id', tenantId).eq('event_type', 'agent.permission_violation')
     ]);
 
@@ -34,7 +32,6 @@ export async function GET(request: NextRequest) {
         agents: totalAgents || 0,
         active_intents: activeIntents || 0,
         open_exceptions: openExceptions || 0,
-        total_claims: totalClaims || 0,
         violations_today: violationsToday || 0
       },
       health_status: (violationsToday || 0) > 5 ? 'at_risk' : 'healthy',

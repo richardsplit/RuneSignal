@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import * as crypto from 'crypto';
 
 async function runS7Tests() {
-  const tenantId = '7da27c93-6889-4fda-8b22-df4689fbbcd6'; // Use a consistent test tenant ID
+  const tenantId = process.env.TEST_TENANT_ID || 'test-tenant-id';
   const agentId = uuidv4();
   const supabase = createAdminClient();
 

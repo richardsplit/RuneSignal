@@ -1,16 +1,25 @@
 /**
  * RuneSignal typed API client
  *
- * All requests inject X-Tenant-Id from NEXT_PUBLIC_TENANT_ID env var.
- * When the env var is absent (local dev without Supabase) every call rejects
- * with a predictable error so callers can fall back to demo data gracefully.
+ * Tenant ID is resolved at runtime from TenantContext (React) or middleware
+ * (server-side). No hardcoded tenant IDs — callers must provide tenantId
+ * via apiFetch options or the request will rely on the middleware-injected
+ * X-Tenant-Id header from the authenticated session.
  */
 
-/* ─── Config ─────────────────────────────────────────────────────────── */
-export const TENANT_ID =
-  process.env.NEXT_PUBLIC_TENANT_ID ?? 'demo-tenant';
-
 const BASE = '/api/v1';
+
+/**
+ * Setter for the per-session tenant ID. Called by useTenant() hook or
+ * layout-level bootstrap so all subsequent apiFetch calls include it.
+ */
+let _sessionTenantId: string | null = null;
+export function setSessionTenantId(id: string | null) {
+  _sessionTenantId = id;
+}
+export function getSessionTenantId(): string | null {
+  return _sessionTenantId;
+}
 
 /* ─── Shared types ───────────────────────────────────────────────────── */
 export interface AgentCredential {
@@ -55,17 +64,6 @@ export interface AgentRiskProfile {
   agent_credentials?: { agent_name: string };
 }
 
-export interface InsuranceClaim {
-  id: string;
-  tenant_id: string;
-  agent_id: string;
-  incident_type: string;
-  financial_impact: number;
-  description: string;
-  status: 'filed' | 'investigating' | 'approved' | 'denied';
-  filed_at: string;
-  resolved_at?: string;
-}
 
 export interface ProvenanceLedgerEntry {
   request_id: string;
@@ -103,11 +101,16 @@ async function apiFetch<T>(
   path: string,
   options: RequestInit = {},
 ): Promise<T> {
+  const tenantId = _sessionTenantId;
+  if (!tenantId) {
+    throw new ApiError(401, 'No tenant context — user must be authenticated');
+  }
+
   const res = await fetch(`${BASE}${path}`, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
-      'X-Tenant-Id': TENANT_ID,
+      'X-Tenant-Id': tenantId,
       ...options.headers,
     },
   });
@@ -163,32 +166,6 @@ export const exceptions = {
     }),
 };
 
-/* ─── Insurance ──────────────────────────────────────────────────────── */
-export const insurance = {
-  profiles: () =>
-    apiFetch<{ profiles: AgentRiskProfile[] }>('/insurance'),
-
-  premium: (agent_id: string) =>
-    apiFetch<{
-      agent_id: string;
-      base_premium: number;
-      risk_multiplier: number;
-      final_premium: number;
-      risk_score: number;
-      risk_factors: string[];
-    }>(`/insurance?agent_id=${agent_id}`),
-
-  fileClaim: (body: {
-    agent_id: string;
-    incident_type: string;
-    financial_impact: number;
-    description?: string;
-  }) =>
-    apiFetch<{ message: string; claim: InsuranceClaim }>('/insurance', {
-      method: 'POST',
-      body: JSON.stringify(body),
-    }),
-};
 
 /* ─── Provenance ─────────────────────────────────────────────────────── */
 export const provenance = {
@@ -205,11 +182,9 @@ export const intent = {
     apiFetch<{ intents: AgentIntent[] }>(`/intent?limit=${limit}`),
 };
 
-/* ─── Health (outside /v1 prefix) ───────────────────────────────────── */
+/* ─── Health (outside /v1 prefix — no tenant required) ──────────────── */
 export async function checkHealth() {
-  const res = await fetch('/api/health', {
-    headers: { 'X-Tenant-Id': TENANT_ID },
-  });
+  const res = await fetch('/api/health');
   if (!res.ok) throw new ApiError(res.status, res.statusText);
   return res.json() as Promise<{ status: string; timestamp: string; version: string }>;
 }

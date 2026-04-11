@@ -111,60 +111,6 @@ export default function ExceptionsPage() {
 
   const criticalCount = openItems.filter(e => e.priority === 'critical').length;
 
-  const fetchTickets = async () => {
-    try {
-      const tenantId = localStorage.getItem('tl_tenant_id') || '32c2de2e-e89d-44a6-98e7-27ee88e06bc7'; // Default for MVP
-      const res = await fetch('/api/v1/exceptions', {
-        headers: { 'X-Tenant-Id': tenantId }
-      });
-      const data = await res.json();
-      
-      if (res.ok) {
-        setExceptions(data.filter((t: any) => t.status === 'open' || t.status === 'escalated'));
-        setResolved(data.filter((t: any) => t.status !== 'open' && t.status !== 'escalated'));
-      }
-    } catch (e) {
-      console.error('Failed to fetch exceptions:', e);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchTickets();
-  }, []);
-
-  const handleAction = async (id: string, action: 'approve' | 'reject') => {
-    const tenantId = localStorage.getItem('tl_tenant_id') || '32c2de2e-e89d-44a6-98e7-27ee88e06bc7';
-    
-    showToast(`Processing ${action.toUpperCase()}...`, 'info');
-    
-    try {
-      const res = await fetch(`/api/v1/exceptions/${id}/resolve`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'X-Tenant-Id': tenantId 
-        },
-        body: JSON.stringify({
-          action,
-          reason: `Resolved via RuneSignal Dashboard`,
-          reviewer_id: 'admin-001' // Mock reviewer ID for MVP
-        })
-      });
-
-      if (res.ok) {
-        showToast(`Successfully ${action.toUpperCase()}D ticket.`, 'success');
-        fetchTickets(); // Refresh list
-      } else {
-        const err = await res.json();
-        showToast(`Failure: ${err.error}`, 'error');
-      }
-    } catch (e) {
-      showToast('Network error during resolution', 'error');
-    }
-  };
-
   return (
     <div style={{ maxWidth: '1100px' }}>
 
