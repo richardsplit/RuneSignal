@@ -13,7 +13,7 @@ info:
     ```
     Authorization: Bearer tl_your_api_key_here
     ```
-    Generate API keys in **Account Settings → API Keys**.
+    Generate API keys in **Account Settings -> API Keys**.
 
     ## Tenant Isolation
     All requests require `X-Tenant-Id` header (or use the session tenant for dashboard calls).
@@ -38,6 +38,36 @@ components:
       type: http
       scheme: bearer
       bearerFormat: tl_prod_...
+  parameters:
+    TenantId:
+      name: X-Tenant-Id
+      in: header
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Tenant UUID
+    AgentId:
+      name: X-Agent-Id
+      in: header
+      required: false
+      schema:
+        type: string
+        format: uuid
+      description: Agent UUID
+    Limit:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        default: 50
+        maximum: 200
+    Offset:
+      name: offset
+      in: query
+      schema:
+        type: integer
+        default: 0
   schemas:
     Error:
       type: object
@@ -213,114 +243,158 @@ components:
           type: string
           nullable: true
 
-paths:
-  /provenance:
-    get:
-      summary: Query Audit Certificates or Model Versions
-      description: Returns a list of cryptographic certificates for a tenant or a list of detected model versions.
-      parameters:
-        - name: action
-          in: query
-          required: false
-          schema:
-            type: string
-            enum: [model-versions, query]
-        - name: limit
-          in: query
-          schema:
-            type: integer
-            default: 50
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: array
-                    items:
-                      type: object
-  
-  /intent:
-    post:
-      summary: Mediate Agent Intent
-      description: Evaluates an agent's intended action against existing locks and policy constraints.
-      security:
-        - ApiKeyAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [intent_description]
-              properties:
-                intent_description:
-                  type: string
-                  example: "Executing a financial transfer to vendor X"
-                vendor:
-                  type: string
-                  enum: [openai, claude]
-    responses:
-      '200':
-        description: Intent mediation result
-      '403':
-        description: Intent blocked
-  
-  /moral:
-    post:
-      summary: Evaluate Moral Alignment
-      description: Evaluates an action against the Corporate SOUL (Governance Policy).
-      security:
-        - ApiKeyAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [action_description, domain]
-              properties:
-                action_description:
-                  type: string
-                  example: "Sharing sensitive customer data with external vendor"
-                domain:
-                  type: string
-                  example: "privacy"
-      responses:
-        '200':
-          description: Moral verdict
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MoralVerdict'
+    A2ASession:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        tenant_id:
+          type: string
+          format: uuid
+        initiator_id:
+          type: string
+          format: uuid
+        target_id:
+          type: string
+          format: uuid
+        task_description:
+          type: string
+        status:
+          type: string
+          enum: [active, completed, expired]
+        verdict:
+          type: string
+        signature:
+          type: string
+        message_count:
+          type: integer
+        expires_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
 
+    Approval:
+      type: object
+      properties:
+        approval_id:
+          type: string
+          format: uuid
+        agent_id:
+          type: string
+          format: uuid
+        action_type:
+          type: string
+        action_description:
+          type: string
+        blast_radius:
+          type: string
+          enum: [low, medium, high, critical]
+        reversible:
+          type: boolean
+        status:
+          type: string
+          enum: [pending, approved, rejected, escalated, expired]
+        decision:
+          type: string
+          nullable: true
+          enum: [approved, rejected]
+        decided_by:
+          type: object
+          nullable: true
+        decided_at:
+          type: string
+          format: date-time
+          nullable: true
+        reviewer_note:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        expires_at:
+          type: string
+          format: date-time
+
+tags:
+  - name: Firewall
+    description: Core AI action firewall evaluation
+  - name: Agents
+    description: Agent identity and credential management
+  - name: AgentInventory
+    description: Shadow AI discovery and agent inventory
+  - name: Provenance
+    description: Cryptographic audit certificates
+  - name: Policy
+    description: Intent mediation and policy enforcement
+  - name: Moral
+    description: Corporate SOUL and moral alignment
+  - name: Exceptions
+    description: HITL exception tickets (legacy)
+  - name: HITL
+    description: Human-in-the-loop approval workflows
+  - name: Compliance
+    description: Compliance reporting and evidence export
+  - name: SIEM
+    description: SIEM event export and subscription
+  - name: A2A
+    description: Agent-to-agent governed communication (S16)
+  - name: Anomaly
+    description: Behavioral anomaly detection (S14)
+  - name: Explain
+    description: Decision explainability (S11)
+  - name: FinOps
+    description: AI cost governance (S9)
+  - name: Physical
+    description: Physical AI safety governance (S15)
+  - name: NHI
+    description: Non-human identity management (S12)
+  - name: Sovereign
+    description: Data sovereignty and residency (S10)
+  - name: Sovereignty
+    description: Data residency policy management
+  - name: RedTeam
+    description: Automated red team campaigns (S17)
+  - name: Plugins
+    description: Plugin marketplace and webhook integrations
+  - name: SoulTemplates
+    description: SOUL template catalog and activation
+  - name: Integrations
+    description: Third-party integrations (Slack, Teams, Jira, ServiceNow)
+  - name: Billing
+    description: Stripe billing and subscription management
+  - name: Auth
+    description: SSO authentication providers
+  - name: Internal
+    description: Dashboard-only endpoints (session auth)
+  - name: Onboarding
+    description: Tenant onboarding utilities
+
+paths:
+  # ──────────────────────────────────────────────
+  # Firewall
+  # ──────────────────────────────────────────────
   /firewall/evaluate:
     post:
       summary: Evaluate Agent Action
       description: |
-        The core RuneSignal firewall endpoint. Chains identity → policy + moral (parallel) →
-        risk → HITL auto-escalation. Returns a composite verdict in <500ms p95.
+        The core RuneSignal firewall endpoint. Chains identity -> policy + moral (parallel) ->
+        risk -> HITL auto-escalation. Returns a composite verdict in <500ms p95.
 
         **Verdicts:**
-        - `allow` — action is safe to proceed
-        - `block` — action is blocked by policy or identity check
-        - `escalate` — action requires human approval (HITL ticket created automatically)
+        - `allow` -- action is safe to proceed
+        - `block` -- action is blocked by policy or identity check
+        - `escalate` -- action requires human approval (HITL ticket created automatically)
       tags: [Firewall]
       security:
         - ApiKeyAuth: []
       parameters:
-        - name: X-Tenant-Id
-          in: header
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/TenantId'
         - name: X-Agent-Id
           in: header
-          required: false
+          required: true
           schema:
             type: string
             format: uuid
@@ -359,6 +433,90 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /firewall/evaluations:
+    get:
+      summary: List Recent Firewall Evaluations
+      description: Returns recent firewall evaluations for the tenant. Used by the dashboard.
+      tags: [Firewall]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+            maximum: 200
+        - name: verdict
+          in: query
+          schema:
+            type: string
+            enum: [allow, block, escalate]
+      responses:
+        '200':
+          description: List of evaluations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+
+  # ──────────────────────────────────────────────
+  # Agents
+  # ──────────────────────────────────────────────
+  /agents:
+    get:
+      summary: List Agents
+      description: Returns all registered agents for the tenant. Optionally filter by status.
+      tags: [Agents]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, suspended, revoked]
+      responses:
+        '200':
+          description: Agent list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  agents:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Agent'
+    post:
+      summary: Register Agent (Simple)
+      description: Registers a new AI agent via the IdentityService.
+      tags: [Agents]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                permissions:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: Agent registered
+
   /agents/register:
     post:
       summary: Register Agent
@@ -367,49 +525,44 @@ paths:
       security:
         - ApiKeyAuth: []
       parameters:
-        - name: X-Tenant-Id
-          in: header
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/TenantId'
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [name, permissions]
+              required: [name]
               properties:
                 name:
                   type: string
                   example: "Invoice Processor v2"
+                type:
+                  type: string
+                  example: "finance"
                 description:
                   type: string
-                model:
+                public_key:
                   type: string
-                  example: "gpt-4o"
-                permissions:
-                  type: array
-                  items:
-                    type: string
-                  example: ["finance:read", "finance:write"]
-                metadata:
-                  type: object
-                  additionalProperties: true
+            example:
+              name: "Invoice Processor v2"
+              type: "finance"
+              description: "Handles AP/AR journal entries"
       responses:
-        '201':
-          description: Agent registered
+        '200':
+          description: Agent registered with token
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/Agent'
-                  - type: object
-                    properties:
-                      token:
-                        type: string
-                        description: JWT bearer token for agent (shown once)
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  agent:
+                    $ref: '#/components/schemas/Agent'
+                  token:
+                    type: string
+                    description: JWT bearer token (shown once)
 
   /agents/{id}:
     get:
@@ -424,12 +577,7 @@ paths:
           schema:
             type: string
             format: uuid
-        - name: X-Tenant-Id
-          in: header
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/TenantId'
       responses:
         '200':
           description: Agent detail
@@ -437,8 +585,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Agent'
+        '404':
+          description: Agent not found
     patch:
-      summary: Update Agent
+      summary: Update Agent Status
+      description: Transition agent to active or suspended.
       tags: [Agents]
       security:
         - ApiKeyAuth: []
@@ -449,22 +600,16 @@ paths:
           schema:
             type: string
             format: uuid
-        - name: X-Tenant-Id
-          in: header
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/TenantId'
       requestBody:
         content:
           application/json:
             schema:
               type: object
               properties:
-                action:
+                status:
                   type: string
-                  enum: [suspend, reactivate]
-                  description: Status transition
+                  enum: [active, suspended]
                 reason:
                   type: string
       responses:
@@ -472,6 +617,7 @@ paths:
           description: Agent updated
     delete:
       summary: Revoke Agent
+      description: Permanently revokes an agent.
       tags: [Agents]
       security:
         - ApiKeyAuth: []
@@ -482,12 +628,15 @@ paths:
           schema:
             type: string
             format: uuid
-        - name: X-Tenant-Id
-          in: header
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
       responses:
         '200':
           description: Agent revoked
@@ -506,12 +655,7 @@ paths:
           schema:
             type: string
             format: uuid
-        - name: X-Tenant-Id
-          in: header
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/TenantId'
       responses:
         '200':
           description: New token issued
@@ -520,13 +664,790 @@ paths:
               schema:
                 type: object
                 properties:
+                  agent_id:
+                    type: string
+                    format: uuid
                   token:
                     type: string
-                  expires_at:
+                  message:
                     type: string
-                    format: date-time
 
+  /agents/{id}/suspend:
+    post:
+      summary: Suspend Agent (Emergency)
+      description: Immediately suspends a rogue or compromised agent. Audited via S6.
+      tags: [Agents]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: Agent suspended
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  agent:
+                    $ref: '#/components/schemas/Agent'
+
+  # ──────────────────────────────────────────────
+  # Agent Inventory (Shadow AI Discovery)
+  # ──────────────────────────────────────────────
+  /agents/inventory:
+    get:
+      summary: List Agent Inventory
+      description: Returns all agents in the shadow AI discovery inventory. Supports filtering by framework, platform, risk classification, and status.
+      tags: [AgentInventory]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: framework
+          in: query
+          schema:
+            type: string
+        - name: platform
+          in: query
+          schema:
+            type: string
+        - name: risk_classification
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+      responses:
+        '200':
+          description: Agent inventory list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  agents:
+                    type: array
+                    items:
+                      type: object
+                  total:
+                    type: integer
+                  shadow_ai_count:
+                    type: integer
+                  limit:
+                    type: integer
+                  offset:
+                    type: integer
+    post:
+      summary: Add Agent to Inventory
+      description: Manually register an agent in the inventory.
+      tags: [AgentInventory]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                framework:
+                  type: string
+                  default: unknown
+                platform:
+                  type: string
+                  default: custom
+                model:
+                  type: string
+                status:
+                  type: string
+                  default: active
+                risk_classification:
+                  type: string
+                  default: unclassified
+                is_sanctioned:
+                  type: boolean
+                  default: false
+                eu_ai_act_category:
+                  type: string
+                  default: unclassified
+                metadata:
+                  type: object
+      responses:
+        '201':
+          description: Agent added to inventory
+
+  /agents/inventory/register:
+    post:
+      summary: SDK Auto-Registration
+      description: Called automatically on first use of @runesignal/sdk. Upserts the agent in inventory.
+      tags: [AgentInventory]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                agent_id:
+                  type: string
+                name:
+                  type: string
+                framework:
+                  type: string
+                platform:
+                  type: string
+                model:
+                  type: string
+                metadata:
+                  type: object
+      responses:
+        '201':
+          description: New agent registered
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  registered:
+                    type: boolean
+                  agent_id:
+                    type: string
+                    format: uuid
+        '200':
+          description: Existing agent updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  registered:
+                    type: boolean
+                  updated:
+                    type: boolean
+                  agent_id:
+                    type: string
+                    format: uuid
+
+  # ──────────────────────────────────────────────
+  # Provenance
+  # ──────────────────────────────────────────────
+  /provenance:
+    get:
+      summary: Query Audit Certificates or Model Versions
+      description: Returns a list of cryptographic certificates for a tenant or a list of detected model versions.
+      tags: [Provenance]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: action
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [model-versions, query]
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: agent_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                  versions:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        model:
+                          type: string
+                        version:
+                          type: string
+                        last_seen:
+                          type: string
+                          format: date-time
+
+  /provenance/certify:
+    post:
+      summary: Certify Action
+      description: Creates an Ed25519-signed provenance certificate for a completed agent action.
+      tags: [Provenance]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: X-Agent-Id
+          in: header
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action, outcome]
+              properties:
+                action:
+                  type: string
+                resource:
+                  type: string
+                outcome:
+                  type: string
+                  enum: [success, failure, partial]
+                provider:
+                  type: string
+                model_version:
+                  type: string
+                completion_text:
+                  type: string
+                metadata:
+                  type: object
+                  additionalProperties: true
+      responses:
+        '200':
+          description: Certificate created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProvenanceCertificate'
+
+  /provenance/{id}:
+    get:
+      summary: Get Certificate by ID
+      description: Retrieves a provenance certificate by its request ID.
+      tags: [Provenance]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: Certificate detail
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  certificate:
+                    $ref: '#/components/schemas/ProvenanceCertificate'
+        '404':
+          description: Certificate not found
+
+  /provenance/verify/{id}:
+    get:
+      summary: Verify Certificate Signature
+      description: |
+        Public verification endpoint. Re-canonicalizes the certificate payload and
+        verifies the Ed25519 signature. Does not require tenant authentication --
+        external auditors can verify certificates independently.
+      tags: [Provenance]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Certificate request_id
+      responses:
+        '200':
+          description: Verification result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valid:
+                    type: boolean
+                  reason:
+                    type: string
+        '404':
+          description: Certificate not found
+
+  # ──────────────────────────────────────────────
+  # Intent (S1 Conflict Arbiter)
+  # ──────────────────────────────────────────────
+  /intent:
+    post:
+      summary: Mediate Agent Intent
+      description: Evaluates an agent's intended action against existing locks and policy constraints.
+      tags: [Policy]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: X-Agent-Id
+          in: header
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: X-Vendor
+          in: header
+          required: false
+          schema:
+            type: string
+            enum: [openai, claude]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [intent_description]
+              properties:
+                intent_description:
+                  type: string
+                  example: "Executing a financial transfer to vendor X"
+                vendor:
+                  type: string
+                  enum: [openai, claude]
+      responses:
+        '200':
+          description: Intent allowed
+        '403':
+          description: Intent blocked
+        '409':
+          description: Intent queued (resource contention)
+    get:
+      summary: List Recent Intents
+      description: Returns the 50 most recent agent intents for the tenant.
+      tags: [Policy]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: Intent list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  intents:
+                    type: array
+                    items:
+                      type: object
+    put:
+      summary: Override Intent
+      description: Override an existing intent by ID.
+      tags: [Policy]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id]
+              properties:
+                id:
+                  type: string
+                  format: uuid
+                updates:
+                  type: object
+      responses:
+        '200':
+          description: Intent updated
+    delete:
+      summary: Release Intent Lock
+      description: Releases an intent lock by ID.
+      tags: [Policy]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Intent released
+
+  # ──────────────────────────────────────────────
+  # Moral (S8 MoralOS)
+  # ──────────────────────────────────────────────
+  /moral:
+    post:
+      summary: Evaluate Moral Alignment
+      description: Evaluates an action against the Corporate SOUL (Governance Policy).
+      tags: [Moral]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: X-Agent-Id
+          in: header
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action_description]
+              properties:
+                action_description:
+                  type: string
+                  example: "Sharing sensitive customer data with external vendor"
+                domain:
+                  type: string
+                  example: "privacy"
+                  description: "Set to 'auto' for automatic domain detection"
+                action_metadata:
+                  type: object
+      responses:
+        '200':
+          description: Moral verdict (pass or pause)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MoralVerdict'
+        '403':
+          description: Action blocked by moral policy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MoralVerdict'
+    get:
+      summary: Get SOUL or Moral Events
+      description: |
+        Query types:
+        - `?type=soul` -- returns the active Corporate SOUL document
+        - `?type=events` -- returns paginated moral evaluation events
+        - `?type=history` -- returns SOUL version history
+      tags: [Moral]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [soul, events, history]
+            default: soul
+        - name: domain
+          in: query
+          schema:
+            type: string
+          description: Filter events by domain (only for type=events)
+        - name: verdict
+          in: query
+          schema:
+            type: string
+            enum: [pass, pause, block]
+          description: Filter events by verdict (only for type=events)
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+      responses:
+        '200':
+          description: SOUL document, moral events, or version history
+
+  /moral/soul:
+    put:
+      summary: Upsert Corporate SOUL
+      description: Creates or updates the Corporate SOUL governance document.
+      tags: [Moral]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [soul]
+              properties:
+                soul:
+                  type: object
+                  description: The full SOUL governance document
+                admin_id:
+                  type: string
+      responses:
+        '200':
+          description: SOUL updated
+    get:
+      summary: Get SOUL Version History
+      tags: [Moral]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: SOUL version history
+
+  /moral/verify/{version}:
+    post:
+      summary: Verify SOUL Version Signature
+      description: Verifies the Ed25519 signature of a specific SOUL version.
+      tags: [Moral]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: version
+          in: path
+          required: true
+          schema:
+            type: integer
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: Verification result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valid:
+                    type: boolean
+                  version:
+                    type: integer
+
+  # ──────────────────────────────────────────────
+  # Enforce (MCP Proxy)
+  # ──────────────────────────────────────────────
+  /enforce/tool-call:
+    post:
+      summary: Enforce Tool Call Permission
+      description: MCP enforcement proxy. Validates whether an agent is permitted to invoke a specific tool.
+      tags: [Policy]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: X-Agent-Id
+          in: header
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [tool_name]
+              properties:
+                tool_name:
+                  type: string
+                  example: "erp_create_journal"
+      responses:
+        '200':
+          description: Tool call allowed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  allowed:
+                    type: boolean
+                  agent_id:
+                    type: string
+        '403':
+          description: Tool call denied
+
+  # ──────────────────────────────────────────────
+  # Policies
+  # ──────────────────────────────────────────────
+  /policies:
+    get:
+      summary: List Arbiter Policies
+      description: Returns all arbiter policies for the tenant.
+      tags: [Policy]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: Policy list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  policies:
+                    type: array
+                    items:
+                      type: object
+    post:
+      summary: Create Arbiter Policy
+      description: Creates a new semantic policy with embedding-based matching.
+      tags: [Policy]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, description]
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                intent_category:
+                  type: string
+                policy_action:
+                  type: string
+                  enum: [block, allow, escalate]
+                  default: block
+      responses:
+        '200':
+          description: Policy created
+
+  /policies/packs:
+    get:
+      summary: List Policy Packs
+      description: Returns all available regulatory policy packs with tenant installation status.
+      tags: [Policy]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: List of policy packs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  packs:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                        name:
+                          type: string
+                        description:
+                          type: string
+                        category:
+                          type: string
+                          enum: [healthcare, financial, privacy, payment, security]
+                        tier_required:
+                          type: string
+                          enum: [starter, pro, enterprise]
+                        installed:
+                          type: boolean
+                        installed_at:
+                          type: string
+                          format: date-time
+                          nullable: true
+    post:
+      summary: Install Policy Pack
+      description: Installs a regulatory policy pack for the tenant.
+      tags: [Policy]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [pack_id]
+              properties:
+                pack_id:
+                  type: string
+                  format: uuid
+      responses:
+        '201':
+          description: Pack installed
+        '404':
+          description: Pack not found
+
+  # ──────────────────────────────────────────────
+  # Exceptions (Legacy HITL)
+  # ──────────────────────────────────────────────
   /exceptions:
+    get:
+      summary: List HITL Exceptions
+      description: List recent exception tickets for the tenant.
+      tags: [Exceptions]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: Exception list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/HitlTicket'
     post:
       summary: Create HITL Exception
       description: Manually create a human-in-the-loop review ticket.
@@ -534,7 +1455,8 @@ paths:
       security:
         - ApiKeyAuth: []
       parameters:
-        - name: X-Tenant-Id
+        - $ref: '#/components/parameters/TenantId'
+        - name: X-Agent-Id
           in: header
           required: true
           schema:
@@ -560,7 +1482,7 @@ paths:
                   type: string
                   format: uuid
       responses:
-        '201':
+        '200':
           description: Exception created
           content:
             application/json:
@@ -580,12 +1502,7 @@ paths:
           schema:
             type: string
             format: uuid
-        - name: X-Tenant-Id
-          in: header
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/TenantId'
       requestBody:
         required: true
         content:
@@ -603,433 +1520,254 @@ paths:
         '200':
           description: Exception resolved
 
-  /provenance/certify:
+  # ──────────────────────────────────────────────
+  # HITL Approvals (SDK-Oriented)
+  # ──────────────────────────────────────────────
+  /hitl/approvals:
     post:
-      summary: Certify Action
-      description: Creates an Ed25519-signed provenance certificate for a completed agent action.
-      tags: [Provenance]
+      summary: Request HITL Approval
+      description: |
+        Creates a human-in-the-loop approval request for a high-risk agent action.
+        Computes blast radius, dispatches to configured integration channels (Slack, Teams, Jira),
+        and returns a review URL.
+      tags: [HITL]
       security:
         - ApiKeyAuth: []
       parameters:
-        - name: X-Tenant-Id
-          in: header
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/TenantId'
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [action, outcome]
+              required: [agent_id, action_type, action_description]
               properties:
                 agent_id:
                   type: string
                   format: uuid
-                action:
+                action_type:
                   type: string
-                resource:
+                  example: "delete_database"
+                action_description:
                   type: string
-                outcome:
+                action_payload:
+                  type: object
+                blast_radius:
                   type: string
-                  enum: [success, failure, partial]
+                  enum: [low, medium, high, critical]
+                reversible:
+                  type: boolean
+                  default: true
+                context:
+                  type: object
+                routing:
+                  type: object
+                  properties:
+                    escalation_minutes:
+                      type: integer
+                      default: 30
                 metadata:
                   type: object
-                  additionalProperties: true
       responses:
         '201':
-          description: Certificate created
+          description: Approval request created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProvenanceCertificate'
-
-  /provenance/{id}:
+                type: object
+                properties:
+                  approval_id:
+                    type: string
+                    format: uuid
+                  status:
+                    type: string
+                    example: pending
+                  created_at:
+                    type: string
+                    format: date-time
+                  expires_at:
+                    type: string
+                    format: date-time
+                  review_url:
+                    type: string
+                    format: uri
     get:
-      summary: Verify Certificate
-      description: Retrieves and verifies a provenance certificate by ID.
-      tags: [Provenance]
+      summary: List HITL Approvals
+      description: List approval requests with optional status and agent filters.
+      tags: [HITL]
       security:
         - ApiKeyAuth: []
       parameters:
-        - name: id
+        - $ref: '#/components/parameters/TenantId'
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, approved, rejected, escalated, expired]
+        - name: agent_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+      responses:
+        '200':
+          description: Approval list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  approvals:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Approval'
+                  total:
+                    type: integer
+
+  /hitl/approvals/{approval_id}:
+    get:
+      summary: Get Approval Detail
+      tags: [HITL]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: approval_id
           in: path
           required: true
           schema:
             type: string
             format: uuid
-        - name: X-Tenant-Id
-          in: header
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/TenantId'
       responses:
         '200':
-          description: Certificate with verification status
+          description: Approval detail
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/ProvenanceCertificate'
-                  - type: object
-                    properties:
-                      verified:
-                        type: boolean
-                      verification_error:
-                        type: string
-                        nullable: true
-
-  /policies/packs:
-    get:
-      summary: List Policy Packs
-      description: Returns all available regulatory policy packs with tenant installation status.
-      tags: [PolicyPacks]
-      security:
-        - ApiKeyAuth: []
-      parameters:
-        - name: X-Tenant-Id
-          in: header
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: List of policy packs
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  packs:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        id:
-                          type: string
-                          format: uuid
-                        name:
-                          type: string
-                          example: "HIPAA Compliance Pack"
-                        description:
-                          type: string
-                        category:
-                          type: string
-                          enum: [healthcare, financial, privacy, payment, security]
-                        tier_required:
-                          type: string
-                          enum: [starter, pro, enterprise]
-                        policies:
-                          type: array
-                          items:
-                            type: object
-                        installed:
-                          type: boolean
-                        installed_at:
-                          type: string
-                          format: date-time
-                          nullable: true
-    post:
-      summary: Install Policy Pack
-      description: Installs a regulatory policy pack for the tenant.
-      tags: [PolicyPacks]
-      security:
-        - ApiKeyAuth: []
-      parameters:
-        - name: X-Tenant-Id
-          in: header
-          required: true
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [pack_id]
-              properties:
-                pack_id:
-                  type: string
-                  format: uuid
-      responses:
-        '201':
-          description: Pack installed
+                $ref: '#/components/schemas/Approval'
         '404':
-          description: Pack not found
+          description: Approval not found
 
-  /siem/export:
-    get:
-      summary: Pull SIEM Events
-      description: |
-        Pull-based SIEM export. Returns recent audit events in JSON (NDJSON) or CEF format.
-        Compatible with Splunk, QRadar, Elastic SIEM, and Datadog.
-      tags: [SIEM]
-      security:
-        - ApiKeyAuth: []
-      parameters:
-        - name: X-Tenant-Id
-          in: header
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: format
-          in: query
-          schema:
-            type: string
-            enum: [json, cef]
-            default: json
-        - name: since
-          in: query
-          schema:
-            type: string
-            format: date-time
-          description: Return events after this timestamp (default last hour)
-        - name: limit
-          in: query
-          schema:
-            type: integer
-            default: 1000
-            maximum: 5000
-        - name: event_types
-          in: query
-          schema:
-            type: string
-          description: Comma-separated event type filter
-      responses:
-        '200':
-          description: Audit events in requested format
-          content:
-            application/x-ndjson:
-              schema:
-                type: string
-            text/plain:
-              schema:
-                type: string
+  /hitl/approvals/{approval_id}/decide:
     post:
-      summary: Push SIEM Events
-      description: Triggers an immediate push to all configured SIEM endpoints.
-      tags: [SIEM]
+      summary: Decide on Approval
+      description: Approve or reject a pending HITL approval request.
+      tags: [HITL]
       security:
         - ApiKeyAuth: []
       parameters:
-        - name: X-Tenant-Id
-          in: header
+        - name: approval_id
+          in: path
           required: true
           schema:
             type: string
             format: uuid
-      responses:
-        '200':
-          description: Push result
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  events_exported:
-                    type: integer
-                  endpoints_notified:
-                    type: integer
-                  errors:
-                    type: array
-                    items:
-                      type: string
-
-  /siem/subscribe:
-    get:
-      summary: List SIEM Endpoints
-      tags: [SIEM]
-      security:
-        - ApiKeyAuth: []
-      parameters:
-        - name: X-Tenant-Id
+        - $ref: '#/components/parameters/TenantId'
+        - name: X-User-Id
           in: header
-          required: true
+          required: false
           schema:
             type: string
-            format: uuid
-      responses:
-        '200':
-          description: SIEM endpoint list
-    post:
-      summary: Register SIEM Endpoint
-      description: Registers a push endpoint for real-time event forwarding.
-      tags: [SIEM]
-      security:
-        - ApiKeyAuth: []
-      parameters:
-        - name: X-Tenant-Id
-          in: header
-          required: true
-          schema:
-            type: string
-            format: uuid
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [endpoint_url]
+              required: [decision]
               properties:
-                name:
+                decision:
                   type: string
-                endpoint_url:
+                  enum: [approved, rejected]
+                note:
+                  type: string
+      responses:
+        '200':
+          description: Decision recorded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  approval_id:
+                    type: string
+                    format: uuid
+                  status:
+                    type: string
+                  decided_at:
+                    type: string
+                    format: date-time
+                  ledger_entry_id:
+                    type: string
+        '404':
+          description: Approval not found
+        '409':
+          description: Approval already decided
+
+  /hitl/webhooks:
+    post:
+      summary: Register HITL Webhook
+      description: Register a webhook endpoint to receive HITL approval events.
+      tags: [HITL]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [url]
+              properties:
+                url:
                   type: string
                   format: uri
-                format:
-                  type: string
-                  enum: [json, cef]
-                  default: json
-                auth_header:
-                  type: string
-                  description: "Header:Value pair, e.g. Authorization:Bearer token"
-                event_filter:
+                events:
                   type: array
                   items:
                     type: string
-                  description: Event type filter (supports wildcards, e.g. agent.*)
+                  default: ["approval.decided", "approval.expired"]
       responses:
         '201':
-          description: SIEM endpoint registered
-    delete:
-      summary: Remove SIEM Endpoint
-      tags: [SIEM]
-      security:
-        - ApiKeyAuth: []
-      parameters:
-        - name: X-Tenant-Id
-          in: header
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: id
-          in: query
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: Endpoint removed
-
-  /compliance/evidence-export:
-    post:
-      summary: Export EU AI Act Evidence Package
-      description: |
-        Generates a structured JSON evidence manifest mapping provenance, HITL,
-        and explainability events to relevant EU AI Act articles (13, 14, 17, 26).
-
-        Currently supports `eu_ai_act` regulation. `iso_42001` returns 501.
-      tags: [Compliance]
-      security:
-        - ApiKeyAuth: []
-      parameters:
-        - name: X-Tenant-Id
-          in: header
-          required: false
-          description: Tenant UUID. Can also be provided via API key or request body.
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [date_range, regulation]
-              properties:
-                tenant_id:
-                  type: string
-                  format: uuid
-                  description: Optional tenant override (resolved from auth by default)
-                date_range:
-                  type: object
-                  required: [start, end]
-                  properties:
-                    start:
-                      type: string
-                      format: date-time
-                      example: "2026-01-01T00:00:00Z"
-                    end:
-                      type: string
-                      format: date-time
-                      example: "2026-03-31T23:59:59Z"
-                regulation:
-                  type: string
-                  enum: [eu_ai_act, iso_42001]
-                  description: Target regulatory framework
-            example:
-              date_range:
-                start: "2026-01-01T00:00:00Z"
-                end: "2026-03-31T23:59:59Z"
-              regulation: eu_ai_act
-      responses:
-        '200':
-          description: Evidence package generated successfully
+          description: Webhook registered
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  export_id:
+                  webhook_id:
                     type: string
                     format: uuid
-                  regulation:
+                  url:
                     type: string
-                    enum: [eu_ai_act, iso_42001]
-                  status:
+                  events:
+                    type: array
+                    items:
+                      type: string
+                  created_at:
                     type: string
-                    enum: [ready, generating, failed]
-                  evidence_manifest:
-                    type: object
-                    description: Full EU AI Act evidence report with article coverage, agent inventory, ledger summary, HITL log, incidents, and attestation.
-        '400':
-          description: Invalid request (missing fields or invalid regulation)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '401':
-          description: Missing tenant context
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '501':
-          description: Regulation not yet implemented (iso_42001)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+                    format: date-time
 
+  # ──────────────────────────────────────────────
+  # Compliance
+  # ──────────────────────────────────────────────
   /compliance/reports:
     get:
       summary: Generate Compliance Report
       description: |
         Generates a point-in-time compliance evidence report. Covers audit trail,
         HITL oversight log, policy violations, signature coverage, and installed policy packs.
-
         Supported frameworks: SOC 2 Type II, HIPAA, GDPR, PCI-DSS, General.
       tags: [Compliance]
       security:
         - ApiKeyAuth: []
       parameters:
-        - name: X-Tenant-Id
-          in: header
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/TenantId'
         - name: framework
           in: query
           schema:
@@ -1069,78 +1807,2780 @@ paths:
                     type: string
                   period:
                     type: object
-                    properties:
-                      from:
-                        type: string
-                      to:
-                        type: string
                   summary:
                     type: object
 
-  /intent:
+  /compliance/reports/generate:
     post:
-      summary: Mediate Agent Intent
-      description: Evaluates an agent's intended action against existing locks and policy constraints.
-      tags: [Policy]
+      summary: Generate EU AI Act Report (Async)
+      description: |
+        Triggers async generation of an EU AI Act compliance report.
+        Returns immediately with a report ID and `generating` status.
+        Poll GET /compliance/reports/{report_id} for completion.
+      tags: [Compliance]
       security:
         - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [intent_description]
+              required: [period_start, period_end]
               properties:
-                intent_description:
+                period_start:
                   type: string
-                  example: "Executing a financial transfer to vendor X"
-                vendor:
+                  format: date-time
+                period_end:
                   type: string
-                  enum: [openai, claude]
+                  format: date-time
+                framework:
+                  type: string
+                  default: EU_AI_ACT_2024
       responses:
-        '200':
-          description: Intent mediation result
-        '403':
-          description: Intent blocked
-
-  /moral:
-    post:
-      summary: Evaluate Moral Alignment
-      description: Evaluates an action against the Corporate SOUL (Governance Policy).
-      tags: [Moral]
-      security:
-        - ApiKeyAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [action_description, domain]
-              properties:
-                action_description:
-                  type: string
-                  example: "Sharing sensitive customer data with external vendor"
-                domain:
-                  type: string
-                  example: "privacy"
-      responses:
-        '200':
-          description: Moral verdict
+        '202':
+          description: Report generation started
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MoralVerdict'
+                type: object
+                properties:
+                  report_id:
+                    type: string
+                  status:
+                    type: string
+                    example: generating
+                  estimated_seconds:
+                    type: integer
 
+  /compliance/reports/{report_id}:
+    get:
+      summary: Get Report by ID
+      description: Retrieve a specific compliance report by ID.
+      tags: [Compliance]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: report_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Report detail
+        '404':
+          description: Report not found
+
+  /compliance/reports/{report_id}/pdf:
+    get:
+      summary: Download Report as HTML/PDF
+      description: |
+        Returns a downloadable HTML document of the compliance report.
+        If a pre-generated PDF URL exists, redirects to it.
+      tags: [Compliance]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: report_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: HTML report document
+          content:
+            text/html:
+              schema:
+                type: string
+        '302':
+          description: Redirect to pre-generated PDF URL
+        '400':
+          description: Report not ready
+        '404':
+          description: Report not found
+
+  /compliance/evidence-export:
+    post:
+      summary: Export EU AI Act Evidence Package
+      description: |
+        Generates a structured JSON evidence manifest mapping provenance, HITL,
+        and explainability events to relevant EU AI Act articles (13, 14, 17, 26).
+        Currently supports `eu_ai_act` regulation. `iso_42001` returns 501.
+      tags: [Compliance]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: X-Tenant-Id
+          in: header
+          required: false
+          description: Tenant UUID. Can also be provided via API key or request body.
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [date_range, regulation]
+              properties:
+                tenant_id:
+                  type: string
+                  format: uuid
+                date_range:
+                  type: object
+                  required: [start, end]
+                  properties:
+                    start:
+                      type: string
+                      format: date-time
+                    end:
+                      type: string
+                      format: date-time
+                regulation:
+                  type: string
+                  enum: [eu_ai_act, iso_42001]
+            example:
+              date_range:
+                start: "2026-01-01T00:00:00Z"
+                end: "2026-03-31T23:59:59Z"
+              regulation: eu_ai_act
+      responses:
+        '200':
+          description: Evidence package generated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  export_id:
+                    type: string
+                    format: uuid
+                  regulation:
+                    type: string
+                  status:
+                    type: string
+                    enum: [ready, generating, failed]
+                  evidence_manifest:
+                    type: object
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Missing tenant context
+        '501':
+          description: Regulation not yet implemented (iso_42001)
+
+  /compliance/evidence:
+    get:
+      summary: Get Evidence Package by Framework
+      description: Returns the evidence package for a specific compliance framework.
+      tags: [Compliance]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: framework_id
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Evidence controls
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  controls:
+                    type: object
+
+  /compliance/frameworks:
+    get:
+      summary: List Compliance Frameworks
+      description: Returns compliance dashboards for all configured frameworks.
+      tags: [Compliance]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: Framework dashboards
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  frameworks:
+                    type: array
+                    items:
+                      type: object
+    post:
+      summary: Trigger Evidence Auto-Mining
+      description: Kicks off automatic evidence mining across all frameworks.
+      tags: [Compliance]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: Auto-mining result
+
+  # ──────────────────────────────────────────────
+  # SIEM
+  # ──────────────────────────────────────────────
+  /siem/export:
+    get:
+      summary: Pull SIEM Events
+      description: |
+        Pull-based SIEM export. Returns recent audit events in JSON (NDJSON) or CEF format.
+        Compatible with Splunk, QRadar, Elastic SIEM, and Datadog.
+      tags: [SIEM]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [json, cef]
+            default: json
+        - name: since
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 1000
+            maximum: 5000
+        - name: event_types
+          in: query
+          schema:
+            type: string
+          description: Comma-separated event type filter
+      responses:
+        '200':
+          description: Audit events
+          content:
+            application/x-ndjson:
+              schema:
+                type: string
+            text/plain:
+              schema:
+                type: string
+    post:
+      summary: Push SIEM Events
+      description: Triggers an immediate push to all configured SIEM endpoints.
+      tags: [SIEM]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: Push result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  events_exported:
+                    type: integer
+                  endpoints_notified:
+                    type: integer
+                  errors:
+                    type: array
+                    items:
+                      type: string
+
+  /siem/subscribe:
+    get:
+      summary: List SIEM Endpoints
+      tags: [SIEM]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: SIEM endpoint list
+    post:
+      summary: Register SIEM Endpoint
+      description: Registers a push endpoint for real-time event forwarding.
+      tags: [SIEM]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [endpoint_url]
+              properties:
+                name:
+                  type: string
+                endpoint_url:
+                  type: string
+                  format: uri
+                format:
+                  type: string
+                  enum: [json, cef]
+                  default: json
+                auth_header:
+                  type: string
+                event_filter:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '201':
+          description: SIEM endpoint registered
+    delete:
+      summary: Remove SIEM Endpoint
+      tags: [SIEM]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Endpoint removed
+
+  # ──────────────────────────────────────────────
+  # A2A (Agent-to-Agent Governance, S16)
+  # ──────────────────────────────────────────────
+  /a2a/session:
+    post:
+      summary: Create A2A Session
+      description: Establish a governed agent-to-agent session with Ed25519 signature and TTL.
+      tags: [A2A]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [initiator_id, target_id, task_description]
+              properties:
+                initiator_id:
+                  type: string
+                  format: uuid
+                target_id:
+                  type: string
+                  format: uuid
+                task_description:
+                  type: string
+                ttl_minutes:
+                  type: integer
+                  default: 60
+      responses:
+        '201':
+          description: Session established
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  session:
+                    $ref: '#/components/schemas/A2ASession'
+
+  /a2a/sessions:
+    get:
+      summary: List A2A Sessions
+      description: List agent-to-agent sessions for the tenant.
+      tags: [A2A]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, completed, expired]
+        - name: initiator_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Session list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sessions:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/A2ASession'
+                  count:
+                    type: integer
+
+  /a2a/session/{id}/message:
+    post:
+      summary: Send A2A Message
+      description: Relay a governed, signed message within an active A2A session.
+      tags: [A2A]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [from_agent_id, to_agent_id, content]
+              properties:
+                from_agent_id:
+                  type: string
+                  format: uuid
+                to_agent_id:
+                  type: string
+                  format: uuid
+                content:
+                  type: string
+                message_type:
+                  type: string
+                  default: task
+      responses:
+        '201':
+          description: Message sent
+        '400':
+          description: Session not active
+        '404':
+          description: Session not found
+
+  /a2a/session/{id}/close:
+    post:
+      summary: Close A2A Session
+      description: Close an active A2A session. Records audit event.
+      tags: [A2A]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: Session closed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  session:
+                    $ref: '#/components/schemas/A2ASession'
+        '404':
+          description: Session not found
+
+  /a2a/graph:
+    get:
+      summary: Get A2A Session Graph
+      description: Returns the A2A session graph (nodes = agents, edges = sessions) for D3 visualization.
+      tags: [A2A]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: since
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: Filter sessions since this timestamp (default 7 days)
+      responses:
+        '200':
+          description: Graph data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  nodes:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        type:
+                          type: string
+                  edges:
+                    type: array
+                    items:
+                      type: object
+                  session_count:
+                    type: integer
+                  agent_count:
+                    type: integer
+
+  /a2a/handshake:
+    post:
+      summary: Initiate A2A Handshake
+      description: Create a governed handshake contract between two agents requiring both signatures.
+      tags: [A2A]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [initiator_id, responder_id, task_description]
+              properties:
+                initiator_id:
+                  type: string
+                  format: uuid
+                responder_id:
+                  type: string
+                  format: uuid
+                task_description:
+                  type: string
+                metadata:
+                  type: object
+      responses:
+        '201':
+          description: Handshake initiated
+
+  /a2a/handshake/{id}/sign:
+    post:
+      summary: Sign A2A Handshake
+      description: Submit an agent's cryptographic signature on a handshake. Governance checks run when both agents have signed.
+      tags: [A2A]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [agent_id, signature]
+              properties:
+                agent_id:
+                  type: string
+                  format: uuid
+                signature:
+                  type: string
+      responses:
+        '200':
+          description: Signature recorded
+
+  /a2a/initiate:
+    post:
+      summary: Initiate A2A Handshake (Alternate)
+      description: Alternative handshake initiation endpoint with terms-based contract.
+      tags: [A2A]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [initiator_id, responder_id, terms]
+              properties:
+                initiator_id:
+                  type: string
+                  format: uuid
+                responder_id:
+                  type: string
+                  format: uuid
+                terms:
+                  type: object
+      responses:
+        '200':
+          description: Handshake initiated
+
+  /a2a/list:
+    get:
+      summary: List A2A Handshakes
+      description: Returns all handshakes for the tenant.
+      tags: [A2A]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: Handshake list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  handshakes:
+                    type: array
+                    items:
+                      type: object
+
+  /a2a/sign:
+    post:
+      summary: Sign A2A Handshake (By Handshake ID)
+      description: Sign a handshake using the handshake_id in the request body.
+      tags: [A2A]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [handshake_id, agent_id, signature]
+              properties:
+                handshake_id:
+                  type: string
+                  format: uuid
+                agent_id:
+                  type: string
+                  format: uuid
+                signature:
+                  type: string
+      responses:
+        '200':
+          description: Signature recorded
+
+  # ──────────────────────────────────────────────
+  # Anomaly Detection (S14)
+  # ──────────────────────────────────────────────
+  /anomalies:
+    get:
+      summary: List Behavioral Anomalies
+      description: Returns anomaly events for the tenant with optional filters.
+      tags: [Anomaly]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: severity
+          in: query
+          schema:
+            type: string
+        - name: resolved
+          in: query
+          schema:
+            type: string
+            enum: ["true", "false"]
+        - name: agent_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Anomaly list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  anomalies:
+                    type: array
+                    items:
+                      type: object
+                  count:
+                    type: integer
+
+  /anomalies/{id}/resolve:
+    post:
+      summary: Resolve Anomaly
+      tags: [Anomaly]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                resolution_note:
+                  type: string
+                resolved_by:
+                  type: string
+      responses:
+        '200':
+          description: Anomaly resolved
+        '404':
+          description: Anomaly not found
+
+  /anomaly:
+    get:
+      summary: Get Active Anomalies (Legacy)
+      description: Returns active anomalies via AnomalyDetectorService. Legacy endpoint.
+      tags: [Anomaly]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: Active anomalies
+    patch:
+      summary: Resolve Anomaly (Legacy)
+      description: Resolves an anomaly by ID. Legacy endpoint.
+      tags: [Anomaly]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [anomaly_id]
+              properties:
+                anomaly_id:
+                  type: string
+      responses:
+        '200':
+          description: Anomaly resolved
+
+  /baselines:
+    get:
+      summary: List Behavioral Baselines
+      description: Returns computed behavioral baselines for the tenant's agents.
+      tags: [Anomaly]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: agent_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Baseline list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  baselines:
+                    type: array
+                    items:
+                      type: object
+
+  # ──────────────────────────────────────────────
+  # Explainability (S11)
+  # ──────────────────────────────────────────────
+  /explain:
+    get:
+      summary: Get or List Explanations
+      description: |
+        With `certificate_id` parameter: returns a single explanation (auto-generates if missing).
+        Without: returns paginated tenant explanation history.
+      tags: [Explain]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: certificate_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Explanation or list of explanations
+    post:
+      summary: Generate Explanation
+      description: Trigger async generation of an explanation for a certificate.
+      tags: [Explain]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [certificate_id]
+              properties:
+                certificate_id:
+                  type: string
+                  format: uuid
+      responses:
+        '201':
+          description: Explanation generated
+
+  /explain/{certificate_id}:
+    get:
+      summary: Public Explanation Lookup
+      description: |
+        **Public endpoint -- no authentication required.**
+        Regulators and auditors can verify an AI decision explanation by certificate ID.
+        Responses are cached for 1 hour.
+      tags: [Explain]
+      parameters:
+        - name: certificate_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Explanation detail
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  explanation:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      certificate_id:
+                        type: string
+                      decision_summary:
+                        type: string
+                      key_factors:
+                        type: array
+                        items:
+                          type: string
+                      counterfactual:
+                        type: string
+                      confidence_score:
+                        type: number
+                      regulatory_refs:
+                        type: array
+                        items:
+                          type: string
+        '404':
+          description: Explanation not found
+
+  # ──────────────────────────────────────────────
+  # FinOps (S9)
+  # ──────────────────────────────────────────────
+  /finops/breakdown:
+    get:
+      summary: Get Cost Breakdown
+      description: Returns AI cost breakdown for the tenant over a period.
+      tags: [FinOps]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: days
+          in: query
+          schema:
+            type: integer
+            default: 30
+      responses:
+        '200':
+          description: Cost breakdown
+
+  /finops/budgets:
+    get:
+      summary: List Budgets
+      description: Returns all agent budgets for the tenant.
+      tags: [FinOps]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: Budget list
+    post:
+      summary: Set Budget
+      description: Create or update a budget for a tenant or specific agent.
+      tags: [FinOps]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [budget_usd]
+              properties:
+                agent_id:
+                  type: string
+                  format: uuid
+                budget_usd:
+                  type: number
+                scope_type:
+                  type: string
+                hard_block:
+                  type: boolean
+                alert_at:
+                  type: number
+                  description: Alert threshold percentage (0-1)
+      responses:
+        '200':
+          description: Budget set
+
+  /finops/check:
+    post:
+      summary: Check Budget Before Action
+      description: Pre-flight check whether the agent has remaining budget for an action.
+      tags: [FinOps]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - $ref: '#/components/parameters/AgentId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                estimated_tokens:
+                  type: integer
+                  default: 2000
+                model:
+                  type: string
+                  default: default
+      responses:
+        '200':
+          description: Budget OK
+        '402':
+          description: Budget exceeded
+
+  /finops/record:
+    post:
+      summary: Record AI Cost
+      description: Record actual token usage and cost after an LLM call.
+      tags: [FinOps]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - $ref: '#/components/parameters/AgentId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [model]
+              properties:
+                model:
+                  type: string
+                input_tokens:
+                  type: integer
+                  default: 0
+                output_tokens:
+                  type: integer
+                  default: 0
+                certificate_id:
+                  type: string
+                  format: uuid
+      responses:
+        '200':
+          description: Cost recorded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  cost_usd:
+                    type: number
+
+  # ──────────────────────────────────────────────
+  # Physical AI Safety (S15)
+  # ──────────────────────────────────────────────
+  /physical/agents:
+    get:
+      summary: List Physical Agents
+      description: Returns all registered physical agent devices for the tenant.
+      tags: [Physical]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: status
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Physical agent list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  agents:
+                    type: array
+                    items:
+                      type: object
+                  count:
+                    type: integer
+    post:
+      summary: Register Physical Agent
+      description: Register a new physical agent device (robot, drone, etc.).
+      tags: [Physical]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [device_id, device_type, name]
+              properties:
+                device_id:
+                  type: string
+                device_type:
+                  type: string
+                name:
+                  type: string
+                location_zone:
+                  type: string
+                allowed_zones:
+                  type: array
+                  items:
+                    type: string
+                max_payload_kg:
+                  type: number
+                firmware_version:
+                  type: string
+                metadata:
+                  type: object
+      responses:
+        '201':
+          description: Physical agent registered
+
+  /physical/preauth:
+    post:
+      summary: Pre-Authorize Physical Action
+      description: |
+        Pre-authorise a physical action before execution. Checks device status,
+        zone permissions, and creates a signed immutable log entry.
+      tags: [Physical]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [physical_agent_id, action_type]
+              properties:
+                physical_agent_id:
+                  type: string
+                  format: uuid
+                action_type:
+                  type: string
+                action_detail:
+                  type: object
+                zone:
+                  type: string
+                operator_present:
+                  type: boolean
+                  default: false
+      responses:
+        '200':
+          description: Action authorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  verdict:
+                    type: string
+                    enum: [authorized, blocked]
+                  log_id:
+                    type: string
+                    format: uuid
+                  signature:
+                    type: string
+                  created_at:
+                    type: string
+                    format: date-time
+        '403':
+          description: Action blocked (E-STOP, zone violation, etc.)
+        '404':
+          description: Physical agent not found
+
+  /physical/outcome:
+    post:
+      summary: Record Physical Action Outcome
+      description: Record the outcome of a physical action after execution.
+      tags: [Physical]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [log_id, outcome]
+              properties:
+                log_id:
+                  type: string
+                  format: uuid
+                outcome:
+                  type: string
+                  enum: [success, failure, partial]
+                outcome_detail:
+                  type: object
+      responses:
+        '200':
+          description: Outcome recorded
+        '404':
+          description: Log entry not found
+
+  /physical/{agent_id}/stop:
+    post:
+      summary: Emergency Stop Physical Agent
+      description: Immediately sets a physical agent's status to `emergency_stopped`. All future pre-auth requests will be blocked.
+      tags: [Physical]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: agent_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+      responses:
+        '200':
+          description: Agent emergency stopped
+        '404':
+          description: Physical agent not found
+
+  /physical/estop:
+    post:
+      summary: Emergency Stop Node (Fleet)
+      description: Trigger an emergency stop on a physical node via PhysicalAIService.
+      tags: [Physical]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [node_id]
+              properties:
+                node_id:
+                  type: string
+      responses:
+        '200':
+          description: E-Stop triggered
+
+  /physical/log:
+    get:
+      summary: Get Physical Action Log
+      description: Retrieve the immutable physical action audit log.
+      tags: [Physical]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: physical_agent_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: verdict
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+            maximum: 500
+      responses:
+        '200':
+          description: Action log
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  log:
+                    type: array
+                    items:
+                      type: object
+                  count:
+                    type: integer
+
+  /physical/nodes:
+    get:
+      summary: List Physical Nodes
+      description: Returns all physical nodes via PhysicalAIService.
+      tags: [Physical]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: Node list
+
+  /physical/validate:
+    post:
+      summary: Validate Kinetic Command
+      description: |
+        Low-latency validation of a kinetic command (velocity, coordinates).
+        Designed for edge hardware with minimal response time.
+      tags: [Physical]
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [node_id, velocity_ms]
+              properties:
+                node_id:
+                  type: string
+                velocity_ms:
+                  type: number
+                lat:
+                  type: number
+                lon:
+                  type: number
+      responses:
+        '200':
+          description: Command allowed
+        '403':
+          description: Command blocked
+
+  # ──────────────────────────────────────────────
+  # NHI (Non-Human Identity, S12)
+  # ──────────────────────────────────────────────
+  /nhi/list:
+    get:
+      summary: List Agent Keys
+      description: Returns all NHI API keys for the tenant.
+      tags: [NHI]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: Key list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  keys:
+                    type: array
+                    items:
+                      type: object
+
+  /nhi/ephemeral:
+    post:
+      summary: Issue Ephemeral API Key
+      description: Issue a short-lived API key for a sub-agent. Shown once.
+      tags: [NHI]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: X-Agent-Id
+          in: header
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Parent agent ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [purpose]
+              properties:
+                purpose:
+                  type: string
+                max_minutes:
+                  type: integer
+                scopes:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: Ephemeral key issued (shown once)
+
+  /nhi/rotate:
+    post:
+      summary: Rotate NHI Key
+      description: Rotate an existing NHI key. Issues a new key and revokes the old one.
+      tags: [NHI]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [old_key_id]
+              properties:
+                old_key_id:
+                  type: string
+      responses:
+        '200':
+          description: Key rotated
+
+  /nhi/revoke:
+    post:
+      summary: Revoke NHI Key
+      description: Immediately revoke an NHI key.
+      tags: [NHI]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [key_id]
+              properties:
+                key_id:
+                  type: string
+                reason:
+                  type: string
+                  default: Administrative immediate revocation.
+      responses:
+        '200':
+          description: Key revoked
+
+  /nhi/spawn-graph:
+    get:
+      summary: Get Agent Spawn Graph
+      description: Returns the parent-child spawn graph for NHI keys (delegation tree).
+      tags: [NHI]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: Spawn graph
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  nodes:
+                    type: array
+                    items:
+                      type: object
+
+  # ──────────────────────────────────────────────
+  # Sovereign (Data Sovereignty, S10)
+  # ──────────────────────────────────────────────
+  /sovereign/config:
+    get:
+      summary: Get Sovereign Sync Config
+      description: Returns the tenant's data sovereignty sync configuration (S3/Snowflake destination).
+      tags: [Sovereign]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: Sync config
+    post:
+      summary: Set Sovereign Sync Config
+      description: Create or update the data sovereignty sync destination. Credentials are encrypted at rest.
+      tags: [Sovereign]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [destination_type, destination_uri, credentials]
+              properties:
+                destination_type:
+                  type: string
+                  enum: [s3, snowflake]
+                destination_uri:
+                  type: string
+                credentials:
+                  type: object
+                  description: Encrypted at rest
+                sync_frequency:
+                  type: string
+                  default: daily
+                is_active:
+                  type: boolean
+                  default: true
+      responses:
+        '200':
+          description: Config saved
+
+  /sovereign/export:
+    post:
+      summary: Trigger Sovereign Data Export
+      description: Triggers an immediate data export to the configured sovereign destination.
+      tags: [Sovereign]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: Export result
+
+  /sovereign/providers:
+    get:
+      summary: List Compliant Providers
+      description: Returns LLM providers compliant with the tenant's data residency policy.
+      tags: [Sovereign]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: data_classification
+          in: query
+          schema:
+            type: string
+            default: INTERNAL
+      responses:
+        '200':
+          description: Compliant providers
+
+  /sovereign/validate:
+    post:
+      summary: Validate Data Residency
+      description: Validate a planned LLM call against the data residency policy. Returns 451 if blocked.
+      tags: [Sovereign]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - $ref: '#/components/parameters/AgentId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [provider, model]
+              properties:
+                provider:
+                  type: string
+                model:
+                  type: string
+                data_classification:
+                  type: string
+                  default: INTERNAL
+      responses:
+        '200':
+          description: Call allowed
+        '451':
+          description: Unavailable For Legal Reasons (data residency violation)
+
+  # ──────────────────────────────────────────────
+  # Sovereignty (Policy Management)
+  # ──────────────────────────────────────────────
+  /sovereignty/policy:
+    get:
+      summary: Get Data Residency Policy
+      description: Returns the tenant's current data residency policy.
+      tags: [Sovereignty]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: Policy document
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  policy:
+                    type: object
+                    nullable: true
+    put:
+      summary: Upsert Data Residency Policy
+      description: Create or update the tenant's data residency policy.
+      tags: [Sovereignty]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [allowed_regions]
+              properties:
+                allowed_regions:
+                  type: array
+                  items:
+                    type: string
+                  example: ["eu-west-1", "eu-central-1"]
+                blocked_providers:
+                  type: array
+                  items:
+                    type: string
+                data_classifications:
+                  type: array
+                  items:
+                    type: string
+                  default: ["PII", "PHI", "CONFIDENTIAL"]
+                auto_reroute:
+                  type: boolean
+                  default: false
+                block_on_violation:
+                  type: boolean
+                  default: true
+      responses:
+        '200':
+          description: Policy saved
+
+  /sovereignty/providers:
+    get:
+      summary: List Compliant Providers (via Sovereignty)
+      description: Returns all LLM providers compliant with the tenant's data residency policy.
+      tags: [Sovereignty]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: data_classification
+          in: query
+          schema:
+            type: string
+            default: INTERNAL
+      responses:
+        '200':
+          description: Compliant providers
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  providers:
+                    type: array
+                    items:
+                      type: object
+                  data_classification:
+                    type: string
+
+  /sovereignty/validate:
+    post:
+      summary: Validate Data Residency (via Sovereignty)
+      description: Validate a planned LLM call against the tenant's data residency policy.
+      tags: [Sovereignty]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [provider, model]
+              properties:
+                provider:
+                  type: string
+                model:
+                  type: string
+                data_classification:
+                  type: string
+                  default: INTERNAL
+                agent_id:
+                  type: string
+                  format: uuid
+      responses:
+        '200':
+          description: Call allowed
+        '403':
+          description: Call blocked by residency policy
+
+  # ──────────────────────────────────────────────
+  # Red Team (S17)
+  # ──────────────────────────────────────────────
+  /redteam/launch:
+    post:
+      summary: Launch Red Team Campaign
+      description: Launch an automated adversarial red team campaign against a target agent.
+      tags: [RedTeam]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [target_agent_id, target_endpoint_url]
+              properties:
+                target_agent_id:
+                  type: string
+                  format: uuid
+                target_endpoint_url:
+                  type: string
+                  format: uri
+      responses:
+        '200':
+          description: Campaign launched
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  campaign_id:
+                    type: string
+                    format: uuid
+    get:
+      summary: Get Latest Campaigns & Resilience Score
+      description: Returns the latest red team campaigns and an overall resilience score.
+      tags: [RedTeam]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: Campaigns and resilience score
+
+  /redteam/campaigns:
+    get:
+      summary: List Red Team Campaigns
+      tags: [RedTeam]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: target_agent_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+      responses:
+        '200':
+          description: Campaign list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  campaigns:
+                    type: array
+                    items:
+                      type: object
+                  count:
+                    type: integer
+
+  /redteam/campaigns/{id}:
+    get:
+      summary: Get Red Team Campaign Detail
+      description: Returns a campaign with its attack findings.
+      tags: [RedTeam]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: Campaign detail with attacks
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  campaign:
+                    type: object
+                  attacks:
+                    type: array
+                    items:
+                      type: object
+        '404':
+          description: Campaign not found
+
+  /redteam/findings:
+    get:
+      summary: List Red Team Findings
+      description: Returns attack findings with OWASP category breakdown.
+      tags: [RedTeam]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: campaign_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: severity
+          in: query
+          schema:
+            type: string
+        - name: result
+          in: query
+          schema:
+            type: string
+            enum: [pass, fail]
+        - name: owasp_category
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+            maximum: 500
+      responses:
+        '200':
+          description: Findings list with OWASP summary
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  attacks:
+                    type: array
+                    items:
+                      type: object
+                  owasp_summary:
+                    type: object
+                  count:
+                    type: integer
+
+  # ──────────────────────────────────────────────
+  # Plugins
+  # ──────────────────────────────────────────────
+  /plugins:
+    get:
+      summary: List Plugins
+      description: Returns installed plugins. Set `include_templates=true` for the pre-built catalog.
+      tags: [Plugins]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: include_templates
+          in: query
+          schema:
+            type: string
+            enum: ["true", "false"]
+      responses:
+        '200':
+          description: Plugin list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  plugins:
+                    type: array
+                    items:
+                      type: object
+                  templates:
+                    type: array
+                    items:
+                      type: object
+                  count:
+                    type: integer
+    post:
+      summary: Install Plugin
+      description: Install a custom or pre-built plugin with webhook trigger configuration.
+      tags: [Plugins]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, plugin_type, triggers, endpoint_url]
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                plugin_type:
+                  type: string
+                category:
+                  type: string
+                  default: custom
+                triggers:
+                  type: array
+                  items:
+                    type: string
+                endpoint_url:
+                  type: string
+                  format: uri
+                auth_header:
+                  type: string
+                icon:
+                  type: string
+                retry_count:
+                  type: integer
+                  default: 3
+                timeout_ms:
+                  type: integer
+                  default: 5000
+      responses:
+        '201':
+          description: Plugin installed
+
+  /plugins/{id}:
+    get:
+      summary: Get Plugin Detail
+      description: Returns plugin details with recent execution history.
+      tags: [Plugins]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: Plugin with executions
+        '404':
+          description: Plugin not found
+    patch:
+      summary: Update Plugin
+      description: Update plugin configuration (name, description, is_active, retry_count, timeout_ms, auth_header, endpoint_url).
+      tags: [Plugins]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                is_active:
+                  type: boolean
+                retry_count:
+                  type: integer
+                timeout_ms:
+                  type: integer
+                auth_header:
+                  type: string
+                endpoint_url:
+                  type: string
+      responses:
+        '200':
+          description: Plugin updated
+        '404':
+          description: Plugin not found
+    delete:
+      summary: Deactivate Plugin
+      description: Soft-deletes a plugin by setting is_active to false.
+      tags: [Plugins]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: Plugin deactivated
+        '404':
+          description: Plugin not found
+
+  # ──────────────────────────────────────────────
+  # SOUL Templates
+  # ──────────────────────────────────────────────
+  /soul-templates:
+    get:
+      summary: List SOUL Templates
+      description: Returns the SOUL template catalog. If X-Tenant-Id is provided, includes activation status.
+      tags: [SoulTemplates]
+      parameters:
+        - name: X-Tenant-Id
+          in: header
+          required: false
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Template catalog
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  templates:
+                    type: array
+                    items:
+                      type: object
+                  count:
+                    type: integer
+
+  /soul-templates/{id}/activate:
+    post:
+      summary: Activate SOUL Template
+      description: Activate a SOUL template for the tenant. Paid templates require Pro or Enterprise plan.
+      tags: [SoulTemplates]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '201':
+          description: Template activated
+        '402':
+          description: Paid template requires Pro/Enterprise plan
+        '404':
+          description: Template not found
+        '409':
+          description: Template already activated
+    delete:
+      summary: Deactivate SOUL Template
+      tags: [SoulTemplates]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: Template deactivated
+
+  # ──────────────────────────────────────────────
+  # Insurance (S5, routes exist but nav removed in Phase 1)
+  # ──────────────────────────────────────────────
+  /insurance:
+    get:
+      summary: List Risk Profiles
+      description: |
+        Returns risk profiles for all agents, or calculate a specific agent's premium.
+        Note: Insurance navigation was removed in Phase 1 but API routes still exist.
+      tags: [Internal]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: agent_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Risk profiles or specific premium
+    post:
+      summary: File Insurance Claim
+      tags: [Internal]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [agent_id, incident_type, financial_impact]
+              properties:
+                agent_id:
+                  type: string
+                  format: uuid
+                incident_type:
+                  type: string
+                financial_impact:
+                  type: number
+                description:
+                  type: string
+      responses:
+        '200':
+          description: Claim filed
+
+  /insurance/analytics:
+    get:
+      summary: Risk Analytics
+      description: Returns 30/60/90-day risk trend data plus per-agent summaries.
+      tags: [Internal]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: Analytics data
+
+  /insurance/claims:
+    get:
+      summary: List Insurance Claims
+      tags: [Internal]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: Claims list
+    post:
+      summary: File Insurance Claim (Detailed)
+      description: File a claim with fraud scoring and compliance metadata.
+      tags: [Internal]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [agent_id, incident_type, financial_impact]
+              properties:
+                agent_id:
+                  type: string
+                  format: uuid
+                incident_type:
+                  type: string
+                financial_impact:
+                  type: number
+                description:
+                  type: string
+      responses:
+        '200':
+          description: Claim filed with fraud score
+
+  /insurance/risk:
+    get:
+      summary: List Agent Risk Profiles
+      tags: [Internal]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: Risk profiles
+    post:
+      summary: Trigger Fleet-Wide Risk Recalculation
+      tags: [Internal]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: Recalculation result
+
+  # ──────────────────────────────────────────────
+  # Integrations
+  # ──────────────────────────────────────────────
+  /integrations:
+    get:
+      summary: List Integration Channels
+      description: Returns all configured integration channels with masked secrets.
+      tags: [Integrations]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: Integration list
+
+  /integrations/slack/install:
+    get:
+      summary: Slack OAuth Flow
+      description: |
+        Initiates or completes the Slack OAuth2 flow.
+        Without `code` param: redirects to Slack authorization page.
+        With `code` param: exchanges code for bot token and saves integration.
+      tags: [Integrations]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: code
+          in: query
+          schema:
+            type: string
+          description: OAuth code from Slack (callback)
+        - name: state
+          in: query
+          schema:
+            type: string
+          description: Tenant ID passed through OAuth state
+      responses:
+        '302':
+          description: Redirect to Slack or success page
+
+  /integrations/slack/callback:
+    post:
+      summary: Slack Interactive Callback
+      description: |
+        Receives Slack button click payloads for HITL approve/reject actions.
+        Verifies Slack request signature (HMAC-SHA256).
+      tags: [Integrations]
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                payload:
+                  type: string
+                  description: JSON-encoded Slack interactive payload
+      responses:
+        '200':
+          description: Action processed
+
+  /integrations/teams/install:
+    post:
+      summary: Configure Teams Webhook
+      description: Save a Microsoft Teams incoming webhook URL for HITL notifications.
+      tags: [Integrations]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [webhook_url]
+              properties:
+                webhook_url:
+                  type: string
+                  format: uri
+                channel_name:
+                  type: string
+      responses:
+        '200':
+          description: Teams configured
+    delete:
+      summary: Disconnect Teams
+      tags: [Integrations]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: Teams disconnected
+
+  /integrations/teams/callback:
+    post:
+      summary: Teams Adaptive Card Callback
+      description: Receives Teams button click callbacks for HITL approve/reject.
+      tags: [Integrations]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ticket_id, action]
+              properties:
+                ticket_id:
+                  type: string
+                  format: uuid
+                action:
+                  type: string
+                  enum: [approve, reject]
+                reviewer:
+                  type: string
+      responses:
+        '200':
+          description: Action processed
+
+  /integrations/jira/install:
+    post:
+      summary: Configure Jira Integration
+      description: Save Jira Cloud API credentials. Validates connection before saving.
+      tags: [Integrations]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [base_url, api_token, user_email, project_key]
+              properties:
+                base_url:
+                  type: string
+                  format: uri
+                api_token:
+                  type: string
+                user_email:
+                  type: string
+                  format: email
+                project_key:
+                  type: string
+                issue_type:
+                  type: string
+                  default: Task
+      responses:
+        '200':
+          description: Jira configured
+        '400':
+          description: Connection test failed
+    delete:
+      summary: Disconnect Jira
+      tags: [Integrations]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: Jira disconnected
+
+  /integrations/jira/webhook:
+    post:
+      summary: Jira Webhook
+      description: |
+        Receives Jira issue_updated events. When a RuneSignal-linked issue is
+        resolved/closed, auto-approves the HITL ticket. Cancelled/rejected issues
+        auto-reject.
+      tags: [Integrations]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Event processed
+
+  /integrations/servicenow/install:
+    post:
+      summary: Configure ServiceNow Integration
+      description: Save ServiceNow instance credentials. Validates connection before saving.
+      tags: [Integrations]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [instance_url, username, password]
+              properties:
+                instance_url:
+                  type: string
+                  format: uri
+                username:
+                  type: string
+                password:
+                  type: string
+                table:
+                  type: string
+                  default: incident
+                category:
+                  type: string
+                  default: AI Governance
+      responses:
+        '200':
+          description: ServiceNow configured
+        '400':
+          description: Connection test failed
+    delete:
+      summary: Disconnect ServiceNow
+      tags: [Integrations]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: ServiceNow disconnected
+
+  /integrations/servicenow/webhook:
+    post:
+      summary: ServiceNow Webhook
+      description: |
+        Receives ServiceNow business rule webhooks when incident state changes.
+        Resolved/closed incidents approve HITL tickets. Cancelled incidents reject them.
+      tags: [Integrations]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sys_id:
+                  type: string
+                number:
+                  type: string
+                state:
+                  type: string
+                resolved_by:
+                  type: string
+                close_notes:
+                  type: string
+                u_runesignal_ticket_id:
+                  type: string
+                  format: uuid
+      responses:
+        '200':
+          description: Event processed
+
+  # ──────────────────────────────────────────────
+  # Billing
+  # ──────────────────────────────────────────────
+  /billing/checkout:
+    post:
+      summary: Create Stripe Checkout Session
+      description: Creates a Stripe Checkout session for subscription upgrade. Requires user session auth.
+      tags: [Billing]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [priceId]
+              properties:
+                priceId:
+                  type: string
+                  description: Stripe Price ID
+      responses:
+        '200':
+          description: Checkout session URL
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url:
+                    type: string
+                    format: uri
+        '401':
+          description: Unauthorized
+
+  /billing/webhook:
+    post:
+      summary: Stripe Webhook
+      description: |
+        Receives Stripe webhook events for subscription lifecycle management.
+        Handles: checkout.session.completed, customer.subscription.deleted, invoice.payment_failed.
+        Requires stripe-signature header for verification.
+      tags: [Billing]
+      parameters:
+        - name: stripe-signature
+          in: header
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Webhook processed
+        '400':
+          description: Invalid signature
+
+  # ──────────────────────────────────────────────
+  # Auth (SSO)
+  # ──────────────────────────────────────────────
+  /auth/sso/{provider}:
+    get:
+      summary: SSO Login/Callback
+      description: |
+        Without `code` param: redirects to the identity provider (Okta, Entra ID, Auth0).
+        With `code` param: handles the OAuth callback, creates/links user, generates magic link.
+      tags: [Auth]
+      parameters:
+        - name: provider
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [okta, entra, auth0]
+        - name: code
+          in: query
+          schema:
+            type: string
+        - name: state
+          in: query
+          schema:
+            type: string
+            description: Tenant ID (OAuth state parameter)
+        - name: tenant_id
+          in: query
+          schema:
+            type: string
+      responses:
+        '302':
+          description: Redirect to IdP or magic link
+        '400':
+          description: Unsupported provider or missing tenant_id
+    post:
+      summary: Configure SSO Provider
+      description: Save SSO configuration for a tenant (client_id, client_secret, issuer).
+      tags: [Auth]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: provider
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [okta, entra, auth0]
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [client_id, client_secret, issuer]
+              properties:
+                client_id:
+                  type: string
+                client_secret:
+                  type: string
+                issuer:
+                  type: string
+                  format: uri
+                enforce_sso:
+                  type: boolean
+                  default: false
+                azure_tenant_id:
+                  type: string
+                  description: Required for Entra ID
+      responses:
+        '200':
+          description: SSO configured
+
+  # ──────────────────────────────────────────────
+  # Internal / Dashboard
+  # ──────────────────────────────────────────────
   /keys:
     get:
       summary: List API Keys
-      description: Secured with User Session (Dashboard).
-      tags: [Internal]
-    post:
-      summary: Generate New API Key
+      description: Secured with user session (Dashboard). Returns key metadata (never raw keys).
       tags: [Internal]
       responses:
-        '201':
-          description: Key created (Raw key shown once)
+        '200':
+          description: Key list
+    post:
+      summary: Generate New API Key
+      description: Creates a new API key. The raw key is returned only once.
+      tags: [Internal]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  default: New API Key
+      responses:
+        '200':
+          description: Key created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  key:
+                    type: string
+                    description: Raw key (shown once)
+                  name:
+                    type: string
+    delete:
+      summary: Delete API Key
+      tags: [Internal]
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Key deleted
+
+  /metrics:
+    get:
+      summary: Executive Dashboard Metrics
+      description: Aggregated platform metrics (agents, intents, exceptions, violations).
+      tags: [Internal]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: Dashboard metrics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  summary:
+                    type: object
+                    properties:
+                      agents:
+                        type: integer
+                      active_intents:
+                        type: integer
+                      open_exceptions:
+                        type: integer
+                      violations_today:
+                        type: integer
+                  health_status:
+                    type: string
+                    enum: [healthy, at_risk]
+                  timestamp:
+                    type: string
+                    format: date-time
+
+  /verify/pubkey:
+    get:
+      summary: Get Ledger Public Key
+      description: |
+        **Public endpoint -- no authentication required.**
+        Returns the Ed25519 public key used to sign audit certificates.
+        External parties can use this to verify provenance certificates.
+      tags: [Provenance]
+      responses:
+        '200':
+          description: Public key
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: active
+                  key_id:
+                    type: string
+                  public_key:
+                    type: string
+                    description: PEM-encoded Ed25519 public key
+
+  /onboarding/set-admin-role:
+    post:
+      summary: Set Admin Role
+      description: |
+        Internal endpoint called after tenant creation. Sets app_metadata.role = 'admin'
+        on the creating user. Verifies the user is the tenant owner to prevent privilege escalation.
+      tags: [Onboarding]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [user_id, tenant_id]
+              properties:
+                user_id:
+                  type: string
+                  format: uuid
+                tenant_id:
+                  type: string
+                  format: uuid
+      responses:
+        '200':
+          description: Admin role set
+        '403':
+          description: User is not the tenant owner
