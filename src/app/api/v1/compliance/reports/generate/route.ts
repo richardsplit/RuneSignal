@@ -23,8 +23,14 @@ export async function POST(req: NextRequest) {
       .single()
       .catch(() => ({ data: null }));
 
-    // Fallback: use dev tenant for demo/local
-    const tenantId = keyData?.tenant_id || req.headers.get('x-tenant-id') || 'demo-tenant';
+    // Resolve tenant from API key or header — no hardcoded fallback
+    const tenantId = keyData?.tenant_id || req.headers.get('x-tenant-id');
+    if (!tenantId) {
+      return NextResponse.json(
+        { error: 'Tenant ID required. Provide via Authorization header or X-Tenant-Id header.' },
+        { status: 401 },
+      );
+    }
 
     // Create a placeholder report record with 'generating' status
     const { data: reportRecord, error: insertError } = await supabase

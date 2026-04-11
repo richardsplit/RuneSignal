@@ -921,6 +921,97 @@ paths:
         '200':
           description: Endpoint removed
 
+  /compliance/evidence-export:
+    post:
+      summary: Export EU AI Act Evidence Package
+      description: |
+        Generates a structured JSON evidence manifest mapping provenance, HITL,
+        and explainability events to relevant EU AI Act articles (13, 14, 17, 26).
+
+        Currently supports `eu_ai_act` regulation. `iso_42001` returns 501.
+      tags: [Compliance]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: X-Tenant-Id
+          in: header
+          required: false
+          description: Tenant UUID. Can also be provided via API key or request body.
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [date_range, regulation]
+              properties:
+                tenant_id:
+                  type: string
+                  format: uuid
+                  description: Optional tenant override (resolved from auth by default)
+                date_range:
+                  type: object
+                  required: [start, end]
+                  properties:
+                    start:
+                      type: string
+                      format: date-time
+                      example: "2026-01-01T00:00:00Z"
+                    end:
+                      type: string
+                      format: date-time
+                      example: "2026-03-31T23:59:59Z"
+                regulation:
+                  type: string
+                  enum: [eu_ai_act, iso_42001]
+                  description: Target regulatory framework
+            example:
+              date_range:
+                start: "2026-01-01T00:00:00Z"
+                end: "2026-03-31T23:59:59Z"
+              regulation: eu_ai_act
+      responses:
+        '200':
+          description: Evidence package generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  export_id:
+                    type: string
+                    format: uuid
+                  regulation:
+                    type: string
+                    enum: [eu_ai_act, iso_42001]
+                  status:
+                    type: string
+                    enum: [ready, generating, failed]
+                  evidence_manifest:
+                    type: object
+                    description: Full EU AI Act evidence report with article coverage, agent inventory, ledger summary, HITL log, incidents, and attestation.
+        '400':
+          description: Invalid request (missing fields or invalid regulation)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Missing tenant context
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '501':
+          description: Regulation not yet implemented (iso_42001)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
   /compliance/reports:
     get:
       summary: Generate Compliance Report
