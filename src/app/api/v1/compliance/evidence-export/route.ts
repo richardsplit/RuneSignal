@@ -14,6 +14,10 @@ import {
   EuAiActReportGenerator,
   type EuAiActReport,
 } from '@lib/modules/compliance/eu-ai-act-report';
+import {
+  Iso42001ReportGenerator,
+  type Iso42001Report,
+} from '@lib/modules/compliance/iso-42001-report';
 
 type Regulation = 'eu_ai_act' | 'iso_42001';
 
@@ -30,7 +34,7 @@ interface EvidenceExportResponse {
   export_id: string;
   regulation: Regulation;
   status: 'ready' | 'generating' | 'failed';
-  evidence_manifest: EuAiActReport;
+  evidence_manifest: EuAiActReport | Iso42001Report;
 }
 
 /**
@@ -105,23 +109,55 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // iso_42001 is not yet implemented - narrowest safe scope
+    const supabase = createAdminClient();
+
+    // ─── ISO 42001 evidence package ───────────────────────────────────────────
     if (body.regulation === 'iso_42001') {
-      return NextResponse.json(
-        { error: 'iso_42001 evidence export is not yet implemented' },
-        { status: 501 },
-      );
+      const report = await Iso42001ReportGenerator.generate(tenantId, {
+        period_start: body.date_range.start,
+        period_end: body.date_range.end,
+      });
+
+      const clauseCoverage = Iso42001ReportGenerator.computeClauseCoverage(report);
+
+      const { data: reportRecord } = await supabase
+        .from('compliance_reports')
+        .insert({
+          org_id: tenantId,
+          report_type: 'evidence-export',
+          framework_version: 'ISO_42001_2023',
+          status: 'ready',
+          json_export: report as unknown as Record<string, unknown>,
+          evidence_period_start: body.date_range.start,
+          evidence_period_end: body.date_range.end,
+          coverage_score: report.overall_coverage_score,
+          article_coverage: clauseCoverage,
+          agent_count: report.ai_system_inventory.length,
+          action_count: report.clause_coverage.technical_documentation.provenance_records_count,
+          hitl_reviews_count: report.clause_coverage.human_oversight_logs.total_reviews,
+          generated_at: new Date().toISOString(),
+        })
+        .select('id')
+        .single()
+        .catch(() => ({ data: null }));
+
+      const exportId = reportRecord?.id || report.report_metadata.report_id;
+
+      return NextResponse.json({
+        export_id: exportId,
+        regulation: body.regulation,
+        status: 'ready',
+        evidence_manifest: report,
+      } as EvidenceExportResponse, { status: 200 });
     }
 
-    // Generate the EU AI Act evidence package synchronously
+    // ─── EU AI Act evidence package ───────────────────────────────────────────
     const report = await EuAiActReportGenerator.generate(tenantId, {
       period_start: body.date_range.start,
       period_end: body.date_range.end,
       framework: 'EU_AI_ACT_2024',
     });
 
-    // Store the report in compliance_reports table
-    const supabase = createAdminClient();
     const articleCoverage = EuAiActReportGenerator.computeArticleCoverage(report);
 
     const { data: reportRecord } = await supabase

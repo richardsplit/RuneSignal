@@ -195,6 +195,20 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // 4.5 Gate internal/non-commercial routes — redirect to dashboard
+  // S5 Insurance, S8 MoralOS, S15 Physical AI, S17 Red Teaming are internal only.
+  // These routes exist in code but must not be reachable by regular users.
+  const INTERNAL_ONLY_ROUTES = ['/insurance', '/moral', '/physical', '/red-team', '/soul-marketplace'];
+  const isInternalOnlyRoute = INTERNAL_ONLY_ROUTES.some(r => url === r || url.startsWith(r + '/'));
+  if (isInternalOnlyRoute && user) {
+    // Redirect authenticated users to dashboard — the routes are not for general use
+    return NextResponse.redirect(new URL('/dashboard', request.url));
+  }
+  if (isInternalOnlyRoute && !user) {
+    // Unauthenticated users see the homepage
+    return NextResponse.redirect(new URL('/', request.url));
+  }
+
   // 5. Agent-only /api/v1 Authorization (Scoped to sensitive agent-only routes)
   // This part still allows legacy agent auth via headers if it's an agent API call.
   if (url.startsWith('/api/v1/')) {

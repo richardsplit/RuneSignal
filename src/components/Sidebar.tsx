@@ -347,7 +347,6 @@ const NAV_SECTIONS: NavSection[] = [
       { label: 'Conflict Arbiter', href: '/conflict', icon: <IconConflict /> },
       { label: 'Review Queue', href: '/exceptions', icon: <IconExceptions />, badge: 3 },
       { label: 'Audit Trail', href: '/audit', icon: <IconAudit /> },
-      { label: 'MoralOS', href: '/moral', icon: <IconMoralOS /> },
     ],
   },
   {
@@ -372,8 +371,6 @@ const NAV_SECTIONS: NavSection[] = [
     label: 'Advanced',
     items: [
       { label: 'A2A Gateway', href: '/a2a', icon: <IconA2A /> },
-      { label: 'Red Teaming', href: '/red-team', icon: <IconRedTeam />, badge: 'new' },
-      { label: 'Physical AI', href: '/physical', icon: <IconPhysicalAI /> },
     ],
   },
   {
