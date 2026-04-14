@@ -223,6 +223,16 @@ function IconSettings() {
   );
 }
 
+function IconFirewall() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M7.5 1.5L2 4v3.5c0 3.25 2.5 5.5 5.5 6C10.5 13 13 10.75 13 7.5V4L7.5 1.5z" />
+      <line x1="5" y1="7.5" x2="10" y2="7.5" />
+      <line x1="7.5" y1="5" x2="7.5" y2="10" />
+    </svg>
+  );
+}
+
 function IconChevronLeft() {
   return (
     <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round">
@@ -326,7 +336,8 @@ interface NavSection {
 const NAV_SECTIONS: NavSection[] = [
   {
     items: [
-      { label: 'Dashboard', href: '/', icon: <IconDashboard /> },
+      { label: 'Dashboard', href: '/dashboard', icon: <IconDashboard /> },
+      { label: 'Firewall', href: '/firewall', icon: <IconFirewall /> },
     ],
   },
   {

@@ -71,15 +71,30 @@ export class SlackAdapter implements IntegrationAdapter {
                 { type: 'mrkdwn', text: `*Agent:*\n${payload.agent_id.slice(0, 16)}` },
               ],
             },
-            ...(payload.review_url ? [{
+            {
               type: 'actions',
-              elements: [{
-                type: 'button',
-                text: { type: 'plain_text', text: 'Review in RuneSignal' },
-                url: payload.review_url,
-                style: 'primary',
-              }],
-            }] : []),
+              elements: [
+                {
+                  type: 'button',
+                  text: { type: 'plain_text', text: '✅ Approve', emoji: true },
+                  style: 'primary',
+                  action_id: `hitl_approve_${payload.approval_id}`,
+                  value: payload.approval_id,
+                },
+                {
+                  type: 'button',
+                  text: { type: 'plain_text', text: '❌ Reject', emoji: true },
+                  style: 'danger',
+                  action_id: `hitl_reject_${payload.approval_id}`,
+                  value: payload.approval_id,
+                },
+                ...(payload.review_url ? [{
+                  type: 'button',
+                  text: { type: 'plain_text', text: 'View in RuneSignal', emoji: true },
+                  url: payload.review_url,
+                }] : []),
+              ],
+            },
           ],
         }),
       });
