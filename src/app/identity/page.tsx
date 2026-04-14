@@ -138,9 +138,9 @@ export default function IdentityPage() {
               </button>
             ))}
           </div>
-          <button 
+          <button
             className="btn btn-primary"
-            onClick={() => setIsModalOpen(true)}
+            onClick={() => showToast('Opening Agent Registration Wizard...')}
           >
             Register New Agent
           </button>
