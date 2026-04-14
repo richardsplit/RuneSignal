@@ -132,17 +132,22 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // 2.4 MFA Enforcement (Authenticator Assurance Level)
-  // If the user has MFA enrolled, we require aal2 for the dashboard
-  const { data: { session } } = await supabase.auth.getSession();
-  const aal = session?.user?.app_metadata?.aal || 'aal1';
-  
-  // We check if they have active factors
-  const { data: factors } = await supabase.auth.mfa.listFactors();
-  const hasMfaEnrolled = factors?.all?.some(f => f.status === 'verified') || false;
+  // 2.4 MFA Enforcement (Authenticator Assurance Level 2)
+  // Use the correct Supabase API: getAuthenticatorAssuranceLevel() reads the JWT
+  // directly (no extra DB call). It returns currentLevel (what the session has)
+  // and nextLevel (what it could reach if MFA is completed).
+  // If nextLevel is 'aal2' but currentLevel is not, the user has a verified TOTP
+  // factor enrolled but has not yet completed the challenge in this session — they
+  // must go through /mfa-verify before accessing any protected route.
+  //
+  // NOTE: do NOT use session?.user?.app_metadata?.aal — Supabase does not write
+  // AAL into app_metadata. That field is always undefined and caused an infinite
+  // redirect loop in the previous implementation.
+  const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+  const needsMfaChallenge =
+    aalData?.nextLevel === 'aal2' && aalData?.currentLevel !== 'aal2';
 
-  if (hasMfaEnrolled && aal === 'aal1' && !isMfaVerify && !url.startsWith('/login') && !url.startsWith('/landing') && !url.startsWith('/api')) {
-    // Redirect to MFA verification page if they are only partially authenticated
+  if (needsMfaChallenge && !isMfaVerify && !url.startsWith('/login') && !url.startsWith('/landing') && !url.startsWith('/api')) {
     return NextResponse.redirect(new URL('/mfa-verify', request.url));
   }
 
