@@ -32,12 +32,13 @@ export async function middleware(request: NextRequest) {
   const isLogin = url.startsWith('/login');
   const isLanding = url.startsWith('/landing'); // legacy /landing redirect safety
   const isLegal = url.startsWith('/legal');     // /legal/dpa, /legal/sla — public
+  const isSecurity = url.startsWith('/security'); // /security — architecture trust document, public
   const isMfaVerify = url.startsWith('/mfa-verify');
   const isOnboarding = url.startsWith('/onboarding');
   const isInternal = url.startsWith('/_next') || url.includes('.') || url.startsWith('/api/v1/billing/webhook');
 
   // Static assets and fully public non-root routes — skip all auth processing
-  if (isPublicApi || isLogin || isLanding || isLegal || isInternal) {
+  if (isPublicApi || isLogin || isLanding || isLegal || isSecurity || isInternal) {
     return response;
   }
 
@@ -148,7 +149,7 @@ export async function middleware(request: NextRequest) {
   const needsMfaChallenge =
     aalData?.nextLevel === 'aal2' && aalData?.currentLevel !== 'aal2';
 
-  if (needsMfaChallenge && !isMfaVerify && !url.startsWith('/login') && !url.startsWith('/landing') && !url.startsWith('/api')) {
+  if (needsMfaChallenge && !isMfaVerify && !url.startsWith('/login') && !url.startsWith('/landing') && !url.startsWith('/security') && !url.startsWith('/api')) {
     return NextResponse.redirect(new URL('/mfa-verify', request.url));
   }
 
@@ -218,6 +219,7 @@ export async function middleware(request: NextRequest) {
     !url.startsWith('/login') &&
     !url.startsWith('/landing') &&
     !url.startsWith('/legal') &&
+    !url.startsWith('/security') &&
     !url.startsWith('/mfa-verify') &&
     !url.startsWith('/onboarding') &&
     !url.startsWith('/_next') &&
