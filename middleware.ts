@@ -195,18 +195,24 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // 4.5 Gate internal/non-commercial routes — redirect to dashboard
+  // 4.5 Gate internal/non-commercial routes — redirect UI routes, block API routes
   // S5 Insurance, S8 MoralOS, S15 Physical AI, S17 Red Teaming are internal only.
-  // These routes exist in code but must not be reachable by regular users.
-  const INTERNAL_ONLY_ROUTES = ['/insurance', '/moral', '/physical', '/red-team', '/soul-marketplace'];
-  const isInternalOnlyRoute = INTERNAL_ONLY_ROUTES.some(r => url === r || url.startsWith(r + '/'));
-  if (isInternalOnlyRoute && user) {
-    // Redirect authenticated users to dashboard — the routes are not for general use
+  // These routes exist in code but must not be reachable by regular users or API consumers.
+  const INTERNAL_ONLY_UI = ['/insurance', '/moral', '/physical', '/red-team', '/soul-marketplace'];
+  const isInternalOnlyUi = INTERNAL_ONLY_UI.some(r => url === r || url.startsWith(r + '/'));
+  if (isInternalOnlyUi && user) {
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
-  if (isInternalOnlyRoute && !user) {
-    // Unauthenticated users see the homepage
+  if (isInternalOnlyUi && !user) {
     return NextResponse.redirect(new URL('/', request.url));
+  }
+
+  // Block all /api/v1/insurance/* routes — S5 is internal telemetry only, not a public API
+  if (url.startsWith('/api/v1/insurance')) {
+    return NextResponse.json(
+      { error: 'Not Found', message: 'This endpoint is not available.' },
+      { status: 404 }
+    );
   }
 
   // 5. Agent-only /api/v1 Authorization (Scoped to sensitive agent-only routes)
