@@ -520,6 +520,8 @@ export default function LandingPage() {
                   <div style={{ fontSize: 12, fontWeight: 600, color: '#64748b', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 14 }}>Company</div>
                   {[
                     { label: 'GitHub', href: 'https://github.com/richardsplit/TrustLayer' },
+                    { label: 'Data Processing Agreement', href: '/legal/dpa' },
+                    { label: 'Service Level Agreement', href: '/legal/sla' },
                     { label: 'Privacy', href: '/privacy' },
                     { label: 'Terms', href: '/terms' },
                   ].map(l => (

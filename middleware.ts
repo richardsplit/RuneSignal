@@ -31,12 +31,13 @@ export async function middleware(request: NextRequest) {
   const isRoot = url === '/';           // landing page lives at /
   const isLogin = url.startsWith('/login');
   const isLanding = url.startsWith('/landing'); // legacy /landing redirect safety
+  const isLegal = url.startsWith('/legal');     // /legal/dpa, /legal/sla — public
   const isMfaVerify = url.startsWith('/mfa-verify');
   const isOnboarding = url.startsWith('/onboarding');
   const isInternal = url.startsWith('/_next') || url.includes('.') || url.startsWith('/api/v1/billing/webhook');
 
   // Static assets and fully public non-root routes — skip all auth processing
-  if (isPublicApi || isLogin || isLanding || isInternal) {
+  if (isPublicApi || isLogin || isLanding || isLegal || isInternal) {
     return response;
   }
 
@@ -216,6 +217,7 @@ export async function middleware(request: NextRequest) {
     url !== '/' &&
     !url.startsWith('/login') &&
     !url.startsWith('/landing') &&
+    !url.startsWith('/legal') &&
     !url.startsWith('/mfa-verify') &&
     !url.startsWith('/onboarding') &&
     !url.startsWith('/_next') &&

@@ -1,9 +1,13 @@
-import { createServerClient } from '@lib/db/supabase';
+import { createAdminClient } from '@lib/db/supabase';
 
 /**
  * Core Webhook Emitter used to notify external GRC systems
  * (Slack, ServiceNow, Jira, etc.) when an anomaly or rule violation is detected.
- * Refactored in Phase 2 to be tenant-aware.
+ *
+ * Uses createAdminClient (service role) — this runs from background service modules
+ * (S7, S9, S3, S8) with no user request context. createServerClient requires cookies
+ * from next/headers and will silently return null data when called outside a request
+ * handler, causing all webhook deliveries to be silently dropped.
  */
 export class WebhookEmitter {
   /**
@@ -40,8 +44,8 @@ export class WebhookEmitter {
   static async notifyTenant(tenantId: string, message: string, eventDetails: any = null) {
     if (!tenantId) return;
 
-    // Use service role for backend lookup
-    const supabase = createServerClient();
+    // createAdminClient: service role, no cookie/session context required
+    const supabase = createAdminClient();
     
     try {
       const { data: settings } = await supabase
