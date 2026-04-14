@@ -23,8 +23,8 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const fetchTenant = async () => {
-      // Don't fetch for public pages
-      if (pathname === '/login' || pathname === '/onboarding') {
+      // Don't fetch for public pages (landing, login, onboarding)
+      if (pathname === '/' || pathname === '/login' || pathname === '/onboarding' || pathname.startsWith('/landing')) {
         setLoading(false);
         return;
       }

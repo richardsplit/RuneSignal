@@ -6,7 +6,8 @@ import crypto from 'crypto';
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
-  const supabase = createServerClient();
+  // createServerClient is async — must be awaited or supabase is a Promise, not a client
+  const supabase = await createServerClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -25,7 +26,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const supabase = createServerClient();
+  const supabase = await createServerClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -36,6 +37,7 @@ export async function POST(request: NextRequest) {
   try {
     const { name } = await request.json();
     const rawKey = `tl_${crypto.randomBytes(24).toString('hex')}`;
+    // SHA-256 hash — matches the middleware key verification algorithm
     const keyHash = crypto.createHash('sha256').update(rawKey).digest('hex');
 
     const { data, error } = await supabase
@@ -51,9 +53,9 @@ export async function POST(request: NextRequest) {
 
     if (error) throw error;
 
-    return NextResponse.json({ 
-      id: data.id, 
-      key: rawKey, // ONLY RETURNED ONCE
+    return NextResponse.json({
+      id: data.id,
+      key: rawKey, // ONLY RETURNED ONCE — never stored in plaintext
       name: name || 'New API Key'
     });
   } catch (error: any) {
@@ -62,20 +64,25 @@ export async function POST(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
-  const supabase = createServerClient();
+  const supabase = await createServerClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  const tenantId = request.headers.get('x-tenant-id');
+  if (!tenantId) return NextResponse.json({ error: 'Tenant context missing' }, { status: 400 });
 
   const { searchParams } = new URL(request.url);
   const id = searchParams.get('id');
 
   if (!id) return NextResponse.json({ error: 'Key ID missing' }, { status: 400 });
 
+  // Scope DELETE by both id AND tenant_id — defence in depth alongside RLS
   const { error } = await supabase
     .from('api_keys')
     .delete()
-    .eq('id', id);
+    .eq('id', id)
+    .eq('tenant_id', tenantId);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ success: true });
