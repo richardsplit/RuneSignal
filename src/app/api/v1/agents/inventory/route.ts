@@ -13,7 +13,10 @@ export async function GET(req: NextRequest) {
     const offset = parseInt(searchParams.get('offset') || '0');
 
     const supabase = createAdminClient();
-    const tenantId = req.headers.get('x-tenant-id') || 'demo-tenant';
+    const tenantId = req.headers.get('x-tenant-id');
+    if (!tenantId) {
+      return NextResponse.json({ error: 'Tenant context required' }, { status: 401 });
+    }
 
     let query = supabase
       .from('agent_inventory')
@@ -71,7 +74,10 @@ export async function POST(req: NextRequest) {
     }
 
     const supabase = createAdminClient();
-    const tenantId = req.headers.get('x-tenant-id') || 'demo-tenant';
+    const tenantId = req.headers.get('x-tenant-id');
+    if (!tenantId) {
+      return NextResponse.json({ error: 'Tenant context required' }, { status: 401 });
+    }
 
     const { data, error } = await supabase
       .from('agent_inventory')

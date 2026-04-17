@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/db/supabase';
 import { v4 as uuidv4 } from 'uuid';
+import crypto from 'crypto';
 
 export async function POST(req: NextRequest) {
   try {
@@ -17,11 +18,14 @@ export async function POST(req: NextRequest) {
     const { data: keyData } = await supabase
       .from('api_keys')
       .select('tenant_id')
-      .eq('key_hash', Buffer.from(apiKey).toString('base64'))
+      .eq('key_hash', crypto.createHash('sha256').update(apiKey).digest('hex'))
       .single()
       .catch(() => ({ data: null }));
 
-    const tenantId = keyData?.tenant_id || req.headers.get('x-tenant-id') || 'demo-tenant';
+    const tenantId = keyData?.tenant_id || req.headers.get('x-tenant-id');
+    if (!tenantId) {
+      return NextResponse.json({ error: 'Tenant context required' }, { status: 401 });
+    }
 
     // Store in integration_channels as a webhook provider
     const webhookId = uuidv4();

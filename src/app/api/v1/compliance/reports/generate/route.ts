@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/db/supabase';
 import { EuAiActReportGenerator } from '@/lib/modules/compliance/eu-ai-act-report';
+import crypto from 'crypto';
 
 export async function POST(req: NextRequest) {
   try {
@@ -19,7 +20,7 @@ export async function POST(req: NextRequest) {
     const { data: keyData } = await supabase
       .from('api_keys')
       .select('tenant_id')
-      .eq('key_hash', Buffer.from(apiKey).toString('base64'))
+      .eq('key_hash', crypto.createHash('sha256').update(apiKey).digest('hex'))
       .single()
       .catch(() => ({ data: null }));
 

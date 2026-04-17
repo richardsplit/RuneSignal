@@ -18,6 +18,7 @@ import {
   Iso42001ReportGenerator,
   type Iso42001Report,
 } from '@lib/modules/compliance/iso-42001-report';
+import crypto from 'crypto';
 import * as Sentry from '@sentry/nextjs';
 
 type Regulation = 'eu_ai_act' | 'iso_42001';
@@ -57,7 +58,7 @@ async function resolveTenantId(
     const { data: keyData } = await supabase
       .from('api_keys')
       .select('tenant_id')
-      .eq('key_hash', Buffer.from(apiKey).toString('base64'))
+      .eq('key_hash', crypto.createHash('sha256').update(apiKey).digest('hex'))
       .single()
       .catch(() => ({ data: null }));
 

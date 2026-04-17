@@ -17,7 +17,10 @@ export async function POST(
     }
 
     const supabase = createAdminClient();
-    const tenantId = req.headers.get('x-tenant-id') || 'demo-tenant';
+    const tenantId = req.headers.get('x-tenant-id');
+    if (!tenantId) {
+      return NextResponse.json({ error: 'Tenant context required' }, { status: 401 });
+    }
 
     const { data: existing, error: fetchError } = await supabase
       .from('hitl_exceptions')

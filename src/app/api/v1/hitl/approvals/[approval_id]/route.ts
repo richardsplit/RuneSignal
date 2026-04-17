@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/db/supabase';
+import crypto from 'crypto';
 
 export async function GET(
   req: NextRequest,
@@ -13,11 +14,14 @@ export async function GET(
     const { data: keyData } = await supabase
       .from('api_keys')
       .select('tenant_id')
-      .eq('key_hash', Buffer.from(apiKey).toString('base64'))
+      .eq('key_hash', crypto.createHash('sha256').update(apiKey).digest('hex'))
       .single()
       .catch(() => ({ data: null }));
 
-    const tenantId = keyData?.tenant_id || req.headers.get('x-tenant-id') || 'demo-tenant';
+    const tenantId = keyData?.tenant_id || req.headers.get('x-tenant-id');
+    if (!tenantId) {
+      return NextResponse.json({ error: 'Tenant context required' }, { status: 401 });
+    }
 
     const { data, error } = await supabase
       .from('hitl_exceptions')
