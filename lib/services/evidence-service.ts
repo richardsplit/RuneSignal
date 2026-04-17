@@ -26,6 +26,7 @@ import type {
   BundleCoverage,
   BundleAttestation,
   CoverageGap,
+  ControlStatusSnapshot,
 } from '@lib/types/evidence-bundle';
 
 // ---------------------------------------------------------------------------
@@ -113,10 +114,16 @@ function computeIso42001Coverage(report: Iso42001Report): BundleCoverage {
 // Attestation
 // ---------------------------------------------------------------------------
 
-function computeAttestation(manifest: EuAiActReport | Iso42001Report): BundleAttestation {
+function computeAttestation(
+  manifest: EuAiActReport | Iso42001Report,
+  controlStatus?: ControlStatusSnapshot,
+): BundleAttestation {
+  const hashInput = controlStatus
+    ? JSON.stringify({ manifest, control_status: controlStatus })
+    : JSON.stringify(manifest);
   const bundleHash = crypto
     .createHash('sha256')
-    .update(JSON.stringify(manifest))
+    .update(hashInput)
     .digest('hex');
 
   const signer = getLedgerSigner();
@@ -204,10 +211,52 @@ export class EvidenceService {
       reportType = 'ISO_42001_2023';
     }
 
-    // 2. Compute Ed25519 attestation
-    const attestation = computeAttestation(manifest);
+    // 2. Build control status snapshot (optional — omit if no controls)
+    let controlStatus: ControlStatusSnapshot | undefined;
+    {
+      const { data: controls } = await supabase
+        .from('controls')
+        .select('name, status, clause_ref, last_evaluated_at')
+        .eq('tenant_id', params.tenant_id)
+        .or(`regulation.eq.${params.regulation},regulation.is.null`);
 
-    // 3. Determine next version for this tenant + regulation
+      if (controls && controls.length > 0) {
+        const clauseMap = new Map<string, Array<{ name: string; status: string; last_evaluated: string | null }>>();
+        let passing = 0;
+        let failing = 0;
+        let warning = 0;
+
+        for (const c of controls) {
+          if (c.status === 'passing') passing++;
+          else if (c.status === 'failing') failing++;
+          else if (c.status === 'warning') warning++;
+
+          const ref = c.clause_ref || 'unassigned';
+          if (!clauseMap.has(ref)) clauseMap.set(ref, []);
+          clauseMap.get(ref)!.push({
+            name: c.name,
+            status: c.status,
+            last_evaluated: c.last_evaluated_at || null,
+          });
+        }
+
+        controlStatus = {
+          total_controls: controls.length,
+          passing,
+          failing,
+          warning,
+          by_clause: Array.from(clauseMap.entries()).map(([clause_ref, ctrls]) => ({
+            clause_ref,
+            controls: ctrls,
+          })),
+        };
+      }
+    }
+
+    // 3. Compute Ed25519 attestation (includes control_status so it's covered by signature)
+    const attestation = computeAttestation(manifest, controlStatus);
+
+    // 4. Determine next version for this tenant + regulation
     const { data: maxVersionRow } = await supabase
       .from('compliance_reports')
       .select('version')
@@ -220,7 +269,7 @@ export class EvidenceService {
 
     const nextVersion = (maxVersionRow?.version ?? 0) + 1;
 
-    // 4. Store in compliance_reports
+    // 5. Store in compliance_reports
     const { data: reportRecord, error: insertError } = await supabase
       .from('compliance_reports')
       .insert({
@@ -246,7 +295,7 @@ export class EvidenceService {
       throw new Error(`Failed to store evidence bundle: ${insertError?.message ?? 'unknown error'}`);
     }
 
-    // 5. Append audit event
+    // 6. Append audit event
     await AuditLedgerService.appendEvent({
       event_type: 'evidence.generated',
       module: 's13',
@@ -259,7 +308,7 @@ export class EvidenceService {
       },
     });
 
-    // 6. Return EvidenceBundle
+    // 7. Return EvidenceBundle
     return {
       id: reportRecord.id,
       tenant_id: params.tenant_id,
@@ -268,6 +317,7 @@ export class EvidenceService {
       period: params.period,
       manifest,
       coverage,
+      control_status: controlStatus,
       attestation,
       generated_at: reportRecord.generated_at,
       generated_by: params.generated_by,

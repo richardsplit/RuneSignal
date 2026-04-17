@@ -9,6 +9,7 @@
     { "path": "/api/cron/compliance-scan", "schedule": "0 6 * * *"    },
     { "path": "/api/cron/nhi-rotation",    "schedule": "0 2 * * *"    },
     { "path": "/api/cron/baseline-update", "schedule": "0 1 * * *"    },
-    { "path": "/api/cron/art73-deadlines", "schedule": "0 7 * * *"    }
+    { "path": "/api/cron/art73-deadlines", "schedule": "0 7 * * *"    },
+    { "path": "/api/cron/control-monitor", "schedule": "*/15 * * * *" }
   ]
 }

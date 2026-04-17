@@ -414,6 +414,139 @@ components:
           type: string
           format: date-time
 
+    Control:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        tenant_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        regulation:
+          type: string
+          nullable: true
+        clause_ref:
+          type: string
+          nullable: true
+        policy_id:
+          type: string
+          nullable: true
+        evaluation_type:
+          type: string
+          enum: [real_time, scheduled, manual]
+        evaluation_query:
+          type: object
+          nullable: true
+          properties:
+            table:
+              type: string
+            condition:
+              type: string
+            threshold:
+              type: number
+            comparison:
+              type: string
+              enum: [gt, gte, lt, lte, eq]
+        evaluation_schedule:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [passing, failing, warning, not_evaluated]
+        last_evaluated_at:
+          type: string
+          format: date-time
+          nullable: true
+        consecutive_failures:
+          type: integer
+        severity:
+          type: string
+          enum: [low, medium, high, critical]
+        owner:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ControlEvaluation:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        control_id:
+          type: string
+          format: uuid
+        tenant_id:
+          type: string
+          format: uuid
+        result:
+          type: string
+          enum: [pass, fail, warning, error]
+        detail:
+          type: object
+          additionalProperties: true
+        evaluated_at:
+          type: string
+          format: date-time
+
+    ControlStatusSummary:
+      type: object
+      properties:
+        summary:
+          type: object
+          properties:
+            total:
+              type: integer
+            passing:
+              type: integer
+            failing:
+              type: integer
+            warning:
+              type: integer
+            not_evaluated:
+              type: integer
+        by_regulation:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              passing:
+                type: integer
+              failing:
+                type: integer
+              warning:
+                type: integer
+        recent_failures:
+          type: array
+          items:
+            type: object
+            properties:
+              control_id:
+                type: string
+                format: uuid
+              name:
+                type: string
+              clause_ref:
+                type: string
+                nullable: true
+              failed_at:
+                type: string
+                format: date-time
+              detail:
+                type: object
+                additionalProperties: true
+
     Art73Report:
       type: object
       properties:
@@ -599,6 +732,8 @@ tags:
     description: Tenant onboarding utilities
   - name: Incidents
     description: Compliance incident management (EU AI Act Art 73, ISO 42001 Clause 10.2)
+  - name: Controls
+    description: Compliance control monitoring (EU AI Act Art 9, ISO 42001 Clause 8.2)
 
 paths:
   # ──────────────────────────────────────────────
@@ -5403,3 +5538,287 @@ paths:
           description: Invalid index or status
         '404':
           description: Incident not found
+
+  # ────────────────────────────────────────────────
+  # Controls — Phase 4 Task 4.2.2
+  # ────────────────────────────────────────────────
+  /controls:
+    post:
+      summary: Create Control
+      description: Create a new compliance monitoring control.
+      tags: [Controls]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                regulation:
+                  type: string
+                clause_ref:
+                  type: string
+                policy_id:
+                  type: string
+                evaluation_type:
+                  type: string
+                  enum: [real_time, scheduled, manual]
+                evaluation_query:
+                  type: object
+                  properties:
+                    table:
+                      type: string
+                    condition:
+                      type: string
+                    threshold:
+                      type: number
+                    comparison:
+                      type: string
+                      enum: [gt, gte, lt, lte, eq]
+                evaluation_schedule:
+                  type: string
+                severity:
+                  type: string
+                  enum: [low, medium, high, critical]
+                owner:
+                  type: string
+      responses:
+        '201':
+          description: Control created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Control'
+        '400':
+          description: Invalid request body
+        '401':
+          description: Missing or invalid authentication
+    get:
+      summary: List Controls
+      description: List controls with optional filters and pagination.
+      tags: [Controls]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [passing, failing, warning, not_evaluated]
+        - name: regulation
+          in: query
+          schema:
+            type: string
+        - name: severity
+          in: query
+          schema:
+            type: string
+            enum: [low, medium, high, critical]
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+      responses:
+        '200':
+          description: Controls list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  controls:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Control'
+                  total:
+                    type: integer
+                  limit:
+                    type: integer
+                  offset:
+                    type: integer
+        '401':
+          description: Missing or invalid authentication
+
+  /controls/{id}:
+    get:
+      summary: Get Control
+      description: Retrieve a single control by ID.
+      tags: [Controls]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: Control details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Control'
+        '404':
+          description: Control not found
+    patch:
+      summary: Update Control
+      description: Partially update a control.
+      tags: [Controls]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                regulation:
+                  type: string
+                clause_ref:
+                  type: string
+                policy_id:
+                  type: string
+                evaluation_type:
+                  type: string
+                  enum: [real_time, scheduled, manual]
+                evaluation_query:
+                  type: object
+                  properties:
+                    table:
+                      type: string
+                    condition:
+                      type: string
+                    threshold:
+                      type: number
+                    comparison:
+                      type: string
+                      enum: [gt, gte, lt, lte, eq]
+                evaluation_schedule:
+                  type: string
+                severity:
+                  type: string
+                  enum: [low, medium, high, critical]
+                owner:
+                  type: string
+      responses:
+        '200':
+          description: Control updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Control'
+        '400':
+          description: Invalid request body
+        '404':
+          description: Control not found
+    delete:
+      summary: Delete Control
+      description: Permanently delete a control.
+      tags: [Controls]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '204':
+          description: Control deleted
+        '404':
+          description: Control not found
+
+  /controls/{id}/evaluate:
+    post:
+      summary: Trigger Evaluation
+      description: Trigger an on-demand evaluation of a control.
+      tags: [Controls]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: Evaluation result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ControlEvaluation'
+        '404':
+          description: Control not found
+
+  /controls/status:
+    get:
+      summary: Aggregated Status
+      description: Get aggregated control status summary with per-regulation breakdown and recent failures.
+      tags: [Controls]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: Status summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ControlStatusSummary'
+        '401':
+          description: Missing or invalid authentication
+
+  /controls/seed:
+    post:
+      summary: Seed Default Controls
+      description: Seed default compliance control templates for the tenant.
+      tags: [Controls]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '201':
+          description: Default controls created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  controls:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Control'
+        '401':
+          description: Missing or invalid authentication

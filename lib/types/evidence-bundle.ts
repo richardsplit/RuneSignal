@@ -25,6 +25,17 @@ export interface BundleAttestation {
   signed_at: string;
 }
 
+export interface ControlStatusSnapshot {
+  total_controls: number;
+  passing: number;
+  failing: number;
+  warning: number;
+  by_clause: Array<{
+    clause_ref: string;
+    controls: Array<{ name: string; status: string; last_evaluated: string | null }>;
+  }>;
+}
+
 export interface EvidenceBundle {
   id: string;
   tenant_id: string;
@@ -35,6 +46,8 @@ export interface EvidenceBundle {
   manifest: EuAiActReport | Iso42001Report;
 
   coverage: BundleCoverage;
+
+  control_status?: ControlStatusSnapshot;
 
   attestation: BundleAttestation;
 
