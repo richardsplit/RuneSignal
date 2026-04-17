@@ -414,6 +414,134 @@ components:
           type: string
           format: date-time
 
+    Art73Report:
+      type: object
+      properties:
+        report_metadata:
+          type: object
+          properties:
+            report_id:
+              type: string
+              format: uuid
+            incident_id:
+              type: string
+              format: uuid
+            tenant_id:
+              type: string
+              format: uuid
+            regulation:
+              type: string
+              enum: [eu_ai_act]
+            article_ref:
+              type: string
+              enum: [article_73]
+            generated_at:
+              type: string
+              format: date-time
+            reporting_deadline:
+              type: string
+              format: date-time
+            market_surveillance_authority:
+              type: string
+        incident_summary:
+          type: object
+          properties:
+            title:
+              type: string
+            description:
+              type: string
+            severity:
+              type: string
+            category:
+              type: string
+            detected_at:
+              type: string
+              format: date-time
+            investigating_since:
+              type: string
+              format: date-time
+              nullable: true
+            mitigated_at:
+              type: string
+              format: date-time
+              nullable: true
+        ai_system_identification:
+          type: object
+          properties:
+            agents_involved:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  name:
+                    type: string
+                  type:
+                    type: string
+                  eu_ai_act_category:
+                    type: string
+                  risk_classification:
+                    type: string
+        timeline:
+          type: array
+          items:
+            type: object
+            properties:
+              timestamp:
+                type: string
+                format: date-time
+              event_type:
+                type: string
+              description:
+                type: string
+              audit_event_id:
+                type: string
+                format: uuid
+        root_cause_analysis:
+          type: object
+          properties:
+            root_cause:
+              type: string
+              nullable: true
+            contributing_factors:
+              type: array
+              items:
+                type: string
+        corrective_actions:
+          type: array
+          items:
+            $ref: '#/components/schemas/CorrectiveAction'
+        evidence_references:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+                enum: [anomaly, hitl_decision, firewall_block, audit_event]
+              id:
+                type: string
+              description:
+                type: string
+              verifiable:
+                type: boolean
+              verification_url:
+                type: string
+        attestation:
+          type: object
+          properties:
+            bundle_hash:
+              type: string
+            signature:
+              type: string
+            key_id:
+              type: string
+            signed_at:
+              type: string
+              format: date-time
+
 tags:
   - name: Firewall
     description: Core AI action firewall evaluation
@@ -4589,6 +4717,68 @@ paths:
       responses:
         '200':
           description: Event processed
+
+  /incidents/{id}/art73-report:
+    post:
+      summary: Generate Article 73 Report
+      description: |
+        Generate an EU AI Act Article 73 serious incident report for the specified
+        incident. The incident must be marked as is_serious_incident. The report is
+        signed with Ed25519 and stored in compliance_reports. If the incident status
+        is 'mitigated', it will be transitioned to 'reported'.
+      tags: [Incidents]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '201':
+          description: Article 73 report generated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Art73Report'
+        '400':
+          description: Incident is not a serious incident
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Missing tenant identity
+        '404':
+          description: Incident not found
+    get:
+      summary: Get Article 73 Report
+      description: Retrieve the latest Article 73 report for an incident, if one has been generated.
+      tags: [Incidents]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: Article 73 report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Art73Report'
+        '401':
+          description: Missing tenant identity
+        '404':
+          description: No report found for this incident
 
   # ──────────────────────────────────────────────
   # Billing
