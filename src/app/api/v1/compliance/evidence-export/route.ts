@@ -18,6 +18,7 @@ import {
   Iso42001ReportGenerator,
   type Iso42001Report,
 } from '@lib/modules/compliance/iso-42001-report';
+import * as Sentry from '@sentry/nextjs';
 
 type Regulation = 'eu_ai_act' | 'iso_42001';
 
@@ -74,8 +75,11 @@ async function resolveTenantId(
 }
 
 export async function POST(req: NextRequest) {
+  let body: EvidenceExportRequest | undefined;
+  let tenantId: string | null = null;
   try {
-    const body: EvidenceExportRequest = await req.json();
+    body = await req.json() as EvidenceExportRequest;
+    if (!body) throw new Error('Empty request body');
 
     // Validate required fields
     if (!body.date_range?.start || !body.date_range?.end) {
@@ -101,7 +105,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Resolve tenant - NO 'demo-tenant' fallback
-    const tenantId = await resolveTenantId(req, body.tenant_id);
+    tenantId = await resolveTenantId(req, body.tenant_id);
     if (!tenantId) {
       return NextResponse.json(
         { error: 'Tenant ID required. Provide via Authorization header, X-Tenant-Id header, or tenant_id in body.' },
@@ -192,6 +196,10 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(response, { status: 200 });
   } catch (err) {
+    Sentry.captureException(err, {
+      tags: { route: '/api/v1/compliance/evidence-export', component: 'evidence-export' },
+      extra: { regulation: body?.regulation, tenant_id: tenantId },
+    });
     console.error('[compliance/evidence-export] error:', err);
     return NextResponse.json(
       { error: 'Internal server error' },

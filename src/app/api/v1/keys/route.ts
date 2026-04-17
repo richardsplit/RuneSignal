@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@lib/db/supabase';
 import { v4 as uuidv4 } from 'uuid';
 import crypto from 'crypto';
+import * as Sentry from '@sentry/nextjs';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,7 +22,13 @@ export async function GET(request: NextRequest) {
     .eq('tenant_id', tenantId)
     .order('created_at', { ascending: false });
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    Sentry.captureException(error, {
+      tags: { route: '/api/v1/keys', method: 'GET', component: 'keys' },
+      extra: { tenant_id: tenantId },
+    });
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
   return NextResponse.json(keys);
 }
 
@@ -59,6 +66,10 @@ export async function POST(request: NextRequest) {
       name: name || 'New API Key'
     });
   } catch (error: any) {
+    Sentry.captureException(error, {
+      tags: { route: '/api/v1/keys', method: 'POST', component: 'keys' },
+      extra: { tenant_id: tenantId },
+    });
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
@@ -84,6 +95,12 @@ export async function DELETE(request: NextRequest) {
     .eq('id', id)
     .eq('tenant_id', tenantId);
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    Sentry.captureException(error, {
+      tags: { route: '/api/v1/keys', method: 'DELETE', component: 'keys' },
+      extra: { tenant_id: tenantId, key_id: id },
+    });
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
   return NextResponse.json({ success: true });
 }

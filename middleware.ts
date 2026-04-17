@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
 import { createMiddlewareClient } from './lib/db/supabase';
+import * as Sentry from '@sentry/nextjs';
 
 // Initialize Redis and Ratelimit (static instance for edge efficiency)
 const redis = new Redis({
@@ -22,6 +23,8 @@ export async function middleware(request: NextRequest) {
   const requestId = uuidv4();
   const response = NextResponse.next();
   response.headers.set('X-Request-Id', requestId);
+
+  try {
 
   // Initialize Supabase Middleware Client for SSR
   const supabase = createMiddlewareClient(request, response);
@@ -256,6 +259,14 @@ export async function middleware(request: NextRequest) {
   }
 
   return response;
+  } catch (err) {
+    Sentry.captureException(err, {
+      tags: { route: url, component: 'middleware' },
+      extra: { requestId, method: request.method },
+    });
+    // Re-throw to preserve existing behavior — Next.js will return a 500
+    throw err;
+  }
 }
 
 export const config = {
