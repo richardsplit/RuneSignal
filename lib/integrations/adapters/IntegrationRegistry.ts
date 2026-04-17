@@ -10,12 +10,16 @@ import { SlackAdapter } from './slack';
 import { ServiceNowAdapter } from './servicenow';
 import { JiraAdapter } from './jira';
 import { PagerDutyAdapter } from './pagerduty';
+import { TeamsAdapter } from './teams';
+import { WebhookAdapter } from './webhook';
 
-const adapters: Map<string, IntegrationAdapter> = new Map([
+const adapters = new Map<string, IntegrationAdapter>([
   ['slack', new SlackAdapter()],
   ['servicenow', new ServiceNowAdapter()],
   ['jira', new JiraAdapter()],
   ['pagerduty', new PagerDutyAdapter()],
+  ['teams', new TeamsAdapter()],
+  ['webhook', new WebhookAdapter()],
 ]);
 
 export const IntegrationRegistry = {

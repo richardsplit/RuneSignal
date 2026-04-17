@@ -4,6 +4,7 @@ import { WebhookEmitter } from '../../webhooks/emitter';
 import { IntegrationDispatcher } from '../../integrations/dispatcher';
 import { CreateExceptionRequest, ExceptionTicket, ResolveExceptionRequest } from './types';
 import { v4 as uuidv4 } from 'uuid';
+import crypto from 'crypto';
 
 export class HitlService {
   /**
@@ -134,6 +135,37 @@ export class HitlService {
       payload: { decision: newStatus, reason: request.reason, reviewer: request.reviewer_id }
     });
 
+    // Create signed approval receipt in the audit ledger
+    let receiptSignature: string | undefined;
+    let receiptEventId: string | undefined;
+
+    try {
+      const receiptPayload = {
+        approval_id: ticketId,
+        decision: request.action,
+        decided_by: request.reviewer_id || 'api-reviewer',
+        reason: request.reason,
+        decided_at: new Date().toISOString(),
+        context_hash: crypto.createHash('sha256')
+          .update(JSON.stringify(updatedTicket.context_data || {}))
+          .digest('hex'),
+      };
+
+      const event = await AuditLedgerService.appendEvent({
+        event_type: 'approval.decided',
+        module: 's7',
+        tenant_id: tenantId,
+        agent_id: currentTicket.agent_id,
+        payload: receiptPayload,
+      });
+
+      receiptSignature = event?.signature;
+      receiptEventId = event?.id;
+    } catch (e) {
+      // Don't fail the approval if audit logging fails, but log it
+      console.error('Failed to create approval receipt:', e);
+    }
+
     await WebhookEmitter.notifyTenant(tenantId, `✅ HITL Resolved: ${ticketId.split('-')[0]} was ${newStatus.toUpperCase()}`, {
       Reason: request.reason
     });
@@ -161,16 +193,20 @@ export class HitlService {
        await fetch(trainingWebhook, {
          method: 'POST',
          headers: { 'Content-Type': 'application/json' },
-         body: JSON.stringify({ 
-           ticket_id: ticketId, 
-           action: 'fine-tune', 
+         body: JSON.stringify({
+           ticket_id: ticketId,
+           action: 'fine-tune',
            agent_id: currentTicket.agent_id,
            tenant_id: tenantId
          })
        }).catch(e => console.warn("Training webhook failed (intended for mock/integration):", e.message));
     }
 
-    return updatedTicket;
+    return {
+      ...updatedTicket,
+      receipt_signature: receiptSignature,
+      receipt_event_id: receiptEventId,
+    };
   }
 
   /**

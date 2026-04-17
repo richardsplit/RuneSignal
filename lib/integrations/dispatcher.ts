@@ -4,31 +4,33 @@
  * Central routing layer that dispatches HITL ticket events to all active
  * integration channels for a tenant (Slack, Teams, Jira, ServiceNow, webhook).
  *
+ * All dispatch calls are routed through IntegrationRegistry adapters.
  * Called by HitlService.createException() and HitlService.resolveException().
  */
 
 import { createAdminClient } from '../db/supabase';
+import { IntegrationRegistry } from './adapters/IntegrationRegistry';
+import type { HitlApprovalPayload, HitlDecisionPayload, ExternalRef as AdapterExternalRef } from './adapters/IntegrationAdapter.interface';
 import {
   IntegrationProvider,
   DispatchResult,
   HitlTicketSummary,
-  SlackChannelConfig,
-  TeamsChannelConfig,
-  JiraChannelConfig,
-  ServiceNowChannelConfig,
-  WebhookChannelConfig,
 } from './types';
 
 export class IntegrationDispatcher {
   /**
    * Dispatches a newly created HITL ticket to all active channels.
-   * Returns a map of provider → external reference (e.g. Slack message ts, Jira issue key).
+   * Returns a map of provider -> external reference (e.g. Slack message ts, Jira issue key).
+   *
+   * @param channelFilter When provided, only dispatch to channels matching these providers.
+   *                      When absent, dispatch to all active channels (backwards compatible).
    */
   static async dispatchHitlCreated(
     tenantId: string,
-    ticket: HitlTicketSummary
+    ticket: HitlTicketSummary,
+    channelFilter?: IntegrationProvider[]
   ): Promise<DispatchResult[]> {
-    const channels = await IntegrationDispatcher._getActiveChannels(tenantId);
+    const channels = await IntegrationDispatcher._getActiveChannels(tenantId, channelFilter);
     const results = await Promise.allSettled(
       channels.map(ch => IntegrationDispatcher._dispatchCreated(ch.provider, ch.config, ticket))
     );
@@ -43,12 +45,16 @@ export class IntegrationDispatcher {
   /**
    * Dispatches a resolution (approve/reject) to all active channels.
    * Updates Slack messages, transitions Jira issues, etc.
+   *
+   * @param channelFilter When provided, only dispatch to channels matching these providers.
+   *                      When absent, dispatch to all active channels (backwards compatible).
    */
   static async dispatchHitlResolved(
     tenantId: string,
-    ticket: HitlTicketSummary & { external_refs?: Record<string, unknown> }
+    ticket: HitlTicketSummary & { external_refs?: Record<string, unknown> },
+    channelFilter?: IntegrationProvider[]
   ): Promise<DispatchResult[]> {
-    const channels = await IntegrationDispatcher._getActiveChannels(tenantId);
+    const channels = await IntegrationDispatcher._getActiveChannels(tenantId, channelFilter);
     const results = await Promise.allSettled(
       channels.map(ch =>
         IntegrationDispatcher._dispatchResolved(ch.provider, ch.config, ticket, ticket.external_refs || {})
@@ -62,9 +68,12 @@ export class IntegrationDispatcher {
     });
   }
 
-  // ─── Private helpers ─────────────────────────────────────────────────────
+  // --- Private helpers ---
 
-  private static async _getActiveChannels(tenantId: string) {
+  private static async _getActiveChannels(
+    tenantId: string,
+    channelFilter?: IntegrationProvider[]
+  ) {
     const supabase = createAdminClient();
     const { data, error } = await supabase
       .from('integration_channels')
@@ -73,7 +82,74 @@ export class IntegrationDispatcher {
       .eq('is_active', true);
 
     if (error || !data) return [];
-    return data as Array<{ provider: IntegrationProvider; config: Record<string, unknown> }>;
+
+    let channels = data as Array<{ provider: IntegrationProvider; config: Record<string, unknown> }>;
+
+    if (channelFilter && channelFilter.length > 0) {
+      channels = channels.filter(ch => channelFilter.includes(ch.provider));
+    }
+
+    return channels;
+  }
+
+  private static _ticketToApprovalPayload(ticket: HitlTicketSummary): HitlApprovalPayload {
+    return {
+      approval_id: ticket.id,
+      agent_id: ticket.agent_id,
+      action_type: ticket.title,
+      action_description: ticket.description,
+      blast_radius: ticket.priority, // maps priority to blast_radius for adapters
+      reversible: false,
+      priority: ticket.priority,
+      status: ticket.status,
+      created_at: ticket.created_at,
+      expires_at: ticket.sla_deadline,
+      review_url: `${process.env.NEXT_PUBLIC_APP_URL || ''}/approvals/${ticket.id}`,
+    };
+  }
+
+  private static _ticketToDecisionPayload(
+    ticket: HitlTicketSummary
+  ): HitlDecisionPayload {
+    return {
+      approval_id: ticket.id,
+      decision: ticket.status as 'approved' | 'rejected',
+      decided_at: new Date().toISOString(),
+    };
+  }
+
+  private static _externalRefForProvider(
+    provider: IntegrationProvider,
+    externalRefs: Record<string, unknown>
+  ): AdapterExternalRef | undefined {
+    const ref = externalRefs[provider] as Record<string, unknown> | undefined;
+    if (!ref) return undefined;
+
+    // Normalize provider-specific external_refs stored in the DB
+    // into the adapter's ExternalRef shape
+    if (provider === 'slack') {
+      const slackRef = ref as { channel?: string; ts?: string };
+      if (slackRef.ts) {
+        return { external_id: slackRef.ts, metadata: { channel: slackRef.channel, ts: slackRef.ts } };
+      }
+    } else if (provider === 'jira') {
+      const jiraRef = ref as { issue_key?: string; issue_id?: string };
+      if (jiraRef.issue_id) {
+        return { external_id: jiraRef.issue_key || '', metadata: { issue_key: jiraRef.issue_key, issue_id: jiraRef.issue_id } };
+      }
+    } else if (provider === 'servicenow') {
+      const snowRef = ref as { sys_id?: string; number?: string };
+      if (snowRef.sys_id) {
+        return { external_id: snowRef.sys_id, metadata: { sys_id: snowRef.sys_id, number: snowRef.number } };
+      }
+    } else if (provider === 'webhook') {
+      const whRef = ref as { url?: string; delivered_at?: string };
+      if (whRef.url) {
+        return { external_id: whRef.url, metadata: ref };
+      }
+    }
+
+    return undefined;
   }
 
   private static async _dispatchCreated(
@@ -81,20 +157,20 @@ export class IntegrationDispatcher {
     config: Record<string, unknown>,
     ticket: HitlTicketSummary
   ): Promise<DispatchResult> {
-    switch (provider) {
-      case 'slack':
-        return IntegrationDispatcher._slackCreate(config as unknown as SlackChannelConfig, ticket);
-      case 'teams':
-        return IntegrationDispatcher._teamsCreate(config as unknown as TeamsChannelConfig, ticket);
-      case 'jira':
-        return IntegrationDispatcher._jiraCreate(config as unknown as JiraChannelConfig, ticket);
-      case 'servicenow':
-        return IntegrationDispatcher._servicenowCreate(config as unknown as ServiceNowChannelConfig, ticket);
-      case 'webhook':
-        return IntegrationDispatcher._webhookSend(config as unknown as WebhookChannelConfig, 'hitl.created', ticket);
-      default:
-        return { provider, success: false, error: 'Unknown provider' };
+    const adapter = IntegrationRegistry.get(provider);
+    if (!adapter) {
+      return { provider, success: false, error: `No adapter registered for provider: ${provider}` };
     }
+
+    const payload = IntegrationDispatcher._ticketToApprovalPayload(ticket);
+    const result = await adapter.onApprovalCreated(config, payload);
+
+    return {
+      provider,
+      success: result.success,
+      external_ref: result.external_ref?.metadata as DispatchResult['external_ref'],
+      error: result.error,
+    };
   }
 
   private static async _dispatchResolved(
@@ -103,344 +179,19 @@ export class IntegrationDispatcher {
     ticket: HitlTicketSummary,
     externalRefs: Record<string, unknown>
   ): Promise<DispatchResult> {
-    switch (provider) {
-      case 'slack':
-        return IntegrationDispatcher._slackUpdate(config as unknown as SlackChannelConfig, ticket, externalRefs);
-      case 'jira':
-        return IntegrationDispatcher._jiraTransition(config as unknown as JiraChannelConfig, ticket, externalRefs);
-      case 'webhook':
-        return IntegrationDispatcher._webhookSend(config as unknown as WebhookChannelConfig, 'hitl.resolved', ticket);
-      default:
-        // Teams and ServiceNow updates are handled via their own webhooks
-        return { provider, success: true };
+    const adapter = IntegrationRegistry.get(provider);
+    if (!adapter) {
+      return { provider, success: false, error: `No adapter registered for provider: ${provider}` };
     }
-  }
 
-  // ─── Slack ───────────────────────────────────────────────────────────────
-
-  private static async _slackCreate(
-    config: SlackChannelConfig,
-    ticket: HitlTicketSummary
-  ): Promise<DispatchResult> {
-    const priorityEmoji: Record<string, string> = { critical: '🔴', high: '🟠', medium: '🟡', low: '🟢' };
-    const blocks = [
-      {
-        type: 'section',
-        text: {
-          type: 'mrkdwn',
-          text: `${priorityEmoji[ticket.priority] || '⚠️'} *HITL Approval Required*\n*${ticket.title}*`,
-        },
-      },
-      {
-        type: 'section',
-        fields: [
-          { type: 'mrkdwn', text: `*Priority:*\n${ticket.priority.toUpperCase()}` },
-          { type: 'mrkdwn', text: `*Agent:*\n${ticket.agent_id.slice(0, 12)}…` },
-          { type: 'mrkdwn', text: `*SLA Deadline:*\n${new Date(ticket.sla_deadline).toLocaleString()}` },
-          { type: 'mrkdwn', text: `*Ticket ID:*\n${ticket.id.slice(0, 12)}…` },
-        ],
-      },
-      {
-        type: 'section',
-        text: { type: 'mrkdwn', text: `*Description:*\n${ticket.description.slice(0, 300)}` },
-      },
-      {
-        type: 'actions',
-        block_id: `hitl_actions_${ticket.id}`,
-        elements: [
-          {
-            type: 'button',
-            text: { type: 'plain_text', text: '✅ Approve', emoji: true },
-            style: 'primary',
-            action_id: `hitl_approve_${ticket.id}`,
-            value: ticket.id,
-          },
-          {
-            type: 'button',
-            text: { type: 'plain_text', text: '❌ Reject', emoji: true },
-            style: 'danger',
-            action_id: `hitl_reject_${ticket.id}`,
-            value: ticket.id,
-          },
-        ],
-      },
-    ];
-
-    const response = await fetch('https://slack.com/api/chat.postMessage', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${config.bot_token}`,
-      },
-      body: JSON.stringify({
-        channel: config.channel_id,
-        blocks,
-        text: `HITL Approval Required: ${ticket.title}`,
-      }),
-    });
-
-    const data = await response.json();
-    if (!data.ok) {
-      return { provider: 'slack', success: false, error: data.error };
-    }
+    const payload = IntegrationDispatcher._ticketToDecisionPayload(ticket);
+    const adapterRef = IntegrationDispatcher._externalRefForProvider(provider, externalRefs);
+    const result = await adapter.onApprovalDecided(config, payload, adapterRef);
 
     return {
-      provider: 'slack',
-      success: true,
-      external_ref: { channel: data.channel, ts: data.ts },
-    };
-  }
-
-  private static async _slackUpdate(
-    config: SlackChannelConfig,
-    ticket: HitlTicketSummary,
-    externalRefs: Record<string, unknown>
-  ): Promise<DispatchResult> {
-    const slackRef = externalRefs.slack as { channel: string; ts: string } | undefined;
-    if (!slackRef?.ts) return { provider: 'slack', success: true }; // Nothing to update
-
-    const statusEmoji = ticket.status === 'approved' ? '✅' : '❌';
-    const blocks = [
-      {
-        type: 'section',
-        text: {
-          type: 'mrkdwn',
-          text: `${statusEmoji} *HITL ${ticket.status.toUpperCase()}*\n*${ticket.title}*\n_Decision recorded in RuneSignal audit ledger._`,
-        },
-      },
-    ];
-
-    await fetch('https://slack.com/api/chat.update', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${config.bot_token}`,
-      },
-      body: JSON.stringify({ channel: slackRef.channel, ts: slackRef.ts, blocks, text: `HITL ${ticket.status}` }),
-    });
-
-    return { provider: 'slack', success: true };
-  }
-
-  // ─── Teams ───────────────────────────────────────────────────────────────
-
-  private static async _teamsCreate(
-    config: TeamsChannelConfig,
-    ticket: HitlTicketSummary
-  ): Promise<DispatchResult> {
-    // Adaptive Card for Teams
-    const card = {
-      type: 'message',
-      attachments: [{
-        contentType: 'application/vnd.microsoft.card.adaptive',
-        content: {
-          $schema: 'http://adaptivecards.io/schemas/adaptive-card.json',
-          type: 'AdaptiveCard',
-          version: '1.4',
-          body: [
-            { type: 'TextBlock', size: 'Large', weight: 'Bolder', text: '⚠️ HITL Approval Required' },
-            { type: 'TextBlock', text: ticket.title, wrap: true, weight: 'Bolder' },
-            {
-              type: 'FactSet',
-              facts: [
-                { title: 'Priority', value: ticket.priority.toUpperCase() },
-                { title: 'Agent ID', value: ticket.agent_id.slice(0, 12) + '…' },
-                { title: 'SLA', value: new Date(ticket.sla_deadline).toLocaleString() },
-              ],
-            },
-            { type: 'TextBlock', text: ticket.description.slice(0, 300), wrap: true },
-          ],
-          actions: [
-            {
-              type: 'Action.Http',
-              title: '✅ Approve',
-              method: 'POST',
-              url: `${process.env.NEXT_PUBLIC_APP_URL || ''}/api/v1/integrations/teams/callback`,
-              body: JSON.stringify({ ticket_id: ticket.id, action: 'approve' }),
-            },
-            {
-              type: 'Action.Http',
-              title: '❌ Reject',
-              method: 'POST',
-              url: `${process.env.NEXT_PUBLIC_APP_URL || ''}/api/v1/integrations/teams/callback`,
-              body: JSON.stringify({ ticket_id: ticket.id, action: 'reject' }),
-            },
-          ],
-        },
-      }],
-    };
-
-    const response = await fetch(config.webhook_url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(card),
-    });
-
-    return { provider: 'teams', success: response.ok };
-  }
-
-  // ─── Jira ────────────────────────────────────────────────────────────────
-
-  private static async _jiraCreate(
-    config: JiraChannelConfig,
-    ticket: HitlTicketSummary
-  ): Promise<DispatchResult> {
-    const priorityMap: Record<string, string> = {
-      critical: 'Highest', high: 'High', medium: 'Medium', low: 'Low',
-    };
-
-    const response = await fetch(`${config.base_url}/rest/api/3/issue`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Basic ${Buffer.from(`${config.user_email}:${config.api_token}`).toString('base64')}`,
-      },
-      body: JSON.stringify({
-        fields: {
-          project: { key: config.project_key },
-          summary: `[RuneSignal HITL] ${ticket.title}`,
-          description: {
-            type: 'doc', version: 1,
-            content: [{
-              type: 'paragraph',
-              content: [{ type: 'text', text: ticket.description }],
-            }],
-          },
-          issuetype: { name: config.issue_type || 'Task' },
-          priority: { name: priorityMap[ticket.priority] || 'Medium' },
-          labels: ['runesignal-hitl', `priority-${ticket.priority}`],
-        },
-      }),
-    });
-
-    if (!response.ok) {
-      const err = await response.json();
-      return { provider: 'jira', success: false, error: JSON.stringify(err) };
-    }
-
-    const data = await response.json();
-    return {
-      provider: 'jira',
-      success: true,
-      external_ref: { issue_key: data.key, issue_id: data.id },
-    };
-  }
-
-  private static async _jiraTransition(
-    config: JiraChannelConfig,
-    ticket: HitlTicketSummary,
-    externalRefs: Record<string, unknown>
-  ): Promise<DispatchResult> {
-    const jiraRef = externalRefs.jira as { issue_key: string; issue_id: string } | undefined;
-    if (!jiraRef?.issue_id) return { provider: 'jira', success: true };
-
-    // Add comment with resolution
-    await fetch(`${config.base_url}/rest/api/3/issue/${jiraRef.issue_id}/comment`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Basic ${Buffer.from(`${config.user_email}:${config.api_token}`).toString('base64')}`,
-      },
-      body: JSON.stringify({
-        body: {
-          type: 'doc', version: 1,
-          content: [{
-            type: 'paragraph',
-            content: [{ type: 'text', text: `RuneSignal HITL resolved as: ${ticket.status.toUpperCase()}` }],
-          }],
-        },
-      }),
-    });
-
-    return { provider: 'jira', success: true };
-  }
-
-  // ─── ServiceNow ──────────────────────────────────────────────────────────
-
-  private static async _servicenowCreate(
-    config: ServiceNowChannelConfig,
-    ticket: HitlTicketSummary
-  ): Promise<DispatchResult> {
-    const urgencyMap: Record<string, string> = { critical: '1', high: '2', medium: '3', low: '3' };
-
-    const response = await fetch(`${config.instance_url}/api/now/table/${config.table || 'incident'}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-        Authorization: `Basic ${Buffer.from(`${config.username}:${config.password}`).toString('base64')}`,
-      },
-      body: JSON.stringify({
-        short_description: `[RuneSignal HITL] ${ticket.title}`,
-        description: ticket.description,
-        urgency: urgencyMap[ticket.priority] || '3',
-        category: config.category || 'AI Governance',
-        caller_id: 'RuneSignal',
-        u_runesignal_ticket_id: ticket.id,
-      }),
-    });
-
-    if (!response.ok) {
-      return { provider: 'servicenow', success: false, error: `HTTP ${response.status}` };
-    }
-
-    const data = await response.json();
-    return {
-      provider: 'servicenow',
-      success: true,
-      external_ref: { sys_id: data.result?.sys_id, number: data.result?.number },
-    };
-  }
-
-  // ─── Generic Webhook ─────────────────────────────────────────────────────
-
-  private static async _webhookSend(
-    config: WebhookChannelConfig,
-    event: string,
-    ticket: HitlTicketSummary
-  ): Promise<DispatchResult> {
-    const payload = {
-      event,
-      ticket_id: ticket.id,
-      title: ticket.title,
-      priority: ticket.priority,
-      status: ticket.status,
-      agent_id: ticket.agent_id,
-      sla_deadline: ticket.sla_deadline,
-      created_at: ticket.created_at,
-    };
-
-    const body = JSON.stringify(payload);
-
-    const headersToSend: Record<string, string> = {
-      'Content-Type': 'application/json',
-      'X-RuneSignal-Event': event,
-      ...(config.headers || {}),
-    };
-
-    if (config.secret) {
-      // HMAC-SHA256 signing for webhook verification
-      const encoder = new TextEncoder();
-      const key = await crypto.subtle.importKey(
-        'raw', encoder.encode(config.secret),
-        { name: 'HMAC', hash: 'SHA-256' },
-        false, ['sign']
-      );
-      const sig = await crypto.subtle.sign('HMAC', key, encoder.encode(body));
-      headersToSend['X-RuneSignal-Signature'] = Array.from(new Uint8Array(sig))
-        .map(b => b.toString(16).padStart(2, '0')).join('');
-    }
-
-    const response = await fetch(config.url, {
-      method: 'POST',
-      headers: headersToSend,
-      body,
-    });
-
-    return {
-      provider: 'webhook',
-      success: response.ok,
-      external_ref: response.ok ? { url: config.url, delivered_at: new Date().toISOString() } : undefined,
+      provider,
+      success: result.success,
+      error: result.error,
     };
   }
 }

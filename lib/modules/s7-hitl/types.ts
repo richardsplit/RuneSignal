@@ -13,6 +13,8 @@ export interface ExceptionTicket {
   sla_deadline?: string;
   created_at: string;
   resolved_at?: string;
+  receipt_signature?: string;
+  receipt_event_id?: string;
 }
 
 export interface CreateExceptionRequest {
