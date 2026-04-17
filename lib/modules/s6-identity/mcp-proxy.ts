@@ -2,6 +2,7 @@ import { IdentityService } from './service';
 import { ConscienceEngine } from '../s8-moralos/conscience';
 import { ROBO_DOMAIN_MAP } from '../s8-moralos/types';
 import { createAdminClient } from '../../db/supabase';
+import { getTenantFailMode } from '../firewall/tenant-fail-mode';
 
 /**
  * MCP Proxy Enforcement logic.
@@ -48,8 +49,13 @@ export class McpEnforcementProxy {
           };
         }
       } catch (e) {
-        // If conscience check fails, allow (fail-open for tool calls)
-        console.warn('ConscienceEngine check failed, allowing tool call:', e);
+        // Configurable: fail-open (default) or fail-closed for tool calls
+        const failMode = await getTenantFailMode(tenantId);
+        if (failMode === 'closed') {
+          console.warn(`[FAIL-CLOSED] ConscienceEngine check failed for tenant ${tenantId}, blocking tool call:`, e);
+          return { allowed: false, reason: 'Moral check failed and tenant fail_mode is closed' };
+        }
+        console.warn('ConscienceEngine check failed, allowing tool call (fail-open):', e);
       }
     }
 

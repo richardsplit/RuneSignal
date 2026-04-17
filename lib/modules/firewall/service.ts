@@ -23,6 +23,7 @@ import {
   FirewallVerdict,
   FirewallCheckResult,
 } from './types';
+import { getTenantFailMode } from './tenant-fail-mode';
 
 const DEFAULT_RISK_THRESHOLD = 50;
 
@@ -39,6 +40,9 @@ export class FirewallService {
     let verdict: FirewallVerdict = 'allow';
     let riskScore = 0;
     let hitlTicketId: string | undefined;
+
+    // Resolve tenant fail-mode once for the entire evaluation
+    const failMode = await getTenantFailMode(tenantId);
 
     // ─── Step 1: S6 Identity & Permissions (fast-fail) ──────────────────────
     const s6Start = Date.now();
@@ -110,12 +114,18 @@ export class FirewallService {
         reasons.push(`Policy: ${policy.reason || policy.policyName || 'Action blocked by policy'}`);
       }
     } else {
+      const passed = failMode === 'open';
       checks.push({
         check: 's1_policy',
-        passed: true, // fail-open for policy
-        detail: 'Policy check skipped (evaluation error)',
+        passed, // configurable: fail-open (default) or fail-closed
+        detail: `Policy check skipped (evaluation error, fail-${failMode})`,
         latency_ms: parallelLatency,
       });
+      if (!passed) {
+        verdict = 'block';
+        reasons.push('Policy: check failed and tenant fail_mode is closed');
+        console.warn(`[FAIL-CLOSED] Policy check error for tenant ${tenantId}, blocking request`);
+      }
     }
 
     // S8 result — only escalate/block if S1 hasn't already blocked
@@ -140,12 +150,18 @@ export class FirewallService {
         }
       }
     } else {
+      const passed = failMode === 'open';
       checks.push({
         check: 's8_moral',
-        passed: true, // fail-open for moral — matching existing mcp-proxy behaviour
-        detail: 'Moral check skipped (evaluation error)',
+        passed, // configurable: fail-open (default) or fail-closed
+        detail: `Moral check skipped (evaluation error, fail-${failMode})`,
         latency_ms: parallelLatency,
       });
+      if (!passed && verdict === 'allow') {
+        verdict = 'block';
+        reasons.push('MoralOS: check failed and tenant fail_mode is closed');
+        console.warn(`[FAIL-CLOSED] Moral check error for tenant ${tenantId}, blocking request`);
+      }
     }
 
     // ─── Step 3: S5 Risk Scoring ─────────────────────────────────────────────
@@ -169,12 +185,18 @@ export class FirewallService {
         reasons.push(`Risk: score ${score} exceeds threshold ${threshold}`);
       }
     } catch (e) {
+      const passed = failMode === 'open';
       checks.push({
         check: 's5_risk',
-        passed: true, // fail-open for risk
-        detail: 'Risk scoring skipped (evaluation error)',
+        passed, // configurable: fail-open (default) or fail-closed
+        detail: `Risk scoring skipped (evaluation error, fail-${failMode})`,
         latency_ms: Date.now() - s5Start,
       });
+      if (!passed && verdict === 'allow') {
+        verdict = 'escalate';
+        reasons.push('Risk: scoring failed and tenant fail_mode is closed');
+        console.warn(`[FAIL-CLOSED] Risk scoring error for tenant ${tenantId}, blocking request`);
+      }
     }
 
     // ─── Step 4: S7 Auto-HITL (if verdict = escalate) ───────────────────────
