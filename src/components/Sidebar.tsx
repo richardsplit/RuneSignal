@@ -355,6 +355,7 @@ const NAV_SECTIONS: NavSection[] = [
       { label: 'Explainability', href: '/explain', icon: <IconExplainability /> },
       { label: 'Governance Intel', href: '/compliance', icon: <IconGovernanceIntel /> },
       { label: 'Compliance Reports', href: '/compliance/reports', icon: <IconComplianceReports /> },
+      { label: 'Evidence Wizard', href: '/compliance/evidence', icon: <IconProvenance /> },
       { label: 'Anomaly Detection', href: '/anomaly', icon: <IconAnomaly /> },
     ],
   },
