@@ -734,6 +734,8 @@ tags:
     description: Compliance incident management (EU AI Act Art 73, ISO 42001 Clause 10.2)
   - name: Controls
     description: Compliance control monitoring (EU AI Act Art 9, ISO 42001 Clause 8.2)
+  - name: AgentBehavior
+    description: Agent behavior timeline and evidence contribution (EU AI Act Art 13, ISO 42001 Clause 8.5)
 
 paths:
   # ──────────────────────────────────────────────
@@ -5820,5 +5822,152 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Control'
+        '401':
+          description: Missing or invalid authentication
+
+  # ──────────────────────────────────────────────
+  # Agent Behavior (Phase 5)
+  # ──────────────────────────────────────────────
+  /agents/{id}/behavior:
+    get:
+      summary: Agent Behavior Timeline
+      description: |
+        Returns a merged timeline of all events for an agent across audit_events,
+        firewall_evaluations, hitl_exceptions, anomaly_events, and incidents.
+        Sorted by timestamp descending, paginated, and date-filterable.
+
+        EU AI Act Article 13 — Transparency & Traceability.
+        ISO 42001 Clause 8.5 — Human Oversight Logs.
+      tags: [AgentBehavior]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Agent UUID (from agent_credentials)
+        - name: start
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: Filter events from this ISO timestamp
+        - name: end
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: Filter events until this ISO timestamp
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+            maximum: 500
+          description: Maximum events to return
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+          description: Pagination offset
+      responses:
+        '200':
+          description: Agent behavior timeline
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  agent:
+                    type: object
+                    description: Agent record from agent_credentials
+                  events:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        source:
+                          type: string
+                          enum: [audit, firewall, hitl, anomaly, incident]
+                        event:
+                          type: object
+                          description: Full event row from source table
+                        timestamp:
+                          type: string
+                          format: date-time
+                  summary:
+                    type: object
+                    properties:
+                      total_actions:
+                        type: integer
+                      blocked_actions:
+                        type: integer
+                      hitl_escalations:
+                        type: integer
+                      anomalies:
+                        type: integer
+                      incidents:
+                        type: integer
+                  limit:
+                    type: integer
+                  offset:
+                    type: integer
+        '401':
+          description: Missing or invalid authentication
+        '404':
+          description: Agent not found
+
+  /agents/{id}/evidence:
+    get:
+      summary: Agent Evidence Contribution
+      description: |
+        Returns compliance reports (evidence bundles) that reference this agent.
+        Searches compliance_reports where the JSON export contains the agent ID.
+
+        EU AI Act Article 13 — Transparency & Traceability.
+      tags: [AgentBehavior]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Agent UUID
+      responses:
+        '200':
+          description: Agent evidence contribution
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  agent_id:
+                    type: string
+                    format: uuid
+                  evidence_bundles:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        report_id:
+                          type: string
+                          format: uuid
+                        report_type:
+                          type: string
+                        generated_at:
+                          type: string
+                          format: date-time
+                        regulation:
+                          type: string
+                          nullable: true
         '401':
           description: Missing or invalid authentication
