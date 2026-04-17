@@ -10,14 +10,10 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/db/supabase';
-import {
-  EuAiActReportGenerator,
-  type EuAiActReport,
-} from '@lib/modules/compliance/eu-ai-act-report';
-import {
-  Iso42001ReportGenerator,
-  type Iso42001Report,
-} from '@lib/modules/compliance/iso-42001-report';
+import { EvidenceService } from '@lib/services/evidence-service';
+import { AuditLedgerService } from '@lib/ledger/service';
+import type { EuAiActReport } from '@lib/modules/compliance/eu-ai-act-report';
+import type { Iso42001Report } from '@lib/modules/compliance/iso-42001-report';
 import crypto from 'crypto';
 import * as Sentry from '@sentry/nextjs';
 
@@ -114,85 +110,27 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const supabase = createAdminClient();
-
-    // ─── ISO 42001 evidence package ───────────────────────────────────────────
-    if (body.regulation === 'iso_42001') {
-      const report = await Iso42001ReportGenerator.generate(tenantId, {
-        period_start: body.date_range.start,
-        period_end: body.date_range.end,
-      });
-
-      const clauseCoverage = Iso42001ReportGenerator.computeClauseCoverage(report);
-
-      const { data: reportRecord } = await supabase
-        .from('compliance_reports')
-        .insert({
-          org_id: tenantId,
-          report_type: 'evidence-export',
-          framework_version: 'ISO_42001_2023',
-          status: 'ready',
-          json_export: report as unknown as Record<string, unknown>,
-          evidence_period_start: body.date_range.start,
-          evidence_period_end: body.date_range.end,
-          coverage_score: report.overall_coverage_score,
-          article_coverage: clauseCoverage,
-          agent_count: report.ai_system_inventory.length,
-          action_count: report.clause_coverage.technical_documentation.provenance_records_count,
-          hitl_reviews_count: report.clause_coverage.human_oversight_logs.total_reviews,
-          generated_at: new Date().toISOString(),
-        })
-        .select('id')
-        .single()
-        .catch(() => ({ data: null }));
-
-      const exportId = reportRecord?.id || report.report_metadata.report_id;
-
-      return NextResponse.json({
-        export_id: exportId,
-        regulation: body.regulation,
-        status: 'ready',
-        evidence_manifest: report,
-      } as EvidenceExportResponse, { status: 200 });
-    }
-
-    // ─── EU AI Act evidence package ───────────────────────────────────────────
-    const report = await EuAiActReportGenerator.generate(tenantId, {
-      period_start: body.date_range.start,
-      period_end: body.date_range.end,
-      framework: 'EU_AI_ACT_2024',
+    // Delegate to EvidenceService for unified generation, signing, and storage
+    const bundle = await EvidenceService.generate({
+      tenant_id: tenantId,
+      regulation: body.regulation,
+      period: { start: body.date_range.start, end: body.date_range.end },
+      generated_by: req.headers.get('x-user-id') || 'api',
     });
 
-    const articleCoverage = EuAiActReportGenerator.computeArticleCoverage(report);
-
-    const { data: reportRecord } = await supabase
-      .from('compliance_reports')
-      .insert({
-        org_id: tenantId,
-        report_type: 'evidence-export',
-        framework_version: 'EU_AI_ACT_AUG_2026',
-        status: 'ready',
-        json_export: report as unknown as Record<string, unknown>,
-        evidence_period_start: body.date_range.start,
-        evidence_period_end: body.date_range.end,
-        coverage_score: report.action_ledger_summary.coverage_percentage,
-        article_coverage: articleCoverage,
-        agent_count: report.agent_inventory.length,
-        action_count: report.action_ledger_summary.total_actions,
-        hitl_reviews_count: report.hitl_review_log.length,
-        generated_at: new Date().toISOString(),
-      })
-      .select('id')
-      .single()
-      .catch(() => ({ data: null }));
-
-    const exportId = reportRecord?.id || report.report_metadata.report_id;
+    // Fire-and-forget audit logging for JSON export
+    AuditLedgerService.appendEvent({
+      event_type: 'evidence.exported.json',
+      module: 's13',
+      tenant_id: tenantId,
+      payload: { export_id: bundle.id, regulation: body.regulation },
+    }).catch(() => {}); // Don't fail the request on audit error
 
     const response: EvidenceExportResponse = {
-      export_id: exportId,
+      export_id: bundle.id,
       regulation: body.regulation,
       status: 'ready',
-      evidence_manifest: report,
+      evidence_manifest: bundle.manifest,
     };
 
     return NextResponse.json(response, { status: 200 });

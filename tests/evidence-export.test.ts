@@ -1,10 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // Use vi.hoisted so mocks are available in the hoisted vi.mock factories
-const { mockGenerate, mockComputeArticleCoverage, mockInsert } = vi.hoisted(() => ({
+const { mockGenerate, mockComputeArticleCoverage, mockInsert, mockIsoGenerate } = vi.hoisted(() => ({
   mockGenerate: vi.fn(),
   mockComputeArticleCoverage: vi.fn(),
   mockInsert: vi.fn(),
+  mockIsoGenerate: vi.fn(),
 }));
 
 vi.mock('@lib/modules/compliance/eu-ai-act-report', () => ({
@@ -14,19 +15,53 @@ vi.mock('@lib/modules/compliance/eu-ai-act-report', () => ({
   },
 }));
 
+vi.mock('@lib/modules/compliance/iso-42001-report', () => ({
+  Iso42001ReportGenerator: {
+    generate: mockIsoGenerate,
+    computeClauseCoverage: vi.fn(),
+  },
+}));
+
 vi.mock('@/lib/db/supabase', () => ({
   createAdminClient: () => ({
-    from: () => ({
-      select: () => ({
-        eq: () => ({
-          single: () => ({
-            catch: () => ({ data: null }),
+    from: () => {
+      const chain: Record<string, any> = {};
+      chain.select = vi.fn().mockReturnValue(chain);
+      chain.eq = vi.fn().mockReturnValue(chain);
+      chain.not = vi.fn().mockReturnValue(chain);
+      chain.order = vi.fn().mockReturnValue(chain);
+      chain.limit = vi.fn().mockReturnValue(chain);
+      chain.range = vi.fn().mockReturnValue(chain);
+      chain.single = vi.fn().mockResolvedValue({ data: null, error: null });
+      chain.catch = vi.fn(() => ({ data: null }));
+      chain.insert = vi.fn((...args: any[]) => {
+        mockInsert(...args);
+        return {
+          select: vi.fn().mockReturnValue({
+            single: vi.fn().mockResolvedValue({
+              data: { id: 'rpt_test_123', generated_at: new Date().toISOString() },
+              error: null,
+            }),
           }),
-        }),
-      }),
-      insert: mockInsert,
-    }),
+        };
+      });
+      return chain;
+    },
   }),
+}));
+
+// Mock ledger signer (used by EvidenceService)
+vi.mock('@lib/ledger/signer', () => ({
+  getLedgerSigner: vi.fn(() => ({
+    sign: vi.fn(() => 'mock-signature-base64'),
+  })),
+}));
+
+// Mock audit ledger service (used by EvidenceService)
+vi.mock('@lib/ledger/service', () => ({
+  AuditLedgerService: {
+    appendEvent: vi.fn().mockResolvedValue({ id: 'mock-event-id' }),
+  },
 }));
 
 import { POST } from '@/app/api/v1/compliance/evidence-export/route';
@@ -81,13 +116,6 @@ describe('POST /api/v1/compliance/evidence-export', () => {
       art_17: true,
       art_26: true,
     });
-    mockInsert.mockReturnValue({
-      select: () => ({
-        single: () => ({
-          catch: () => ({ data: { id: 'rpt_test_123' } }),
-        }),
-      }),
-    });
   });
 
   it('returns 400 when date_range is missing', async () => {
@@ -134,17 +162,6 @@ describe('POST /api/v1/compliance/evidence-export', () => {
     expect(data.error).toMatch(/Tenant ID required/);
   });
 
-  it('returns 501 for iso_42001 regulation', async () => {
-    const req = makeRequest(
-      { date_range: { start: '2026-01-01', end: '2026-03-31' }, regulation: 'iso_42001' },
-      { 'x-tenant-id': 'test-tenant' },
-    );
-    const res = await POST(req as any);
-    expect(res.status).toBe(501);
-    const data = await res.json();
-    expect(data.error).toMatch(/iso_42001.*not yet implemented/);
-  });
-
   it('returns 200 with evidence manifest for eu_ai_act', async () => {
     const req = makeRequest(
       { date_range: { start: '2026-01-01', end: '2026-03-31' }, regulation: 'eu_ai_act' },
@@ -188,20 +205,22 @@ describe('POST /api/v1/compliance/evidence-export', () => {
     expect(mockGenerate).toHaveBeenCalledWith('body-tenant-id', expect.any(Object));
   });
 
-  it('stores the report in compliance_reports table', async () => {
+  it('stores the report in compliance_reports table via EvidenceService', async () => {
     const req = makeRequest(
       { date_range: { start: '2026-01-01', end: '2026-03-31' }, regulation: 'eu_ai_act' },
       { 'x-tenant-id': 'test-tenant' },
     );
     await POST(req as any);
 
-    expect(mockInsert).toHaveBeenCalledOnce();
+    // EvidenceService.generate() calls insert internally
+    expect(mockInsert).toHaveBeenCalled();
     const insertArg = mockInsert.mock.calls[0][0];
     expect(insertArg.org_id).toBe('test-tenant');
-    expect(insertArg.report_type).toBe('evidence-export');
+    expect(insertArg.regulation).toBe('eu_ai_act');
     expect(insertArg.status).toBe('ready');
     expect(insertArg.evidence_period_start).toBe('2026-01-01');
     expect(insertArg.evidence_period_end).toBe('2026-03-31');
+    expect(insertArg.attestation_signature).toBeDefined();
   });
 
   it('does not fall back to demo-tenant', async () => {

@@ -11,17 +11,30 @@ vi.mock('@sentry/nextjs', () => ({
 // Mock supabase admin client
 vi.mock('@/lib/db/supabase', () => ({
   createAdminClient: vi.fn(() => ({
-    from: vi.fn(() => ({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockReturnThis(),
-      insert: vi.fn().mockReturnThis(),
-      catch: vi.fn(() => ({ data: null })),
-    })),
+    from: vi.fn(() => {
+      const chain: Record<string, any> = {};
+      chain.select = vi.fn().mockReturnValue(chain);
+      chain.eq = vi.fn().mockReturnValue(chain);
+      chain.not = vi.fn().mockReturnValue(chain);
+      chain.order = vi.fn().mockReturnValue(chain);
+      chain.limit = vi.fn().mockReturnValue(chain);
+      chain.range = vi.fn().mockReturnValue(chain);
+      chain.single = vi.fn().mockResolvedValue({ data: null, error: null });
+      chain.catch = vi.fn(() => ({ data: null }));
+      chain.insert = vi.fn(() => ({
+        select: vi.fn().mockReturnValue({
+          single: vi.fn().mockResolvedValue({
+            data: { id: 'mock-report-id', generated_at: new Date().toISOString() },
+            error: null,
+          }),
+        }),
+      }));
+      return chain;
+    }),
   })),
 }));
 
-// Mock report generators to throw
+// Mock report generators
 vi.mock('@lib/modules/compliance/eu-ai-act-report', () => ({
   EuAiActReportGenerator: {
     generate: vi.fn(),
@@ -33,6 +46,20 @@ vi.mock('@lib/modules/compliance/iso-42001-report', () => ({
   Iso42001ReportGenerator: {
     generate: vi.fn(),
     computeClauseCoverage: vi.fn(),
+  },
+}));
+
+// Mock ledger signer (used by EvidenceService)
+vi.mock('@lib/ledger/signer', () => ({
+  getLedgerSigner: vi.fn(() => ({
+    sign: vi.fn(() => 'mock-signature-base64'),
+  })),
+}));
+
+// Mock audit ledger service (used by EvidenceService)
+vi.mock('@lib/ledger/service', () => ({
+  AuditLedgerService: {
+    appendEvent: vi.fn().mockResolvedValue({ id: 'mock-event-id' }),
   },
 }));
 
@@ -88,6 +115,12 @@ describe('POST /api/v1/compliance/evidence-export - Sentry integration', () => {
   it('does not call Sentry.captureException on successful requests', async () => {
     vi.mocked(EuAiActReportGenerator.generate).mockResolvedValueOnce({
       report_metadata: { report_id: 'test-id' },
+      article_coverage: {
+        article_13_transparency: { status: 'covered' },
+        article_14_human_oversight: { status: 'covered' },
+        article_17_quality_management: { status: 'covered' },
+        article_26_deployer_obligations: { status: 'covered' },
+      },
       agent_inventory: [],
       action_ledger_summary: { total_actions: 0, coverage_percentage: 0 },
       hitl_review_log: [],

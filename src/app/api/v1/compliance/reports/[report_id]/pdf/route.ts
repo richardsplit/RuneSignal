@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/db/supabase';
+import { AuditLedgerService } from '@lib/ledger/service';
 import crypto from 'crypto';
 
 /**
@@ -63,6 +64,14 @@ export async function GET(
     // Generate a simple HTML-based PDF placeholder response
     const report = data.json_export as any;
     const html = generateReportHtml(report, report_id);
+
+    // Fire-and-forget audit logging for PDF export
+    AuditLedgerService.appendEvent({
+      event_type: 'evidence.exported.pdf',
+      module: 's13',
+      tenant_id: tenantId,
+      payload: { report_id },
+    }).catch(() => {}); // Don't fail the request on audit error
 
     return new NextResponse(html, {
       headers: {
