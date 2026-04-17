@@ -10,6 +10,7 @@
     { "path": "/api/cron/nhi-rotation",    "schedule": "0 2 * * *"    },
     { "path": "/api/cron/baseline-update", "schedule": "0 1 * * *"    },
     { "path": "/api/cron/art73-deadlines", "schedule": "0 7 * * *"    },
-    { "path": "/api/cron/control-monitor", "schedule": "*/15 * * * *" }
+    { "path": "/api/cron/control-monitor", "schedule": "*/15 * * * *" },
+    { "path": "/api/cron/agent-classification", "schedule": "0 3 * * 0" }
   ]
 }

@@ -5922,6 +5922,235 @@ paths:
         '404':
           description: Agent not found
 
+  /agents/{id}/classification:
+    get:
+      summary: Get Agent EU AI Act Classification
+      description: |
+        Returns the current EU AI Act risk classification for an agent,
+        including confidence, reasoning, and whether it was manually overridden.
+
+        EU AI Act Article 5, Annex III, Article 52.
+      tags: [AgentBehavior]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Agent UUID
+      responses:
+        '200':
+          description: Agent classification details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  agent_id:
+                    type: string
+                    format: uuid
+                  name:
+                    type: string
+                  eu_ai_act_category:
+                    type: string
+                    enum: [prohibited, high_risk, limited_risk, minimal_risk, unclassified]
+                  confidence:
+                    type: string
+                    enum: [high, medium, low]
+                    nullable: true
+                  reasoning:
+                    type: array
+                    items:
+                      type: string
+                  classified_at:
+                    type: string
+                    format: date-time
+                    nullable: true
+                  is_manual_override:
+                    type: boolean
+        '401':
+          description: Missing or invalid authentication
+        '404':
+          description: Agent not found
+    post:
+      summary: Trigger Agent Reclassification
+      description: |
+        Triggers an automatic EU AI Act classification for the agent based on
+        metadata and behavioral heuristics. Respects manual overrides.
+
+        EU AI Act Article 5, Annex III, Article 52.
+      tags: [AgentBehavior]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Agent UUID
+      responses:
+        '200':
+          description: Classification result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  agent_id:
+                    type: string
+                    format: uuid
+                  previous_category:
+                    type: string
+                    nullable: true
+                  new_category:
+                    type: string
+                    enum: [prohibited, high_risk, limited_risk, minimal_risk]
+                  confidence:
+                    type: string
+                    enum: [high, medium, low]
+                  reasoning:
+                    type: array
+                    items:
+                      type: string
+                  classified_at:
+                    type: string
+                    format: date-time
+                  is_manual_override:
+                    type: boolean
+        '401':
+          description: Missing or invalid authentication
+        '404':
+          description: Agent not found
+    put:
+      summary: Set Manual Classification Override
+      description: |
+        Manually set the EU AI Act risk category for an agent. This override
+        will be respected by automatic reclassification (skipped).
+
+        EU AI Act Article 5, Annex III, Article 52.
+      tags: [AgentBehavior]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Agent UUID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [category, reason]
+              properties:
+                category:
+                  type: string
+                  enum: [prohibited, high_risk, limited_risk, minimal_risk]
+                reason:
+                  type: string
+                  description: Justification for manual override
+      responses:
+        '200':
+          description: Override applied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  agent_id:
+                    type: string
+                    format: uuid
+                  eu_ai_act_category:
+                    type: string
+                  is_manual_override:
+                    type: boolean
+                  reason:
+                    type: string
+        '400':
+          description: Invalid category or missing reason
+        '401':
+          description: Missing or invalid authentication
+        '404':
+          description: Agent not found
+
+  /agents/export:
+    get:
+      summary: Export Agent Registry
+      description: |
+        Export the full agent registry in JSON or CSV format.
+        Merges agent_inventory and agent_credentials data.
+
+        EU AI Act Article 13 — Transparency & Traceability.
+      tags: [AgentBehavior]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: format
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [json, csv]
+            default: json
+          description: Export format (json or csv)
+      responses:
+        '200':
+          description: Agent registry export
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  agents:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        agent_id:
+                          type: string
+                          format: uuid
+                        name:
+                          type: string
+                        type:
+                          type: string
+                        framework:
+                          type: string
+                        status:
+                          type: string
+                        risk_classification:
+                          type: string
+                        eu_ai_act_category:
+                          type: string
+                        last_active:
+                          type: string
+                        registered_at:
+                          type: string
+                        owner:
+                          type: string
+                  total:
+                    type: integer
+            text/csv:
+              schema:
+                type: string
+                description: CSV file with agent registry data
+        '400':
+          description: Invalid format parameter
+        '401':
+          description: Missing or invalid authentication
+
   /agents/{id}/evidence:
     get:
       summary: Agent Evidence Contribution
