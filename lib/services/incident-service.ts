@@ -17,6 +17,7 @@ import type {
   IncidentStatus,
   IncidentTimelineEntry,
 } from '@lib/types/incident';
+import { IncidentEvidenceAggregator } from '@lib/services/incident-evidence-aggregator';
 
 /** Legal status transitions — no step skipping. */
 const VALID_TRANSITIONS: Record<IncidentStatus, IncidentStatus | null> = {
@@ -119,6 +120,13 @@ export class IncidentService {
         art73_report_deadline: art73Deadline,
       },
     });
+
+    // Fire evidence aggregation — non-blocking, failure does not prevent creation
+    try {
+      await IncidentEvidenceAggregator.aggregate(params.tenant_id, id);
+    } catch (err) {
+      console.error('[IncidentService] Evidence aggregation failed:', err);
+    }
 
     return incident as Incident;
   }
