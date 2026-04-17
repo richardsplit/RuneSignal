@@ -210,14 +210,19 @@ export class HitlService {
   }
 
   /**
-   * Scans for open exceptions that have breached their SLA and escalates them.
+   * Scans for open exceptions that have breached their SLA.
+   * Checks context_data.sla_auto_action to determine behavior:
+   *   - 'approve': auto-approve via resolveException (creates signed receipt)
+   *   - 'reject': auto-reject via resolveException (creates signed receipt)
+   *   - 'escalate' or absent: escalate (existing behavior)
    */
   static async checkSlas(tenantId?: string): Promise<number> {
     const supabase = createAdminClient();
-    
+
+    // Step 1: Query overdue open tickets (do NOT bulk-update yet)
     let query = supabase
       .from('hitl_exceptions')
-      .update({ status: 'escalated' })
+      .select('id, title, tenant_id, agent_id, context_data')
       .eq('status', 'open')
       .lt('sla_deadline', new Date().toISOString());
 
@@ -225,31 +230,85 @@ export class HitlService {
       query = query.eq('tenant_id', tenantId);
     }
 
-    const { data, error } = await query.select('id, title, tenant_id, agent_id');
+    const { data: overdueTickets, error } = await query;
 
     if (error) {
-      console.error('SLA Escalation Failed:', error.message);
+      console.error('SLA check query failed:', error.message);
       return 0;
     }
 
-    if (data && data.length > 0) {
-      for (const ticket of data) {
-        await AuditLedgerService.appendEvent({
-          event_type: 'hitl.sla_breach',
-          module: 's7',
-          tenant_id: ticket.tenant_id,
-          agent_id: ticket.agent_id,
-          request_id: ticket.id,
-          payload: { title: ticket.title, status: 'escalated' }
-        });
+    if (!overdueTickets || overdueTickets.length === 0) return 0;
 
-        await WebhookEmitter.notifyTenant(ticket.tenant_id, `🚨 SLA BREACH: Ticket ${ticket.id.split('-')[0]} [${ticket.title}] has been escalated!`, {
-          Status: 'ESCALATED',
-          Original_Title: ticket.title
-        });
+    let processed = 0;
+
+    for (const ticket of overdueTickets) {
+      const autoAction = ticket.context_data?.sla_auto_action as string | undefined;
+
+      if (autoAction === 'approve' || autoAction === 'reject') {
+        // Auto-approve or auto-reject via resolveException (creates signed receipt)
+        try {
+          await HitlService.resolveException(ticket.tenant_id, ticket.id, {
+            action: autoAction,
+            reason: `Auto-${autoAction}d: SLA expired without human response`,
+            reviewer_id: 'system:sla_auto',
+          });
+
+          // Audit the auto-resolution
+          await AuditLedgerService.appendEvent({
+            event_type: 'approval.auto_resolved',
+            module: 's7',
+            tenant_id: ticket.tenant_id,
+            agent_id: ticket.agent_id,
+            payload: {
+              approval_id: ticket.id,
+              auto_action: autoAction,
+              sla_deadline: ticket.context_data?.sla_deadline,
+              reason: 'SLA expired without human response',
+            },
+          });
+
+          processed++;
+        } catch (e) {
+          console.error(`SLA auto-${autoAction} failed for ticket ${ticket.id}:`, e);
+          // Fall through to escalation on failure
+          await HitlService._escalateTicket(supabase, ticket);
+          processed++;
+        }
+      } else {
+        // Default: escalate (existing behavior)
+        await HitlService._escalateTicket(supabase, ticket);
+        processed++;
       }
     }
 
-    return data?.length || 0;
+    return processed;
+  }
+
+  /**
+   * Escalates a single overdue ticket — extracted for reuse in SLA auto-action fallback.
+   */
+  static async _escalateTicket(
+    supabase: ReturnType<typeof createAdminClient>,
+    ticket: { id: string; title: string; tenant_id: string; agent_id: string }
+  ): Promise<void> {
+    await supabase
+      .from('hitl_exceptions')
+      .update({ status: 'escalated' })
+      .eq('id', ticket.id);
+
+    await AuditLedgerService.appendEvent({
+      event_type: 'hitl.sla_breach',
+      module: 's7',
+      tenant_id: ticket.tenant_id,
+      agent_id: ticket.agent_id,
+      request_id: ticket.id,
+      payload: { title: ticket.title, status: 'escalated' },
+    });
+
+    await WebhookEmitter.notifyTenant(
+      ticket.tenant_id,
+      `🚨 SLA BREACH: Ticket ${ticket.id.split('-')[0]} [${ticket.title}] has been escalated!`,
+      { Status: 'ESCALATED', Original_Title: ticket.title },
+    );
   }
 }

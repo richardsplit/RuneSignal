@@ -361,6 +361,8 @@ tags:
     description: Plugin marketplace and webhook integrations
   - name: SoulTemplates
     description: SOUL template catalog and activation
+  - name: ApprovalGateway
+    description: Public-facing approval request API for external AI workflows
   - name: Integrations
     description: Third-party integrations (Slack, Teams, Jira, ServiceNow)
   - name: Billing
@@ -1752,6 +1754,316 @@ paths:
                   created_at:
                     type: string
                     format: date-time
+
+  # ──────────────────────────────────────────────
+  # Approval Gateway
+  # ──────────────────────────────────────────────
+  /approval-requests:
+    post:
+      summary: Create Approval Request
+      description: |
+        Submit an approval request for a high-risk agent action. Computes blast radius,
+        maps to regulation references, dispatches to configured notification channels,
+        and returns a signed tracking ID.
+      tags: [ApprovalGateway]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [agent_id, action]
+              properties:
+                agent_id:
+                  type: string
+                  format: uuid
+                action:
+                  type: object
+                  required: [category, description]
+                  properties:
+                    category:
+                      type: string
+                      enum: [financial, pii, deploy, comms, infrastructure, data_deletion, model_update]
+                    description:
+                      type: string
+                    tool_name:
+                      type: string
+                    resource:
+                      type: string
+                routing:
+                  type: object
+                  properties:
+                    channels:
+                      type: array
+                      items:
+                        type: string
+                        enum: [slack, teams, jira, servicenow, webhook]
+                    assigned_to:
+                      type: string
+                sla:
+                  type: object
+                  properties:
+                    deadline_minutes:
+                      type: integer
+                    auto_action:
+                      type: string
+                      enum: [approve, reject, escalate]
+                context_data:
+                  type: object
+                  additionalProperties: true
+                regulation_refs:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '201':
+          description: Approval request created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  status:
+                    type: string
+                    enum: [pending]
+                  blast_radius:
+                    type: object
+                    properties:
+                      level:
+                        type: string
+                        enum: [low, medium, high, critical]
+                      score:
+                        type: integer
+                      factors:
+                        type: array
+                        items:
+                          type: string
+                  sla:
+                    type: object
+                    properties:
+                      deadline:
+                        type: string
+                        format: date-time
+                      auto_action:
+                        type: string
+                  regulation_refs:
+                    type: array
+                    items:
+                      type: string
+                  channels_notified:
+                    type: array
+                    items:
+                      type: string
+        '400':
+          description: Validation error
+        '401':
+          description: Tenant context required
+    get:
+      summary: List Approval Requests
+      description: List approval requests with optional status filter and pagination.
+      tags: [ApprovalGateway]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, approved, rejected, escalated]
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+      responses:
+        '200':
+          description: Paginated list of approval requests
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  approval_requests:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                        agent_id:
+                          type: string
+                          format: uuid
+                        status:
+                          type: string
+                        action:
+                          type: object
+                          properties:
+                            category:
+                              type: string
+                            description:
+                              type: string
+                        blast_radius:
+                          type: object
+                        sla:
+                          type: object
+                        regulation_refs:
+                          type: array
+                          items:
+                            type: string
+                        created_at:
+                          type: string
+                          format: date-time
+                  total:
+                    type: integer
+                  limit:
+                    type: integer
+                  offset:
+                    type: integer
+
+  /approval-requests/{id}:
+    get:
+      summary: Get Approval Request
+      description: Retrieve full details for a single approval request including blast radius, regulation refs, and signed receipt if decided.
+      tags: [ApprovalGateway]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Approval request details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  agent_id:
+                    type: string
+                    format: uuid
+                  status:
+                    type: string
+                  action:
+                    type: object
+                  blast_radius:
+                    type: object
+                  sla:
+                    type: object
+                  regulation_refs:
+                    type: array
+                    items:
+                      type: string
+                  decision:
+                    type: object
+                    nullable: true
+                    properties:
+                      action:
+                        type: string
+                      decided_by:
+                        type: string
+                      reason:
+                        type: string
+                      decided_at:
+                        type: string
+                        format: date-time
+                      receipt_signature:
+                        type: string
+                        nullable: true
+                      receipt_event_id:
+                        type: string
+                        nullable: true
+                  created_at:
+                    type: string
+                    format: date-time
+        '404':
+          description: Approval request not found
+
+  /approval-requests/{id}/resolve:
+    post:
+      summary: Resolve Approval Request
+      description: |
+        Approve or reject an approval request. Creates a cryptographically signed receipt
+        via Ed25519 in the audit ledger. Requires x-user-id header for reviewer identity.
+      tags: [ApprovalGateway]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: x-user-id
+          in: header
+          required: true
+          schema:
+            type: string
+          description: Reviewer user ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action, reason]
+              properties:
+                action:
+                  type: string
+                  enum: [approve, reject]
+                reason:
+                  type: string
+      responses:
+        '200':
+          description: Approval resolved with signed receipt
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  status:
+                    type: string
+                    enum: [approved, rejected]
+                  decision:
+                    type: object
+                    properties:
+                      decided_by:
+                        type: string
+                      reason:
+                        type: string
+                      decided_at:
+                        type: string
+                        format: date-time
+                      receipt_signature:
+                        type: string
+                        nullable: true
+                      receipt_event_id:
+                        type: string
+                        nullable: true
+        '400':
+          description: Validation error (missing action, reason, or x-user-id)
+        '404':
+          description: Approval request not found
+        '409':
+          description: Approval already resolved
 
   # ──────────────────────────────────────────────
   # Compliance
