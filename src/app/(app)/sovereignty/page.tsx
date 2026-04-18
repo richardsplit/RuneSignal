@@ -1,6 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { useTenant } from '@lib/contexts/TenantContext';
+import { useToast } from '@/components/ToastProvider';
+
+const LS_KEY = 'runesignal:sovereignty:policy';
 
 interface Policy {
   allowed_regions: string[];
@@ -31,6 +35,9 @@ const DATA_CLASSES = ['PUBLIC', 'INTERNAL', 'CONFIDENTIAL', 'PII', 'PHI'];
 const ALL_REGIONS = ['eu', 'us', 'uk', 'ap', 'global'];
 
 export default function SovereigntyPage() {
+  const { tenantId } = useTenant();
+  const { showToast } = useToast();
+
   const [policy, setPolicy] = useState<Policy | null>(null);
   const [providers, setProviders] = useState<Provider[]>([]);
   const [dataClass, setDataClass] = useState('INTERNAL');
@@ -39,35 +46,94 @@ export default function SovereigntyPage() {
   const [editRegions, setEditRegions] = useState<string[]>([]);
   const [blockOnViolation, setBlockOnViolation] = useState(true);
   const [autoReroute, setAutoReroute] = useState(false);
-  const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
+  const buildHeaders = useCallback((): Record<string, string> => {
+    const h: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (tenantId) h['X-Tenant-Id'] = tenantId;
+    return h;
+  }, [tenantId]);
+
+  /* ── Load policy once on mount ── */
   useEffect(() => {
-    Promise.all([
-      fetch('/api/v1/sovereignty/policy').then(r => r.json()),
-      fetch(`/api/v1/sovereignty/providers?data_classification=${dataClass}`).then(r => r.json()),
-    ]).then(([policyRes, provRes]) => {
-      const p = policyRes.policy;
-      setPolicy(p);
-      setEditRegions(p?.allowed_regions || []);
-      setBlockOnViolation(p?.block_on_violation ?? true);
-      setAutoReroute(p?.auto_reroute ?? false);
-      setProviders(provRes.providers || []);
-    }).finally(() => setLoading(false));
-  }, [dataClass]);
+    const headers: Record<string, string> = {};
+    if (tenantId) headers['X-Tenant-Id'] = tenantId;
+
+    fetch('/api/v1/sovereignty/policy', { headers })
+      .then(r => r.ok ? r.json() : null)
+      .then(res => {
+        const remote = res?.policy ?? null;
+        /* fall back to localStorage if API returned nothing */
+        const stored = (() => {
+          try { return JSON.parse(localStorage.getItem(LS_KEY) || 'null'); } catch { return null; }
+        })();
+        const p = remote ?? stored;
+        setPolicy(p);
+        setEditRegions(p?.allowed_regions ?? ['eu', 'us']);
+        setBlockOnViolation(p?.block_on_violation ?? true);
+        setAutoReroute(p?.auto_reroute ?? false);
+      })
+      .catch(() => {
+        const stored = (() => {
+          try { return JSON.parse(localStorage.getItem(LS_KEY) || 'null'); } catch { return null; }
+        })();
+        if (stored) {
+          setEditRegions(stored.allowed_regions ?? ['eu', 'us']);
+          setBlockOnViolation(stored.block_on_violation ?? true);
+          setAutoReroute(stored.auto_reroute ?? false);
+        }
+      })
+      .finally(() => setLoading(false));
+  /* eslint-disable-next-line react-hooks/exhaustive-deps */
+  }, [tenantId]);
+
+  /* ── Reload providers when data class changes (does NOT touch policy edits) ── */
+  useEffect(() => {
+    if (loading) return;
+    const headers: Record<string, string> = {};
+    if (tenantId) headers['X-Tenant-Id'] = tenantId;
+    fetch(`/api/v1/sovereignty/providers?data_classification=${dataClass}`, { headers })
+      .then(r => r.ok ? r.json() : { providers: [] })
+      .then(res => setProviders(res.providers || []))
+      .catch(() => setProviders([]));
+  /* eslint-disable-next-line react-hooks/exhaustive-deps */
+  }, [dataClass, loading]);
 
   const savePolicy = async () => {
+    if (editRegions.length === 0) {
+      setSaveError('Select at least one allowed region before saving.');
+      return;
+    }
     setSaving(true);
+    setSaveError(null);
+    const payload = { allowed_regions: editRegions, block_on_violation: blockOnViolation, auto_reroute: autoReroute };
+
+    /* Always persist to localStorage so the demo/live view reflects the choice */
+    try { localStorage.setItem(LS_KEY, JSON.stringify(payload)); } catch { /* ignore */ }
+
     try {
       const res = await fetch('/api/v1/sovereignty/policy', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          allowed_regions: editRegions,
-          block_on_violation: blockOnViolation,
-          auto_reroute: autoReroute,
-        }),
+        headers: buildHeaders(),
+        body: JSON.stringify(payload),
       });
-      if (res.ok) { setSaved(true); setTimeout(() => setSaved(false), 2000); }
+      if (res.ok) {
+        const data = await res.json();
+        setPolicy(data.policy);
+        showToast('Data residency policy saved', 'success');
+      } else {
+        const err = await res.json().catch(() => ({}));
+        /* API rejected (e.g. no tenant configured on live) — local save already done */
+        if (res.status === 401 || res.status === 403) {
+          showToast('Policy saved locally — connect a tenant to persist server-side', 'info');
+        } else {
+          setSaveError(err.error || `Save failed (${res.status})`);
+          showToast(err.error || 'Save failed', 'error');
+        }
+      }
+    } catch {
+      /* Network error — local save already done */
+      showToast('Policy saved locally (server unreachable)', 'info');
     } finally {
       setSaving(false);
     }
@@ -103,12 +169,18 @@ export default function SovereigntyPage() {
           <button
             className="btn btn-primary"
             onClick={savePolicy}
-            disabled={saving || editRegions.length === 0}
+            disabled={saving}
             style={{ fontSize: '0.8rem' }}
           >
-            {saving ? 'Saving…' : saved ? '✓ Saved' : 'Save Policy'}
+            {saving ? 'Saving…' : 'Save Policy'}
           </button>
         </div>
+
+        {saveError && (
+          <div className="callout callout-danger" style={{ margin: '0 1.5rem' }}>
+            {saveError}
+          </div>
+        )}
 
         <div style={{ padding: '1.25rem 1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
 
