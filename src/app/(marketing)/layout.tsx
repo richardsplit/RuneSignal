@@ -1,10 +1,17 @@
+import MarketingHeader from '@/components/marketing/MarketingHeader';
+import MarketingFooter from '@/components/marketing/MarketingFooter';
+
 /**
- * Public marketing shell.
- *
- * Intentionally minimal — a full marketing header + footer will be added
- * in the design-system commit. For now this is a passthrough so pages
- * like /, /pricing, /security, /legal/* render outside the app chrome.
+ * Public marketing shell — standalone header + footer, completely
+ * separate from the authenticated app chrome. Pages inside this group
+ * (`/`, `/pricing`, `/security`, `/legal/*`) render outside the app.
  */
 export default function MarketingLayout({ children }: { children: React.ReactNode }) {
-  return <div className="marketing-layout">{children}</div>;
+  return (
+    <div className="marketing-layout">
+      <MarketingHeader />
+      <main id="main">{children}</main>
+      <MarketingFooter />
+    </div>
+  );
 }

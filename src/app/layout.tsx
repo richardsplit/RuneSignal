@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { ToastProvider } from '@/components/ToastProvider';
+import { ThemeProvider, themeNoFlashScript } from '@/components/providers/ThemeProvider';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -28,12 +29,24 @@ export const metadata: Metadata = {
  *
  * Keeping the root bare is what prevents the landing page from appearing
  * to "pop up from inside the dashboard".
+ *
+ * The inline theme script runs before hydration to apply the stored
+ * preference to <html data-theme>, preventing a dark/light flash on load.
  */
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={inter.variable}>
+    <html lang="en" className={inter.variable} suppressHydrationWarning>
+      <head>
+        <script
+          // Intentional: the script is a static, self-contained string that
+          // must run before React hydrates to prevent a theme flash.
+          dangerouslySetInnerHTML={{ __html: themeNoFlashScript }}
+        />
+      </head>
       <body>
-        <ToastProvider>{children}</ToastProvider>
+        <ThemeProvider>
+          <ToastProvider>{children}</ToastProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
