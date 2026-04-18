@@ -1,12 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
-import Sidebar from '@/components/Sidebar';
-import Header from '@/components/Header';
 import { ToastProvider } from '@/components/ToastProvider';
-import CommandPalette from '@/components/CommandPalette';
-import { SidebarProvider } from '@/components/SidebarContext';
-import { TenantProvider } from '@lib/contexts/TenantContext';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -17,29 +12,28 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: 'RuneSignal | Enterprise AI Governance',
-  description: 'Governance, accountability, and operational control for AI agent fleets in production.',
+  description:
+    'Governance, accountability, and operational control for AI agent fleets in production.',
 };
 
+/**
+ * Shell-free root layout.
+ *
+ * This layout intentionally does NOT render the sidebar, topbar, or any
+ * dashboard chrome. Route groups under `src/app/` handle their own shells:
+ *
+ *   (app)/         → authenticated app shell (sidebar + topbar)
+ *   (marketing)/   → public marketing shell (standalone header + footer)
+ *   (auth)/        → login / onboarding / mfa-verify (centered card)
+ *
+ * Keeping the root bare is what prevents the landing page from appearing
+ * to "pop up from inside the dashboard".
+ */
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={inter.variable}>
       <body>
-        <ToastProvider>
-          <TenantProvider>
-          <SidebarProvider>
-            <CommandPalette />
-            <div className="app-layout">
-              <Sidebar />
-              <div className="main-content">
-                <Header />
-                <main className="animate-fade-in" style={{ flex: 1, padding: '2rem', minWidth: 0 }}>
-                  {children}
-                </main>
-              </div>
-            </div>
-          </SidebarProvider>
-          </TenantProvider>
-        </ToastProvider>
+        <ToastProvider>{children}</ToastProvider>
       </body>
     </html>
   );

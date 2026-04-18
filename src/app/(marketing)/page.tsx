@@ -269,8 +269,8 @@ export default function LandingPage() {
 
             {/* Desktop links */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Link href="/landing" className="landing-nav-link" style={{ color: '#94a3b8', fontSize: 14, fontWeight: 500, padding: '6px 12px', textDecoration: 'none' }}>Product</Link>
-              <Link href="/landing" className="landing-nav-link" style={{ color: '#94a3b8', fontSize: 14, fontWeight: 500, padding: '6px 12px', textDecoration: 'none' }}>Solutions</Link>
+              <Link href="/" className="landing-nav-link" style={{ color: '#94a3b8', fontSize: 14, fontWeight: 500, padding: '6px 12px', textDecoration: 'none' }}>Product</Link>
+              <Link href="/" className="landing-nav-link" style={{ color: '#94a3b8', fontSize: 14, fontWeight: 500, padding: '6px 12px', textDecoration: 'none' }}>Solutions</Link>
               <Link href="/pricing" className="landing-nav-link" style={{ color: '#94a3b8', fontSize: 14, fontWeight: 500, padding: '6px 12px', textDecoration: 'none' }}>Pricing</Link>
               <Link href="/documentation" className="landing-nav-link" style={{ color: '#94a3b8', fontSize: 14, fontWeight: 500, padding: '6px 12px', textDecoration: 'none' }}>Docs</Link>
             </div>
@@ -507,7 +507,7 @@ export default function LandingPage() {
                 <div>
                   <div style={{ fontSize: 12, fontWeight: 600, color: '#64748b', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 14 }}>Product</div>
                   {[
-                    { label: 'Features', href: '/landing' },
+                    { label: 'Features', href: '/' },
                     { label: 'Pricing', href: '/pricing' },
                     { label: 'Documentation', href: '/documentation' },
                   ].map(l => (

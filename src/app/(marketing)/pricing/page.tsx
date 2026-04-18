@@ -184,7 +184,7 @@ export default function PricingPage() {
 
       {/* Nav */}
       <nav className="nav">
-        <a href="/landing" className="nav-logo">
+        <a href="/" className="nav-logo">
           <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-label="RuneSignal logo">
             <rect width="28" height="28" rx="7" fill="#10b981" />
             <path d="M8 8h5.5a4.5 4.5 0 0 1 0 9H8V8Z" fill="#fff" fillOpacity="0.95" />
@@ -194,7 +194,7 @@ export default function PricingPage() {
           RuneSignal
         </a>
         <div className="nav-links">
-          <a href="/landing" className="nav-link">Home</a>
+          <a href="/" className="nav-link">Home</a>
           <a href="/login" className="nav-link nav-link-cta">Sign in</a>
         </div>
       </nav>
@@ -276,7 +276,7 @@ export default function PricingPage() {
       <footer className="footer">
         <span className="footer-copy">© {new Date().getFullYear()} RuneSignal. All rights reserved.</span>
         <div className="footer-links">
-          <a href="/landing" className="footer-link">Home</a>
+          <a href="/" className="footer-link">Home</a>
           <a href="/documentation" className="footer-link">Documentation</a>
           <a href="/login" className="footer-link">Sign in</a>
         </div>
