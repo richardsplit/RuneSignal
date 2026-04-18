@@ -20,7 +20,7 @@ const plans = [
   },
   {
     name: 'Pro',
-    price: '$299',
+    price: '$399',
     period: '/mo',
     description: 'For teams running AI in production',
     features: [
@@ -104,21 +104,9 @@ export default function PricingPage() {
   return (
     <>
       <style jsx global>{`
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background: #080812; color: #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
-
-        .nav { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 2rem; border-bottom: 1px solid rgba(255,255,255,0.07); position: sticky; top: 0; background: rgba(8,8,18,0.92); backdrop-filter: blur(12px); z-index: 50; }
-        .nav-logo { display: flex; align-items: center; gap: 0.625rem; text-decoration: none; color: #e2e8f0; font-weight: 700; font-size: 1.1rem; letter-spacing: -0.02em; }
-        .nav-logo svg { flex-shrink: 0; }
-        .nav-links { display: flex; align-items: center; gap: 1.5rem; }
-        .nav-link { color: #94a3b8; text-decoration: none; font-size: 0.9rem; transition: color 0.15s; }
-        .nav-link:hover { color: #e2e8f0; }
-        .nav-link-cta { background: #10b981; color: #fff !important; padding: 0.45rem 1rem; border-radius: 6px; font-weight: 600; font-size: 0.875rem; transition: background 0.15s !important; }
-        .nav-link-cta:hover { background: #059669 !important; color: #fff; }
-
-        .hero { text-align: center; padding: 5rem 1.5rem 3.5rem; }
-        .hero h1 { font-size: clamp(2rem, 5vw, 3.25rem); font-weight: 800; letter-spacing: -0.04em; color: #f8fafc; line-height: 1.1; }
-        .hero p { margin-top: 1rem; font-size: 1.125rem; color: #94a3b8; max-width: 480px; margin-left: auto; margin-right: auto; }
+        .pricing-hero { text-align: center; padding: 5rem 1.5rem 3.5rem; }
+        .pricing-hero h1 { font-size: clamp(2rem, 5vw, 3.25rem); font-weight: 800; letter-spacing: -0.04em; color: #f8fafc; line-height: 1.1; }
+        .pricing-hero p { margin-top: 1rem; font-size: 1.125rem; color: #94a3b8; max-width: 480px; margin-left: auto; margin-right: auto; }
 
         .plans-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; max-width: 1060px; margin: 0 auto; padding: 0 1.5rem 5rem; }
 
@@ -167,40 +155,14 @@ export default function PricingPage() {
         .faq-q { font-size: 1rem; font-weight: 600; color: #f1f5f9; margin-bottom: 0.625rem; }
         .faq-a { font-size: 0.9rem; color: #94a3b8; line-height: 1.65; }
 
-        /* Footer */
-        .footer { border-top: 1px solid rgba(255,255,255,0.07); padding: 2rem 2rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: gap; gap: 1rem; max-width: 100%; }
-        .footer-copy { font-size: 0.8rem; color: #475569; }
-        .footer-links { display: flex; gap: 1.5rem; }
-        .footer-link { font-size: 0.8rem; color: #475569; text-decoration: none; transition: color 0.15s; }
-        .footer-link:hover { color: #94a3b8; }
-
         @media (max-width: 640px) {
-          .nav-links { gap: 0.875rem; }
-          .hero { padding: 3rem 1rem 2.5rem; }
+          .pricing-hero { padding: 3rem 1rem 2.5rem; }
           .plans-grid { padding-bottom: 3rem; }
-          .footer { flex-direction: column; align-items: flex-start; }
         }
       `}</style>
 
-      {/* Nav */}
-      <nav className="nav">
-        <a href="/" className="nav-logo">
-          <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-label="RuneSignal logo">
-            <rect width="28" height="28" rx="7" fill="#10b981" />
-            <path d="M8 8h5.5a4.5 4.5 0 0 1 0 9H8V8Z" fill="#fff" fillOpacity="0.95" />
-            <path d="M13.5 17 19 20" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" />
-            <circle cx="20.5" cy="20.5" r="2" fill="#3b82f6" />
-          </svg>
-          RuneSignal
-        </a>
-        <div className="nav-links">
-          <a href="/" className="nav-link">Home</a>
-          <a href="/login" className="nav-link nav-link-cta">Sign in</a>
-        </div>
-      </nav>
-
       {/* Hero */}
-      <section className="hero">
+      <section className="pricing-hero">
         <h1>Simple, transparent pricing.</h1>
         <p>Start free. Scale when you&apos;re ready. No surprises.</p>
       </section>
@@ -272,15 +234,6 @@ export default function PricingPage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="footer">
-        <span className="footer-copy">© {new Date().getFullYear()} RuneSignal. All rights reserved.</span>
-        <div className="footer-links">
-          <a href="/" className="footer-link">Home</a>
-          <a href="/documentation" className="footer-link">Documentation</a>
-          <a href="/login" className="footer-link">Sign in</a>
-        </div>
-      </footer>
     </>
   );
 }

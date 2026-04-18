@@ -43,6 +43,9 @@ export function MarketingHeader() {
           <Link href="/login" className="marketing-nav-link marketing-signin">
             Sign in
           </Link>
+          <Link href="/demo" className="btn btn-outline btn-sm">
+            Book a demo
+          </Link>
           <Link href="/login?mode=signup" className="btn btn-primary btn-sm">
             Get started
           </Link>
@@ -72,6 +75,7 @@ export function MarketingHeader() {
           <Link href="/pricing" className="marketing-mobile-link" onClick={() => setMobileOpen(false)}>Pricing</Link>
           <Link href="/security" className="marketing-mobile-link" onClick={() => setMobileOpen(false)}>Security</Link>
           <Link href="/login" className="marketing-mobile-link" onClick={() => setMobileOpen(false)}>Sign in</Link>
+          <Link href="/demo" className="marketing-mobile-link" onClick={() => setMobileOpen(false)}>Book a demo</Link>
           <Link
             href="/login?mode=signup"
             className="btn btn-primary"

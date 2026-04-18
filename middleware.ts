@@ -40,12 +40,14 @@ export async function middleware(request: NextRequest) {
   const isLanding = url.startsWith('/landing'); // legacy /landing redirect safety
   const isLegal = url.startsWith('/legal');     // /legal/dpa, /legal/sla — public
   const isSecurity = url.startsWith('/security'); // /security — architecture trust document, public
+  const isPricing = url.startsWith('/pricing');   // public pricing page
+  const isDemo = url.startsWith('/demo');         // public book-a-demo page
   const isMfaVerify = url.startsWith('/mfa-verify');
   const isOnboarding = url.startsWith('/onboarding');
   const isInternal = url.startsWith('/_next') || url.includes('.') || url.startsWith('/api/v1/billing/webhook');
 
   // Static assets and fully public non-root routes — skip all auth processing
-  if (isPublicApi || isLogin || isLanding || isLegal || isSecurity || isInternal) {
+  if (isPublicApi || isLogin || isLanding || isLegal || isSecurity || isPricing || isDemo || isInternal) {
     return response;
   }
 
