@@ -28,37 +28,23 @@ export default function OnboardingPage() {
     setError(null);
 
     try {
+      // Verify session first
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      // 1. Create the tenant
-      const { data: tenant, error: tenantError } = await supabase
-        .from('tenants')
-        .insert({ name: companyName, owner_id: user.id })
-        .select()
-        .single();
-
-      if (tenantError) throw tenantError;
-
-      // 2. Link user to tenant as owner
-      const { error: memberError } = await supabase
-        .from('tenant_members')
-        .insert({
-          tenant_id: tenant.id,
-          user_id: user.id,
-          role: 'owner'
-        });
-
-      if (memberError) throw memberError;
-
-      // 3. Set admin role claim in JWT metadata (requires service-role, done via API route)
-      await fetch('/api/v1/onboarding/set-admin-role', {
+      // Delegate tenant + member creation to the API route (uses admin client → bypasses RLS)
+      const res = await fetch('/api/v1/onboarding/create-tenant', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: user.id, tenant_id: tenant.id }),
+        body: JSON.stringify({ company_name: companyName }),
       });
 
-      // 4. Success -> Redirect to dashboard
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Workspace creation failed');
+
+      // Refresh session so new app_metadata (tenant_id, role) is picked up
+      await supabase.auth.refreshSession();
+
       router.push('/dashboard');
       router.refresh();
     } catch (err: any) {
