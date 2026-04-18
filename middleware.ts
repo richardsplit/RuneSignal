@@ -6,17 +6,21 @@ import { Redis } from '@upstash/redis';
 import { createMiddlewareClient } from './lib/db/supabase';
 import * as Sentry from '@sentry/nextjs';
 
-// Initialize Redis and Ratelimit (static instance for edge efficiency)
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL!,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
-});
-
-const ratelimit = new Ratelimit({
-  redis: redis,
-  limiter: Ratelimit.slidingWindow(100, '60 s'), // 100 requests per minute per tenant
-  analytics: true,
-});
+// Lazy-initialize Redis/Ratelimit so missing env vars don't crash the Edge module at load time
+let _ratelimit: Ratelimit | null = null;
+function getRatelimit(): Ratelimit | null {
+  if (_ratelimit) return _ratelimit;
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  if (!url || !token) return null;
+  try {
+    const redis = new Redis({ url, token });
+    _ratelimit = new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(100, '60 s'), analytics: true });
+    return _ratelimit;
+  } catch {
+    return null;
+  }
+}
 
 export async function middleware(request: NextRequest) {
   const url = request.nextUrl.pathname;
@@ -184,16 +188,18 @@ export async function middleware(request: NextRequest) {
       response.headers.set('X-Tenant-Id', tenantId);
 
       // 4. Rate Limiting (Upstash Redis) based on Tenant
-      const { success, limit, reset, remaining } = await ratelimit.limit(tenantId);
-      response.headers.set('X-RateLimit-Limit', limit.toString());
-      response.headers.set('X-RateLimit-Remaining', remaining.toString());
-      response.headers.set('X-RateLimit-Reset', reset.toString());
-
-      if (!success) {
-        return NextResponse.json(
-          { error: 'Too Many Requests', message: 'Rate limit exceeded.' },
-          { status: 429, headers: response.headers }
-        );
+      const rl = getRatelimit();
+      if (rl) {
+        const { success, limit, reset, remaining } = await rl.limit(tenantId);
+        response.headers.set('X-RateLimit-Limit', limit.toString());
+        response.headers.set('X-RateLimit-Remaining', remaining.toString());
+        response.headers.set('X-RateLimit-Reset', reset.toString());
+        if (!success) {
+          return NextResponse.json(
+            { error: 'Too Many Requests', message: 'Rate limit exceeded.' },
+            { status: 429, headers: response.headers }
+          );
+        }
       }
     }
   }
