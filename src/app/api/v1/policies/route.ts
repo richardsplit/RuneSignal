@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createAdminClient } from '../../../../../lib/db/supabase';
+import { createAdminClient } from '@lib/db/supabase';
 import { EmbeddingService } from '../../../../../lib/ai/embeddings';
 
 export async function GET(request: Request) {

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createAdminClient } from '../../../../../../lib/db/supabase';
+import { createAdminClient } from '@lib/db/supabase';
 import { SovereignEncryption } from '../../../../../../lib/modules/s10-sovereign/encryption';
 
 export async function GET(request: NextRequest) {

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ConscienceEngine } from '../../../../../lib/modules/s8-moralos/conscience';
 import { SoulService } from '../../../../../lib/modules/s8-moralos/soul';
-import { createAdminClient } from '../../../../../lib/db/supabase';
+import { createAdminClient } from '@lib/db/supabase';
 
 /**
  * POST /api/v1/moral

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { FinOpsService } from '../../../../../../lib/modules/s9-finops/service';
-import { createAdminClient } from '../../../../../../lib/db/supabase';
+import { createAdminClient } from '@lib/db/supabase';
 
 export async function POST(request: NextRequest) {
   const tenantId = request.headers.get('X-Tenant-Id');

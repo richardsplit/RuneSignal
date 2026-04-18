@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createAdminClient } from '../../../../../lib/db/supabase';
+import { createAdminClient } from '@lib/db/supabase';
 import { JIRA_PLUGIN_TEMPLATE } from '../../../../../lib/plugins/prebuilt/jira';
 import { DATADOG_PLUGIN_TEMPLATE } from '../../../../../lib/plugins/prebuilt/datadog';
 import { PAGERDUTY_PLUGIN_TEMPLATE } from '../../../../../lib/plugins/prebuilt/pagerduty';

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createAdminClient } from '../../../../../../../../lib/db/supabase';
+import { createAdminClient } from '@lib/db/supabase';
 import { getLedgerSigner } from '../../../../../../../../lib/ledger/signer';
 import { v4 as uuidv4 } from 'uuid';
 import crypto from 'crypto';

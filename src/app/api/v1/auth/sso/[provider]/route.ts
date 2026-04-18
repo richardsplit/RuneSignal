@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createAdminClient } from '../../../../../../lib/db/supabase';
-import { OktaSSOProvider } from '../../../../../../lib/auth/sso/okta';
-import { EntraSSOProvider } from '../../../../../../lib/auth/sso/entra';
-import { Auth0SSOProvider } from '../../../../../../lib/auth/sso/auth0';
-import { buildRedirectUri, SSOProvider } from '../../../../../../lib/auth/sso/provider';
+import { createAdminClient } from '@lib/db/supabase';
+import { OktaSSOProvider } from '@lib/auth/sso/okta';
+import { EntraSSOProvider } from '@lib/auth/sso/entra';
+import { Auth0SSOProvider } from '@lib/auth/sso/auth0';
+import { buildRedirectUri, SSOProvider } from '@lib/auth/sso/provider';
 
 /**
  * GET /api/v1/auth/sso/:provider

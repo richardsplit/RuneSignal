@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createAdminClient } from '../../../../../lib/db/supabase';
+import { createAdminClient } from '@lib/db/supabase';
 
 /**
  * POST /api/v1/onboarding/set-admin-role

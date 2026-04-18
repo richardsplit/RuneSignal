@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createAdminClient } from '../../../../../../../lib/db/supabase';
+import { createAdminClient } from '@lib/db/supabase';
 import { LedgerSigner } from '../../../../../../../lib/ledger/signer';
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { RiskEngine } from '../../../../../../lib/modules/s5-insurance/risk-engine';
-import { createAdminClient } from '../../../../../../lib/db/supabase';
+import { createAdminClient } from '@lib/db/supabase';
 
 /**
  * GET /api/v1/insurance/risk

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { ExplainabilityService } from '../../../../../../lib/modules/s11-explainability/service';
-import { createAdminClient } from '../../../../../../lib/db/supabase';
+import { ExplainabilityService } from '@lib/modules/s11-explainability/service';
+import { createAdminClient } from '@lib/db/supabase';
 
 /**
  * GET /api/v1/explain
