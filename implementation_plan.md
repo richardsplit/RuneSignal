@@ -1,280 +1,793 @@
-# RuneSignal — Agent Trust Platform Implementation Plan
+# RuneSignal — Detailed Implementation Plan
+### Phases 1–5 | Gap-Analysis-Driven Build Roadmap
+### Last updated: April 2026
 
-> Enterprise AI Governance platform branded as **RuneSignal**. 5 modules: Provenance (S3), Identity (S6), Conflict Arbiter (S1), HITL Routing (S7), and Insurance Micro-OS (S5).
-
-This plan covers **Phase 0 (Core Infrastructure)** and **Phase 1 (Module S3 — Provenance Engine)** as the first build increment.
-
-**Infrastructure**: Supabase (PostgreSQL + Auth + Edge Functions + Realtime) + Vercel (Next.js frontend + API routes). No Docker/self-hosted services.
-
-> [!IMPORTANT]
-> This is a large platform. We'll build incrementally — Phase 0 + Phase 1 first, verify, then continue with subsequent phases. Each phase adds a module + its dashboard panel.
+> **Status legend**  
+> ✅ Done · ⚠️ Partial · ❌ Missing
 
 ---
 
-## Proposed Changes
+## Executive Summary
 
-### Core Project Setup (Next.js + Supabase)
+This document is the authoritative step-by-step build plan derived from a full audit of the RuneSignal codebase against the 5-phase product roadmap. Each phase lists what is already built, what is missing, and exact implementation steps with file paths and acceptance criteria.
 
-#### [NEW] [package.json](file:///c:/Users/Richard.Georgiev/OneDrive%20-%20DIGITALL%20Nature/Documents/RuneSignal/package.json)
-Next.js 14 project with dependencies: `@supabase/supabase-js`, `@supabase/ssr`, `jose`, `crypto` utilities.
+**Build priority order (highest ROI first):**
 
-#### [NEW] [.env.local.example](file:///c:/Users/Richard.Georgiev/OneDrive%20-%20DIGITALL%20Nature/Documents/RuneSignal/.env.local.example)
-Supabase URL, anon key, service role key, signing key, Stripe keys, etc.
-
-#### [NEW] [next.config.js](file:///c:/Users/Richard.Georgiev/OneDrive%20-%20DIGITALL%20Nature/Documents/RuneSignal/next.config.js)
-Next.js config optimized for Vercel deployment.
-
-#### [NEW] [vercel.json](file:///c:/Users/Richard.Georgiev/OneDrive%20-%20DIGITALL%20Nature/Documents/RuneSignal/vercel.json)
-Vercel deployment config with serverless function settings.
-
-#### [NEW] [.gitignore](file:///c:/Users/Richard.Georgiev/OneDrive%20-%20DIGITALL%20Nature/Documents/RuneSignal/.gitignore)
-Standard Python + Docker + env exclusions.
+1. **Phase 3 UI** — Incident management pages (zero UI currently)
+2. **Phase 4 UI** — Control monitoring dashboard (zero UI currently)
+3. **Phase 3 Alerts** — Art73 deadline Slack/email notifications
+4. **Phase 5 Detail** — Agent behavior drill-down page
+5. **Phase 1 Polish** — Evidence wizard agent selection + history page
+6. **Phase 2 Polish** — SLA enforcement, signed receipts in evidence bundles
+7. **Cross-cutting** — RBAC, idempotency, review queue live badge count
 
 ---
 
-### Core Infrastructure — Supabase Database & Ledger
+## Phase 1 — EU AI Act & ISO 42001 Evidence UI
+**Target:** Weeks 2–6 | **Current completion:** ~75%
 
-#### [NEW] [supabase/migrations/001_audit_ledger.sql](file:///c:/Users/Richard.Georgiev/OneDrive%20-%20DIGITALL%20Nature/Documents/RuneSignal/supabase/migrations/001_audit_ledger.sql)
-Creates `tenants` + `audit_events` tables. Enforces immutability with PostgreSQL rules. Indexes for compliance queries. RLS policies for tenant isolation.
-
-#### [NEW] [lib/db/supabase.ts](file:///c:/Users/Richard.Georgiev/OneDrive%20-%20DIGITALL%20Nature/Documents/RuneSignal/lib/db/supabase.ts)
-Supabase client factory — server-side (service role) and client-side (anon key) clients.
-
-#### [NEW] [lib/ledger/signer.ts](file:///c:/Users/Richard.Georgiev/OneDrive%20-%20DIGITALL%20Nature/Documents/RuneSignal/lib/ledger/signer.ts)
-Ed25519 `LedgerSigner` — signs audit events, verifies signatures, exposes public key. Uses Web Crypto API.
-
-#### [NEW] [lib/ledger/service.ts](file:///c:/Users/Richard.Georgiev/OneDrive%20-%20DIGITALL%20Nature/Documents/RuneSignal/lib/ledger/service.ts)
-`AuditLedgerService` — appends events to Supabase audit ledger with signatures. Never updates/deletes.
-
----
-
-### Core Infrastructure — Auth & API Routes
-
-#### [NEW] [lib/auth/jwt.ts](file:///c:/Users/Richard.Georgiev/OneDrive%20-%20DIGITALL%20Nature/Documents/RuneSignal/lib/auth/jwt.ts)
-JWT token issuance (HS256 for tenants, RS256 for agents), validation. Uses `jose` library.
-
-#### [NEW] [lib/auth/middleware.ts](file:///c:/Users/Richard.Georgiev/OneDrive%20-%20DIGITALL%20Nature/Documents/RuneSignal/lib/auth/middleware.ts)
-Next.js middleware: request ID injection, auth validation, rate limiting.
-
-#### [NEW] [app/api/health/route.ts](file:///c:/Users/Richard.Georgiev/OneDrive%20-%20DIGITALL%20Nature/Documents/RuneSignal/app/api/health/route.ts)
-Health check endpoint (public).
+### Current State
+| Component | Status | Location |
+|---|---|---|
+| `EvidenceService` (unified bundle) | ✅ Done | `lib/services/evidence-service.ts` |
+| `EuAiActReportGenerator` | ✅ Done | `lib/modules/compliance/eu-ai-act-report.ts` |
+| `Iso42001ReportGenerator` | ✅ Done | `lib/modules/compliance/iso-42001-report.ts` |
+| `Art73ReportGenerator` | ✅ Done | `lib/modules/compliance/art73-report.ts` |
+| Evidence Wizard UI (5-step) | ✅ Done | `src/app/(app)/compliance/evidence/page.tsx` |
+| Compliance Reports page | ✅ Done | `src/app/(app)/compliance/reports/page.tsx` |
+| Clause mapping tables (EU AI Act, ISO 42001) | ⚠️ Hardcoded | `src/app/(app)/compliance/evidence/page.tsx:158-172` |
+| Coverage preview with real data | ❌ Missing | — |
+| Agent/system selection in wizard | ❌ Missing | — |
+| Evidence history page | ❌ Missing | `src/app/(app)/compliance/evidence/history/` (empty dir) |
+| HIPAA / SOC 2 / GDPR clause mappings | ❌ Missing | — |
 
 ---
 
-### Core Infrastructure — Webhooks
+### Step 1.1 — Add Agent/System Selection as Wizard Step 0
+**Files to create/edit:**
+- `src/app/(app)/compliance/evidence/page.tsx` — add Step 0 before regulation selection
 
-#### [NEW] [lib/webhooks/emitter.ts](file:///c:/Users/Richard.Georgiev/OneDrive%20-%20DIGITALL%20Nature/Documents/RuneSignal/lib/webhooks/emitter.ts)
-GRC webhook emitter — posts events to Slack, ServiceNow, Jira. Exponential backoff retry.
+**Implementation:**
+1. Add new state: `selectedAgentIds: string[]`
+2. Add Step 0 UI: fetch `/api/v1/agents` and render a multi-select checklist of active agents with name + type + last-seen
+3. Update `StepIndicator` total from `5` to `6`; shift all existing step numbers +1
+4. Pass `agent_ids` array into the `generateBundle` POST body to `/api/v1/compliance/evidence-export`
+5. Update `EvidenceService.generate()` in `lib/services/evidence-service.ts` to accept and filter by `agent_ids`
 
----
-
-### Module S3 — AI Output Provenance Engine
-
-#### [NEW] [lib/sdk/atp-sdk.ts](file:///c:/Users/Richard.Georgiev/OneDrive%20-%20DIGITALL%20Nature/Documents/RuneSignal/lib/sdk/atp-sdk.ts)
-`ATPClient` — drop-in OpenAI/Anthropic/Azure wrapper. Intercepts LLM calls, hashes I/O, POSTs to certify endpoint.
-
-#### [NEW] [lib/modules/s3-provenance/types.ts](file:///c:/Users/Richard.Georgiev/OneDrive%20-%20DIGITALL%20Nature/Documents/RuneSignal/lib/modules/s3-provenance/types.ts)
-TypeScript types: `CertifyRequest`, `CertifyResponse`, `ProvenanceResponse`, `CertificatePayload`.
-
-#### [NEW] [lib/modules/s3-provenance/certificate.ts](file:///c:/Users/Richard.Georgiev/OneDrive%20-%20DIGITALL%20Nature/Documents/RuneSignal/lib/modules/s3-provenance/certificate.ts)
-Certificate generation service — hashes inputs/outputs, creates signed audit event, returns certificate.
-
-#### [NEW] [app/api/v1/provenance/route.ts](file:///c:/Users/Richard.Georgiev/OneDrive%20-%20DIGITALL%20Nature/Documents/RuneSignal/app/api/v1/provenance/route.ts)
-All 6 S3 API routes: `certify`, `get certificate`, `verify`, `audit query`, `pubkey`, `model-versions`.
-
-#### [NEW] [lib/modules/s3-provenance/version-monitor.ts](file:///c:/Users/Richard.Georgiev/OneDrive%20-%20DIGITALL%20Nature/Documents/RuneSignal/lib/modules/s3-provenance/version-monitor.ts)
-Model version fingerprinting — detects silent model updates, emits audit events + GRC webhooks.
+**Acceptance criteria:**
+- User can select "All agents" (default) or specific agents before proceeding
+- Selected agent IDs are included in the generated evidence bundle manifest
+- Evidence bundle metadata shows `agents_scope: ['agt-001', ...]`
 
 ---
 
-### Module S6 — Agent Identity & Permission Registry
+### Step 1.2 — Wire Real Coverage Preview (Step 3)
+**Files to edit:**
+- `src/app/(app)/compliance/evidence/page.tsx`
+- `src/app/api/v1/compliance/evidence-export/route.ts` (add dry-run mode)
 
-#### [NEW] [lib/modules/s6-identity/types.ts](file:///c:/Users/Richard.Georgiev/OneDrive%20-%20DIGITALL%20Nature/Documents/RuneSignal/lib/modules/s6-identity/types.ts)
-TypeScript types: `AgentCredential`, `PermissionScope`, `RegisterAgentRequest`.
+**Implementation:**
+1. Add query param `?dry_run=true` support to `POST /api/v1/compliance/evidence-export`
+2. When `dry_run=true`, the service runs the full evidence query but skips PDF/storage; returns coverage scores only
+3. Replace `MOCK_CLAUSES` fallback in Step 3 with a real call to this dry-run endpoint using selected regulation + date range
+4. Render each clause with a live coverage status indicator: `covered` (green) / `partial` (amber) / `not_covered` (red)
+5. Show overall coverage score (%) as a progress ring
 
-#### [NEW] [lib/modules/s6-identity/service.ts](file:///c:/Users/Richard.Georgiev/OneDrive%20-%20DIGITALL%20Nature/Documents/RuneSignal/lib/modules/s6-identity/service.ts)
-S6 Identity Service — handles agent registration, JWT issuance (RS256), permission validation, and suspension.
-
-#### [NEW] [lib/modules/s6-identity/mcp-proxy.ts](file:///c:/Users/Richard.Georgiev/OneDrive%20-%20DIGITALL%20Nature/Documents/RuneSignal/lib/modules/s6-identity/mcp-proxy.ts)
-MCP server proxy enforcement layer — validates tool calls against permission scopes.
-
-#### [NEW] [app/api/v1/agents/register/route.ts](file:///c:/Users/Richard.Georgiev/OneDrive%20-%20DIGITALL%20Nature/Documents/RuneSignal/app/api/v1/agents/register/route.ts)
-Agent registration endpoint.
-
-#### [NEW] [app/api/v1/agents/enforce/route.ts](file:///c:/Users/Richard.Georgiev/OneDrive%20-%20DIGITALL Nature/Documents/RuneSignal/app/api/v1/agents/enforce/route.ts)
-Tool call enforcement endpoint for MCP proxy.
-
----
-
-### Module S1 — Agent Conflict Arbiter
-
-#### [NEW] [lib/modules/s1-conflict/types.ts](file:///c:/Users/Richard.Georgiev/OneDrive%20-%20DIGITALL Nature/Documents/RuneSignal/lib/modules/s1-conflict/types.ts)
-TypeScript types: `AgentIntent`, `ArbiterResponse`, `ConflictPolicy`.
-
-#### [NEW] [lib/modules/s1-conflict/service.ts](file:///c:/Users/Richard.Georgiev/OneDrive%20-%20DIGITALL Nature/Documents/RuneSignal/lib/modules/s1-conflict/service.ts)
-S1 Arbiter Service — handles intent registration, real-time overlap detection (pgvector), and policy enforcement (BLOCK/QUEUE).
-
-#### [NEW] [lib/modules/s1-conflict/policy-engine.ts](file:///c:/Users/Richard.Georgiev/OneDrive%20-%20DIGITALL Nature/Documents/RuneSignal/lib/modules/s1-conflict/policy-engine.ts)
-Policy Engine — evaluates semantic similarity between incoming intent and existing policies or active intents.
-
-#### [NEW] [app/api/v1/intent/route.ts](file:///c:/Users/Richard.Georgiev/OneDrive%20-%20DIGITALL%20Nature/Documents/RuneSignal/app/api/v1/intent/route.ts)
-Arbiter intent registration endpoint.
+**Acceptance criteria:**
+- Step 3 shows real clause coverage derived from the tenant's actual event data
+- Missing clauses show specific remediation hints from `EvidenceService`
+- No mock data is shown unless the API call fails (network error only)
 
 ---
 
-### Module S7 — HITL Ops Routing Platform
+### Step 1.3 — Build Evidence History Page
+**Files to create:**
+- `src/app/(app)/compliance/evidence/history/page.tsx`
 
-#### [NEW] [lib/modules/s7-hitl/types.ts](file:///c:/Users/Richard.Georgiev/OneDrive%20-%20DIGITALL Nature/Documents/RuneSignal/lib/modules/s7-hitl/types.ts)
-TypeScript types: `ExceptionTicket`, `SlaTier`.
+**Implementation:**
+1. Fetch `GET /api/v1/compliance/evidence-export` (list endpoint) — add this if it doesn't exist, returning paginated list of past bundles from `compliance_reports` table
+2. Render a table: Export ID · Regulation · Date range · Coverage % · Generated at · Download buttons (JSON / PDF)
+3. Each row links to the full bundle detail
+4. Add "Re-run" button that navigates to the wizard pre-filled with the same parameters
 
-#### [NEW] [lib/modules/s7-hitl/service.ts](file:///c:/Users/Richard.Georgiev/OneDrive%20-%20DIGITALL Nature/Documents/RuneSignal/lib/modules/s7-hitl/service.ts)
-S7 HITL Service — handles ticket creation, Slack routing, and approval state management.
-
-#### [NEW] [app/api/v1/exceptions/route.ts](file:///c:/Users/Richard.Georgiev/OneDrive%20-%20DIGITALL%20Nature/Documents/RuneSignal/app/api/v1/exceptions/route.ts)
-Exception ticker management APIs.
-
----
-
-### Module S5 — Insurance Micro-OS
-
-#### [NEW] [lib/modules/s5-insurance/types.ts](file:///c:/Users/Richard.Georgiev/OneDrive%20-%20DIGITALL%20Nature/Documents/RuneSignal/lib/modules/s5-insurance/types.ts)
-TypeScript types: `CoveragePolicy`, `RiskProfile`, `AgentTelemetry`.
-
-#### [NEW] [lib/modules/s5-insurance/risk-engine.ts](file:///c:/Users/Richard.Georgiev/OneDrive%20-%20DIGITALL%20Nature/Documents/RuneSignal/lib/modules/s5-insurance/risk-engine.ts)
-Actuarial Risk Engine — aggregates agent stats (violations, SLA breaches, anomaly rates) to compute a dynamic Risk Score (1-100).
-
-#### [NEW] [app/api/v1/insurance/route.ts](file:///c:/Users/Richard.Georgiev/OneDrive%20-%20DIGITALL%20Nature/Documents/RuneSignal/app/api/v1/insurance/route.ts)
-Insurance API endpoints to view premiums, risk scores, and coverage status.
+**Acceptance criteria:**
+- History page lists all past evidence bundles for the tenant, newest first
+- JSON download works client-side from stored manifest
+- PDF download opens the signed URL from the server
 
 ---
 
-### RuneSignal Dashboard UI (Next.js Pages)
+### Step 1.4 — Add HIPAA and SOC 2 Clause Mappings
+**Files to edit:**
+- `lib/modules/compliance/` — create `hipaa-report.ts` and `soc2-report.ts`
+- `lib/services/evidence-service.ts` — add routing for new regulations
+- `src/app/(app)/compliance/evidence/page.tsx` — add HIPAA / SOC 2 to regulation cards
 
-The dashboard is built as Next.js pages with the App Router. **RuneSignal** branding throughout. Uses a rich **emerald green → warm amber** color palette on dark charcoal, glassmorphism, and Inter font.
+**Implementation:**
+1. Create `HipaaReportGenerator` and `Soc2ReportGenerator` following the same pattern as `EuAiActReportGenerator`
+2. Map HIPAA §164.312 technical safeguards to audit events, firewall evaluations, anomaly events
+3. Map SOC 2 Trust Service Criteria (CC6–CC9) to equivalent evidence sources
+4. Wire into `EvidenceService` with new `Regulation` type values `'hipaa'` and `'soc2'`
+5. Add to the regulation selector cards in the wizard with jurisdiction badges
 
-#### [NEW] [app/layout.tsx](file:///c:/Users/Richard.Georgiev/OneDrive%20-%20DIGITALL%20Nature/Documents/RuneSignal/app/layout.tsx)
-Root layout with Inter font, global styles, RuneSignal branding in sidebar.
-
-#### [NEW] [app/page.tsx](file:///c:/Users/Richard.Georgiev/OneDrive%20-%20DIGITALL%20Nature/Documents/RuneSignal/app/page.tsx)
-Dashboard home — overview cards for all modules, system health, recent audit events.
-
-#### [NEW] [app/globals.css](file:///c:/Users/Richard.Georgiev/OneDrive%20-%20DIGITALL%20Nature/Documents/RuneSignal/app/globals.css)
-Design system: emerald (#10b981) → amber (#f59e0b) gradients, charcoal (#1a1a2e) background, glassmorphism panels, micro-animations.
-
-#### [NEW] [components/Sidebar.tsx](file:///c:/Users/Richard.Georgiev/OneDrive%20-%20DIGITALL%20Nature/Documents/RuneSignal/components/Sidebar.tsx)
-Collapsible sidebar with RuneSignal logo, module navigation, user profile.
-
-#### [NEW] [app/provenance/page.tsx](file:///c:/Users/Richard.Georgiev/OneDrive%20-%20DIGITALL%20Nature/Documents/RuneSignal/app/provenance/page.tsx)
-S3 Provenance panel — certificate table, verification status, model version alerts, animated stat counters.
-
-#### [NEW] [app/identity/page.tsx](file:///c:/Users/Richard.Georgiev/OneDrive%20-%20DIGITALL Nature/Documents/RuneSignal/app/identity/page.tsx)
-S6 Identity panel — agent fleet dashboard, permission management, status controls.
-
-#### [NEW] [app/conflict/page.tsx](file:///c:/Users/Richard.Georgiev/OneDrive%20-%20DIGITALL Nature/Documents/RuneSignal/app/conflict/page.tsx)
-S1 Conflict panel — real-time intent analyzer, policy manager, collision history.
-
-#### [NEW] [app/exceptions/page.tsx](file:///c:/Users/Richard.Georgiev/OneDrive%20-%20DIGITALL Nature/Documents/RuneSignal/app/exceptions/page.tsx)
-S7 Exceptions panel — outstanding HITL requests, SLA metrics, approval workflow.
-
-#### [NEW] [app/insurance/page.tsx](file:///c:/Users/Richard.Georgiev/OneDrive%20-%20DIGITALL%20Nature/Documents/RuneSignal/app/insurance/page.tsx)
-S5 Insurance panel — dynamic risk scores, coverage limits, actuarial telemetry dashboard.
-
-#### [NEW] [public/runesignal-logo.svg](file:///c:/Users/Richard.Georgiev/OneDrive%20-%20DIGITALL Nature/Documents/RuneSignal/public/runesignal-logo.svg)
-RuneSignal shield logo in SVG format.
+**Acceptance criteria:**
+- HIPAA and SOC 2 appear as selectable options in the Evidence Wizard
+- Generated bundles include clause-mapped evidence for each regulation
+- Coverage scores are computed and shown in Step 3
 
 ---
 
----
+## Phase 2 — HITL Approval Gateway API
+**Target:** Weeks 6–10 | **Current completion:** ~80%
 
-## UI Design Direction
-
-| Aspect | Choice |
-|--------|--------|
-| **Brand** | **RuneSignal** — shield logo, emerald/amber palette |
-| **Theme** | Dark mode — charcoal (#1a1a2e) bg, emerald (#10b981) primary, amber (#f59e0b) accent |
-| **Cards** | Glassmorphism — frosted glass panels with `backdrop-filter: blur(12px)` |
-| **Typography** | Inter (Google Fonts), clean hierarchy with weight variations |
-| **Animations** | Smooth page transitions, card hover lifts, animated stat counters, pulse effects on live data |
-| **Layout** | Collapsible sidebar + main content area, responsive CSS Grid |
-| **Data Viz** | Animated SVG charts for certificate throughput, conflict rates, SLA health |
-| **Colors** | Emerald → Amber gradient palette with teal/rose/slate status indicators |
-
----
-
-## Phase 7: Deep Functional Build (UI Interactivity + Backend) [COMPLETED]
-Connecting the front-end dashboard interactions to the backend database.
-- Building Global Modal/Popup components for forms.
-- Implementing S6 Agent Registration Wizard with Supabase inserts.
-- Creating the S3 Provenance Certificate generator popup to mock and hash inputs.
-- Building the S1 Semantic Policy definition UI.
-- Wiring up the S7 Exceptions approval/rejection workflows to update ticket states.
-
-## Phase 7.8: MFA Configuration Sub-flow [COMPLETED]
-Making security configuration realistic and interactive.
-- **MFASetupModal**: A multi-step setup wizard (QR Code -> Verification -> Recovery Keys).
-- **QR Simulation**: Using a generated QR code (placeholder) and requiring a 6-digit numeric input.
-- **State Persistence**: Storing MFA status and last-configured timestamp in `localStorage`.
-
-## Phase 8: Code Refactoring & Optimization [COMPLETED]
-Ensuring the codebase is scalable, performant, and maintainable.
-- **Modularization**: Splitted massive dashboard files (Identity, Provenance, Conflict, Exceptions, Insurance) and the Account Settings page into dedicated feature components.
-- **Custom Hooks**: Extracted logic for `localStorage` synchronization into a reusable `useLocalStorage` hook, simplifying state management across all platform modules.
-- **Improved Maintainability**: Isolated feature-specific UI logic from page layouts, reducing file complexity and improving core readability.
-
-## Phase 8.1: Platform Refinement & Fixes [NEW]
-Transitioning from simulated logic to real-world infrastructure and API integrations.
-
-### Part 1: Security & Identity Sync
-- **Header Enforcement**: Update `middleware.ts` to validate `X-Agent-Id` for all authenticated v1 API routes.
-- **Database Validation**: Connect `S6IdentityService` to the Supabase `agent_credentials` table to verify agent status (`active`/`suspended`) in real-time.
-- **Upstash Redis Rate Limiting**: Implement per-tenant rate limiting using `@upstash/redis` in the edge-compatible middleware.
-
-### Part 2: S3 Provenance - Real LLM Certification
-- **Real SDK Integration**: Install and configure `openai` and `@anthropic-ai/sdk`.
-- **ATPClient Logic**: update `atp-sdk.ts` to perform real upstream calls to LLM providers using environment-secured API keys.
-- **SHA-256 Hashing**: Ensure the certification pipeline in `S3ProvenanceService` performs cryptographic hashing of both inputs and outputs before signing.
-- **Audit Ledger Persistence**: Save verified certificates directly to the Supabase `audit_events` table.
-
-### Part 3: S1 Conflict - Real-time Arbiter
-- **pgvector Search**: Implement real vector distance calculation in `S1ArbiterService` using PostgreSQL `pgvector` operators to detect semantic conflicts.
-- **Intent Queueing**: Build a real queueing mechanism stored in Supabase to handle `QUEUE` policy outcomes.
-
-### Part 4: S7 Exceptions - Workflow Automation
-- **Real Webhooks**: Move from mock logs to real POST requests to Slack/Teams endpoints defined in tenant configuration.
-- **State Management**: implement a real state machine for tickets (Open -> In Review -> Resolved) backed by Supabase.
-
-### Part 5: S5 Insurance - Actuarial Logic
-- **Dynamic Scoring**: build an aggregator that computes Risk Scores by querying the frequency and severity of agent violations in `audit_events`.
-- **Claims API**: Implement real endpoints for submitting and processing insurance claims.
-
-## Phase 9: Advanced UI/UX Polish
-Elevating the visual design to a highly contemporary, professional standard without breaking existing functionality.
-- Researching contemporary SaaS Figma templates and existing modern designs for inspiration and overlaying existing layout.
-- Upgrading styling to ensure a premium Enterprise SaaS feel (Figma-level design system).
-- Integrating subtle micro-animations and smooth transitions.
-- Polishing responsive layout breakpoints for different screen sizes.
-- Enhancing data visualization with interactive charts elements.
+### Current State
+| Component | Status | Location |
+|---|---|---|
+| `POST /api/v1/approval-requests` | ✅ Done | `src/app/api/v1/approval-requests/route.ts` |
+| `POST /api/v1/approval-requests/{id}/resolve` | ✅ Done | `src/app/api/v1/approval-requests/[id]/resolve/route.ts` |
+| Blast radius scorer | ✅ Done | `lib/hitl/blastRadiusScorer.ts` |
+| Signed receipts (Ed25519) | ✅ Done | `lib/modules/s7-hitl/service.ts` |
+| Slack/channel dispatch | ✅ Done | `lib/integrations/dispatcher.ts` |
+| SLA timer enforcement (auto-escalate/deny) | ❌ Missing | — |
+| Auto-approve policy rule | ❌ Missing | — |
+| Signed receipts in evidence bundles | ❌ Missing | — |
+| Approval metrics endpoint | ⚠️ Partial | `src/app/api/v1/metrics/` |
+| TypeScript SDK approval gateway example | ⚠️ Partial | `lib/sdk/` |
 
 ---
 
-## Verification Plan
+### Step 2.1 — SLA Enforcement Cron Job
+**Files to create/edit:**
+- `src/app/api/v1/cron/sla-sweep/route.ts` — new cron handler
+- `vercel.json` — register the daily cron
 
-### Dev Server
-```bash
-npm install
-npm run dev
-# Open http://localhost:3000
+**Implementation:**
+1. Create `GET /api/v1/cron/sla-sweep` protected by `Authorization: Bearer $CRON_SECRET`
+2. Query `hitl_exceptions` where `status = 'open'` and `sla_deadline < NOW()`
+3. For each overdue ticket:
+   - If `context_data.sla_auto_action = 'deny'` → call `HitlService.resolveException()` with `action: 'reject', reason: 'SLA expired — auto-denied'`
+   - If `sla_auto_action = 'escalate'` → dispatch Slack alert to escalation channel, add timeline note
+   - Update `context_data.escalated = true` to prevent re-notification
+4. Register in `vercel.json` as a daily cron (Hobby plan allows once-daily)
+5. Add `CRON_SECRET` env var to Vercel
+
+**Acceptance criteria:**
+- Overdue tickets are auto-denied or escalated on the daily cron sweep
+- Each auto-action is logged in the audit ledger
+- Slack escalation message includes ticket ID, agent, deadline exceeded timestamp
+
+---
+
+### Step 2.2 — Policy-based Auto-approve
+**Files to edit:**
+- `src/app/api/v1/approval-requests/route.ts`
+- `lib/hitl/blastRadiusScorer.ts`
+
+**Implementation:**
+1. After blast radius computation, check: if `blastRadius.level = 'low'` and `action.category = 'comms'` → resolve immediately with `status: 'auto_approved'`
+2. Return `status: 'auto_approved'` instead of `pending` in the response; skip dispatch to channels
+3. Log auto-approval to the audit ledger with `event_type: 'hitl_auto_approved'`
+4. Make auto-approve rules configurable per-tenant via a `approval_policies` table (future) — for now, hardcode the low-risk rule behind a feature flag env var `ENABLE_AUTO_APPROVE=true`
+
+**Acceptance criteria:**
+- Low-risk comms actions return `status: 'auto_approved'` immediately when flag is enabled
+- No Slack notification is sent for auto-approved requests
+- Auto-approval event appears in the provenance ledger
+
+---
+
+### Step 2.3 — Include HITL Receipts in Evidence Bundles
+**Files to edit:**
+- `lib/services/evidence-service.ts`
+- `lib/modules/compliance/eu-ai-act-report.ts`
+- `lib/modules/compliance/iso-42001-report.ts`
+
+**Implementation:**
+1. In `EuAiActReportGenerator`, add `hitl_receipts` section: query `hitl_exceptions` where `status IN ('approved','rejected')` and `resolved_at` within the evidence date range
+2. Include `receipt_signature`, `resolved_by`, `decision`, `blast_radius` for each resolved request
+3. Map to EU AI Act Article 14 (human oversight) and ISO 42001 clause 8.4 (oversight logs)
+4. Include receipt count in coverage scoring for Article 14 — ≥1 resolved receipt = `covered`
+
+**Acceptance criteria:**
+- Evidence bundles generated after this change include a `hitl_receipts` array in the manifest
+- Article 14 / ISO 8.4 coverage status reflects real HITL data
+- Ed25519 signature present for each receipt in the bundle
+
+---
+
+### Step 2.4 — TypeScript SDK Approval Gateway Example
+**Files to create:**
+- `lib/sdk/examples/approval-gateway.ts`
+
+**Implementation:**
+1. Write a fully runnable TypeScript example that:
+   - Instantiates the RuneSignal client with API key
+   - Wraps an agent action: checks if it needs approval via `POST /api/v1/approval-requests`
+   - If `status = pending`: polls `GET /api/v1/approval-requests/{id}` every 5s up to the SLA deadline
+   - If `status = approved`: proceeds with the action
+   - If `status = rejected` or deadline exceeded: aborts with structured error
+2. Include JSDoc comments explaining each step and the regulation reference
+3. Export as a standalone example importable from the SDK
+
+**Acceptance criteria:**
+- Example runs without modification when `RUNESIGNAL_API_KEY` and `RUNESIGNAL_TENANT_ID` are set
+- Covers the happy path (approved), rejection path, and timeout/SLA-expired path
+
+---
+
+## Phase 3 — AI Incident Response & Article 73 Reporting
+**Target:** Weeks 10–18 | **Current completion:** ~55% (backend complete, UI entirely missing)
+
+### Current State
+| Component | Status | Location |
+|---|---|---|
+| `IncidentService` (full lifecycle) | ✅ Done | `lib/services/incident-service.ts` |
+| `IncidentEvidenceAggregator` | ✅ Done | `lib/services/incident-evidence-aggregator.ts` |
+| `Art73ReportGenerator` (Ed25519) | ✅ Done | `lib/modules/compliance/art73-report.ts` |
+| `GET/POST /api/v1/incidents` | ✅ Done | `src/app/api/v1/incidents/route.ts` |
+| `GET/PATCH /api/v1/incidents/{id}` | ✅ Done | `src/app/api/v1/incidents/[id]/route.ts` |
+| `GET/POST /api/v1/incidents/{id}/timeline` | ✅ Done | `src/app/api/v1/incidents/[id]/timeline/route.ts` |
+| `GET/POST /api/v1/incidents/{id}/art73-report` | ✅ Done | `src/app/api/v1/incidents/[id]/art73-report/route.ts` |
+| `GET/POST /api/v1/incidents/{id}/corrective-actions` | ✅ Done | `src/app/api/v1/incidents/[id]/corrective-actions/route.ts` |
+| 15-day Art73 deadline auto-calculation | ✅ Done | `lib/services/incident-service.ts:65-70` |
+| **Incidents list UI page** | ❌ Missing | `src/app/(app)/incidents/` |
+| **Incident detail UI page** | ❌ Missing | `src/app/(app)/incidents/[id]/` |
+| **Deadline tracking UI** | ❌ Missing | — |
+| **Deadline Slack/email alerts** | ❌ Missing | — |
+| **Rule-based incident detection hooks** | ❌ Missing | — |
+| **"Create Incident" shortcut from other views** | ❌ Missing | — |
+
+---
+
+### Step 3.1 — Incidents List Page (M3.1)
+**Files to create:**
+- `src/app/(app)/incidents/page.tsx`
+
+**Sidebar update:**
+- `src/components/Sidebar.tsx` — add `{ label: 'Incidents', href: '/incidents', icon: <IconIncidents /> }` to the Governance section
+
+**Implementation:**
+1. Fetch `GET /api/v1/incidents` with tenant header, support filter params: `status`, `severity`, `is_serious_incident`
+2. Render a table/list with columns: Severity badge · Title · Category · Status · Detected at · Art73 deadline (with days-remaining chip) · Actions
+3. Days-remaining chip color: green (>7d) / amber (3-7d) / red (<3d) / grey (no deadline)
+4. "Create incident" button opens a modal (`CreateIncidentModal`) with fields: Title, Description, Severity, Category, Is serious incident, Market surveillance authority (conditional), Reported by
+5. Modal calls `POST /api/v1/incidents` on submit
+6. Status filter tabs: All · Detected · Investigating · Mitigated · Reported · Closed
+7. Demo fallback: seed 3 mock incidents when API unavailable (same pattern as identity page)
+
+**Acceptance criteria:**
+- Page loads and renders incidents from the real API
+- Create incident modal submits and the new incident appears in the list
+- Days-remaining chip renders correctly for serious incidents with Art73 deadline
+- Sidebar shows "Incidents" nav item under Governance
+
+---
+
+### Step 3.2 — Incident Detail Page (M3.2 + M3.3)
+**Files to create:**
+- `src/app/(app)/incidents/[id]/page.tsx`
+
+**Implementation:**
+1. Fetch `GET /api/v1/incidents/{id}` for incident metadata
+2. Fetch `GET /api/v1/incidents/{id}/timeline` for event history
+3. Render left column: incident metadata (severity, category, commander, deadlines, related IDs)
+4. Render right column: interactive timeline — each entry shows event_type, actor, timestamp, detail
+5. Status transition panel: show current status + "Advance to [next status]" button (calls `PATCH /api/v1/incidents/{id}` with next status in state machine)
+6. "Assign Commander" inline edit field
+7. "Update root cause" textarea (PATCH root_cause)
+8. Corrective actions section: fetch `GET /api/v1/incidents/{id}/corrective-actions`; "Add action" button with description, owner, due_date fields
+9. Art73 Report section (visible only for serious incidents):
+   - "Generate Art73 Report" button → `POST /api/v1/incidents/{id}/art73-report`
+   - "Download JSON" and "Download PDF" (opens `/api/v1/incidents/{id}/art73-report/pdf` if implemented)
+   - Show generated_at and report_id if already generated
+10. Add "Back to incidents" breadcrumb
+
+**Acceptance criteria:**
+- All incident fields editable in the UI
+- Timeline renders in chronological order with colour-coded event types
+- Art73 report can be generated and the JSON downloaded
+- Status transitions are enforced (can't skip steps)
+
+---
+
+### Step 3.3 — Art73 Deadline Alert Cron (M3.4)
+**Files to create/edit:**
+- `src/app/api/v1/cron/incident-deadline-alerts/route.ts`
+- `vercel.json` — register daily cron
+
+**Implementation:**
+1. Create `GET /api/v1/cron/incident-deadline-alerts` (bearer-protected with `CRON_SECRET`)
+2. Query `incidents` where `is_serious_incident = true` and `status NOT IN ('reported','closed')` and `art73_report_deadline IS NOT NULL`
+3. For each incident, calculate days remaining:
+   - `daysRemaining <= 2` → send URGENT Slack alert + mark as `alert_sent_critical`
+   - `daysRemaining <= 7` → send WARNING Slack alert + mark as `alert_sent_warning`
+4. Slack message format: `🚨 [CRITICAL] Art73 deadline in {N} days — Incident: {title} | Severity: {severity} | Deadline: {date} | View: {app_url}/incidents/{id}`
+5. Use `IntegrationDispatcher` for Slack delivery
+6. Store alert sent status in `incidents.deadline_alert_flags` JSONB column to prevent repeat alerts
+
+**Acceptance criteria:**
+- Daily cron sweeps all open serious incidents
+- Alerts are sent once per threshold (critical once, warning once)
+- No duplicate alerts for the same incident at the same threshold
+
+---
+
+### Step 3.4 — Rule-based Incident Detection Hooks (M3.1)
+**Files to edit:**
+- `src/app/api/v1/anomalies/route.ts` — after anomaly creation, suggest incident
+- `src/app/api/v1/incidents/route.ts` — add `source` field to creation
+
+**Implementation:**
+1. In the anomaly detection POST handler, after storing the anomaly: if `severity = 'critical'` → call `IncidentService.create()` automatically with `category: 'safety'`, `related_anomaly_ids: [anomaly.id]`, `reported_by: 'system:anomaly-detector'`
+2. In the firewall evaluations POST handler: if `action = 'block'` and `risk_score > 80` → suggest incident via a soft notification (return `suggested_incident: true` in the response; let the UI show a "Convert to incident" CTA)
+3. Add `source: 'manual' | 'anomaly_auto' | 'firewall_suggestion'` to incident creation payload
+4. On the anomaly page and firewall page, add a "Create incident from this event" icon button that opens `CreateIncidentModal` pre-filled with the event ID in `related_anomaly_ids` / `related_firewall_ids`
+
+**Acceptance criteria:**
+- Critical anomalies auto-create incidents with `source: 'anomaly_auto'`
+- High-risk firewall blocks show a "Convert to incident" CTA in the UI
+- Manual incident creation from any event view works end-to-end
+
+---
+
+## Phase 4 — Continuous Control Monitoring
+**Target:** Weeks 18–26 | **Current completion:** ~50% (backend complete, UI entirely missing)
+
+### Current State
+| Component | Status | Location |
+|---|---|---|
+| `ControlService` (full evaluation engine) | ✅ Done | `lib/services/control-service.ts` |
+| 5 built-in default controls | ✅ Done | `lib/services/control-service.ts:37-120` |
+| `GET/POST /api/v1/controls` | ✅ Done | `src/app/api/v1/controls/route.ts` |
+| `GET /api/v1/controls/status` | ✅ Done | `src/app/api/v1/controls/status/route.ts` |
+| `POST /api/v1/controls/{id}/evaluate` | ✅ Done | `src/app/api/v1/controls/[id]/evaluate/route.ts` |
+| `POST /api/v1/controls/seed` | ✅ Done | `src/app/api/v1/controls/seed/route.ts` |
+| **Control monitoring dashboard UI** | ❌ Missing | `src/app/(app)/controls/` |
+| **Real-time evaluation event hooks** | ❌ Missing | — |
+| **Scheduled evaluation cron** | ❌ Missing | — |
+| **"Open incident" from failed control** | ❌ Missing | — |
+| **Breach notifications (Slack/email)** | ❌ Missing | — |
+| **Controls in evidence exports** | ❌ Missing | — |
+| **Auto-seed on tenant creation** | ❌ Missing | — |
+
+---
+
+### Step 4.1 — Control Monitoring Dashboard (M4.3)
+**Files to create:**
+- `src/app/(app)/controls/page.tsx`
+
+**Sidebar update:**
+- `src/components/Sidebar.tsx` — add `{ label: 'Controls', href: '/controls', icon: <IconControls /> }` to the Intelligence section
+
+**Implementation:**
+1. Fetch `GET /api/v1/controls/status` → render summary header cards: Total Controls · Passing (green) · Failing (red) · Warning (amber) · Not Evaluated (grey)
+2. Fetch `GET /api/v1/controls` → render a control card grid or table
+3. Each control card shows: Name · Regulation badge (eu_ai_act / iso_42001) · Clause ref · Evaluation type · Current status badge · Last evaluated timestamp · Owner
+4. Status badge: `compliant` (green) / `at_risk` (amber) / `breached` (red) / `not_evaluated` (grey)
+5. "Evaluate now" button per card → `POST /api/v1/controls/{id}/evaluate` → refresh status
+6. "Seed defaults" button at page top → `POST /api/v1/controls/seed` (shown only when 0 controls exist)
+7. Failed controls section: bottom panel shows `recent_failures` from status API with control name, clause ref, failed_at, detail, and an "Open incident" link
+8. "Open incident" opens `CreateIncidentModal` pre-filled with `title: 'Control breach: {control.name}'` and `category: 'compliance_gap'`
+9. Filter bar: regulation · severity · evaluation_type · status
+
+**Acceptance criteria:**
+- Dashboard shows real-time control statuses from the API
+- "Evaluate now" triggers evaluation and refreshes the card status
+- Failed controls surface in the bottom panel with an "Open incident" action
+- "Seed defaults" works for new tenants with 0 controls
+
+---
+
+### Step 4.2 — Scheduled Evaluation Cron (M4.2)
+**Files to create:**
+- `src/app/api/v1/cron/control-sweep/route.ts`
+- Update `vercel.json`
+
+**Implementation:**
+1. Create `GET /api/v1/cron/control-sweep` (bearer-protected)
+2. Query all controls per tenant where `evaluation_type = 'scheduled'`
+3. For each control, call `ControlService.evaluate(tenantId, controlId)`
+4. If result is `fail` and control was previously `compliant` → flip status and dispatch breach notification (Step 4.3)
+5. Log sweep results to the audit ledger: `event_type: 'control_sweep_complete'`, payload with pass/fail counts
+6. Register as daily Vercel cron alongside the SLA sweep and deadline alert crons
+
+**Acceptance criteria:**
+- All scheduled controls are evaluated once per day
+- Status transitions from `compliant` → `breached` trigger breach notifications
+- Sweep is logged in the audit ledger with timestamps and counts
+
+---
+
+### Step 4.3 — Control Breach Notifications (M4.4)
+**Files to edit:**
+- `lib/services/control-service.ts` — extend `evaluate()` to accept a notification callback
+- Create `lib/services/control-notification-service.ts`
+
+**Implementation:**
+1. Create `ControlNotificationService.notifyBreach(tenantId, control, evaluationResult)`:
+   - Fetches tenant's active integrations from `tenant_integrations` table
+   - Dispatches Slack message: `⚠️ Control Breach — {control.name} ({control.clause_ref}) | Regulation: {control.regulation} | Violated: {evaluation.violated_count} events | View: {url}/controls`
+   - Uses `IntegrationDispatcher` (already used by HITL)
+2. Call `ControlNotificationService.notifyBreach()` from the cron sweep when a control flips to failing
+3. Add "notify on breach" toggle per control in the UI (stored in `controls.notify_on_breach` boolean column)
+4. Add control statuses to `GET /api/v1/controls/status` response under `breached_controls` for SIEM webhook consumers
+
+**Acceptance criteria:**
+- Breach notification delivered to Slack within the cron window
+- Notification only fires on status *change* (not re-fires every day while already breached)
+- "notify on breach" toggle persists per control
+
+---
+
+### Step 4.4 — Controls in Evidence Exports (M4.4)
+**Files to edit:**
+- `lib/services/evidence-service.ts`
+- `lib/types/evidence-bundle.ts`
+
+**Implementation:**
+1. In `EvidenceService.generate()`, after building the report, call `ControlService.getStatus(tenantId)` and attach a `control_snapshot` section to the bundle:
+   ```json
+   "control_snapshot": {
+     "evaluated_at": "...",
+     "total": 5,
+     "passing": 3,
+     "failing": 1,
+     "warning": 1,
+     "controls": [{ "name": "...", "clause_ref": "...", "status": "...", "regulation": "..." }]
+   }
+   ```
+2. Update `EvidenceBundle` type in `lib/types/evidence-bundle.ts` to include `control_snapshot`
+3. In coverage scoring, if any controls mapped to the regulation are failing → deduct from overall coverage score (e.g., each failing control = −10% on its mapped clause)
+
+**Acceptance criteria:**
+- Generated evidence bundles include `control_snapshot` section
+- Failing controls reduce coverage score for their mapped clauses
+- Coverage report in the wizard Step 3 shows control status alongside clause evidence
+
+---
+
+### Step 4.5 — Auto-seed Controls on Tenant Creation
+**Files to edit:**
+- `src/app/api/v1/onboarding/create-tenant/route.ts`
+
+**Implementation:**
+1. After successful tenant + membership creation, call `ControlService.seedDefaults(tenantId)`
+2. Catch and log any errors (non-fatal — tenant creation should still succeed)
+3. Return `controls_seeded: true` in the onboarding response
+
+**Acceptance criteria:**
+- Every new tenant automatically gets the 5 default controls on signup
+- `POST /api/v1/controls/seed` remains available for manual re-seeding
+
+---
+
+## Phase 5 — Agent Identity + Behavior Linkage
+**Target:** Month 6+ | **Current completion:** ~65%
+
+### Current State
+| Component | Status | Location |
+|---|---|---|
+| `AgentBehaviorService` (fan-out timeline) | ✅ Done | `lib/services/agent-behavior-service.ts` |
+| `AgentClassificationService` (EU AI Act) | ✅ Done | `lib/services/agent-classification-service.ts` |
+| `GET /api/v1/agents/{id}/behavior` | ✅ Done | `src/app/api/v1/agents/[id]/behavior/route.ts` |
+| `GET /api/v1/agents/{id}/evidence` | ✅ Done | `src/app/api/v1/agents/[id]/evidence/route.ts` |
+| `POST /api/v1/agents/{id}/classification` | ✅ Done | `src/app/api/v1/agents/[id]/classification/route.ts` |
+| Agent Identity list page | ✅ Done | `src/app/(app)/identity/page.tsx` |
+| NHI Lifecycle page | ✅ Done | `src/app/(app)/nhi/page.tsx` |
+| **Agent detail / behavior drill-down page** | ❌ Missing | `src/app/(app)/identity/[id]/` |
+| **EU AI Act risk tier visible in UI** | ❌ Missing | — |
+| **"Agents by tool" query surface** | ❌ Missing | — |
+| **IAM integration export (Veza/Okta format)** | ❌ Missing | — |
+| **Incident/evidence filter by agent** | ❌ Missing | — |
+
+---
+
+### Step 5.1 — Agent Detail Page with Behavior Timeline (M5.2)
+**Files to create:**
+- `src/app/(app)/identity/[id]/page.tsx`
+
+**Implementation:**
+1. Fetch `GET /api/v1/agents/{id}` — agent metadata, status, risk classification
+2. Fetch `GET /api/v1/agents/{id}/behavior?limit=50` — merged timeline
+3. Render two-column layout:
+   - **Left:** Agent card with name, type, status badge, EU AI Act risk tier badge (prohibited/high_risk/limited_risk/minimal_risk), owner, created_at, last_seen_at, registered scopes
+   - **Right:** Chronological event timeline with event type icon, subsystem label (Audit · Firewall · HITL · Anomaly · Incident), timestamp, brief detail, and a "View" link to the source record
+4. Date range filter (last 7d / 30d / 90d) passed as `?start=&end=` params to the behavior endpoint
+5. "Classify" button → `POST /api/v1/agents/{id}/classification` → refresh risk tier badge
+6. Summary stats bar: Total events · Firewall blocks · HITL requests · Anomalies · Incidents linked
+7. "View evidence contributions" section using `GET /api/v1/agents/{id}/evidence`
+8. "Suspend agent" button (calls `POST /api/v1/agents/{id}/suspend`)
+9. Back link to `/identity`
+
+**Acceptance criteria:**
+- Page renders all events for an agent merged across all subsystems
+- Risk tier badge displays and updates after classification
+- Date range filter changes the timeline content
+- Suspend action updates the agent status badge
+
+---
+
+### Step 5.2 — EU AI Act Risk Tier in Identity List
+**Files to edit:**
+- `src/app/(app)/identity/page.tsx`
+
+**Implementation:**
+1. Fetch `eu_ai_act_category` column from agent list API response
+2. Add a "Risk Tier" column/badge to the agent table: `prohibited` (red) / `high_risk` (amber) / `limited_risk` (blue) / `minimal_risk` (green) / `unclassified` (grey)
+3. Add a "Classify all" button at page top that fires `POST /api/v1/agents/{id}/classification` for each agent sequentially
+4. Add risk tier to the filter bar as a dropdown
+
+**Acceptance criteria:**
+- Risk tier badge visible for all agents in the list
+- "Classify all" updates tiers for all agents
+- Filter by risk tier narrows the agent list
+
+---
+
+### Step 5.3 — "Agents by Tool" Query Surface (M5.2)
+**Files to edit:**
+- `src/app/api/v1/agents/route.ts` (or create `src/app/api/v1/agents/tool-usage/route.ts`)
+- `src/app/(app)/identity/page.tsx`
+
+**Implementation:**
+1. Create `GET /api/v1/agents/tool-usage?tool_name={name}` that queries `audit_events` JSONB for `tool_name` and returns distinct agent IDs that invoked the tool
+2. Add a "Search by tool" input to the Identity page filter bar
+3. When a tool name is entered, replace the agent list with the filtered result from the tool-usage endpoint
+
+**Acceptance criteria:**
+- Entering a tool name in the filter returns only agents that invoked that tool
+- Result includes last invocation timestamp per agent
+
+---
+
+### Step 5.4 — IAM Integration Export (M5.3)
+**Files to create/edit:**
+- `src/app/api/v1/agents/export/route.ts` — extend to support Veza format
+
+**Implementation:**
+1. Add `?format=veza` query param to `GET /api/v1/agents/export`
+2. When `format=veza`, return agents in Veza Identity Governance format:
+   ```json
+   {
+     "entities": [{
+       "id": "agt-001",
+       "type": "service_account",
+       "name": "InventoryManager",
+       "attributes": { "risk_tier": "high_risk", "owner": "...", "status": "active" },
+       "permissions": [...]
+     }]
+   }
+   ```
+3. Add "Export to Veza" button in the Identity page action bar
+4. Document the endpoint in the SDK README
+
+**Acceptance criteria:**
+- `GET /api/v1/agents/export?format=veza` returns valid Veza entity format
+- Export button in Identity page downloads the file
+
+---
+
+### Step 5.5 — Agent Filter in Incidents and Evidence
+**Files to edit:**
+- `src/app/(app)/incidents/page.tsx` (created in Step 3.1) — add agent filter
+- `src/app/(app)/compliance/evidence/page.tsx` — agent selection already added in Step 1.1
+
+**Implementation:**
+1. Add `?agent_id={id}` support to `GET /api/v1/incidents` — filter by `related_agent_ids` JSONB array
+2. In the Incident list page, add an "Agent" dropdown filter populated from `GET /api/v1/agents`
+3. From the Agent detail page (Step 5.1), add an "Incidents" tab showing incidents where `related_agent_ids` contains the current agent ID
+
+**Acceptance criteria:**
+- Incident list can be filtered to show only incidents involving a specific agent
+- Agent detail page shows linked incidents in a dedicated tab
+
+---
+
+## Cross-cutting Technical Workstreams
+
+### CT-1 — Live Review Queue Badge Count
+**Files to edit:**
+- `src/components/Sidebar.tsx`
+
+**Implementation:**
+1. Replace hardcoded `badge: 3` with a live fetch: `GET /api/v1/hitl/list?status=open` count
+2. Fetch on mount and refresh every 60s using `setInterval`
+3. Cap badge display at 99+
+
+---
+
+### CT-2 — RBAC (Compliance vs Engineering vs Auditor)
+**Files to create:**
+- `lib/auth/roles.ts` — role definitions and permission guards
+- `src/middleware.ts` — extend to check role for sensitive routes
+
+**Implementation:**
+1. Define roles: `owner`, `compliance_officer`, `engineer`, `auditor`
+2. Store role in `tenant_memberships.role` column (add migration if needed)
+3. Guard routes:
+   - `/controls` — `compliance_officer` and above
+   - `/incidents` — `compliance_officer` and above  
+   - `/compliance/evidence` — `compliance_officer` and `auditor`
+   - `/audit` — all roles (read only for `auditor`)
+   - Admin API routes — `owner` only
+4. Show role badge in the sidebar user area
+
+---
+
+### CT-3 — Idempotency Keys on Critical Paths
+**Files to edit:**
+- `src/app/api/v1/incidents/route.ts`
+- `src/app/api/v1/approval-requests/route.ts`
+
+**Implementation:**
+1. Accept `Idempotency-Key` header on POST endpoints
+2. Hash the key, check `idempotency_cache` table (or Upstash Redis key with 24h TTL)
+3. If key seen before, return the cached response instead of re-processing
+4. Store: `{ key_hash, response_body, created_at }` in Redis
+
+---
+
+### CT-4 — SDK README and Developer Reference
+**Files to create/edit:**
+- `lib/sdk/README.md`
+- `lib/sdk/index.ts` — ensure all endpoints are exported
+
+**Implementation:**
+1. Document: event ingestion, approval gateway, evidence generation calls
+2. Include code examples for Node.js (TypeScript)
+3. Publish SDK structure: `RuneSignalClient` → `.approvals`, `.evidence`, `.incidents`, `.agents`, `.controls`
+
+---
+
+## Database Migrations Needed
+
+The following Supabase tables need to be created or extended:
+
+```sql
+-- Phase 3: Incidents
+CREATE TABLE incidents (
+  id UUID PRIMARY KEY,
+  tenant_id UUID NOT NULL,
+  title TEXT NOT NULL,
+  description TEXT,
+  severity TEXT NOT NULL CHECK (severity IN ('low','medium','high','critical')),
+  category TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'detected',
+  is_serious_incident BOOLEAN DEFAULT false,
+  market_surveillance_authority TEXT,
+  reported_by TEXT NOT NULL,
+  incident_commander TEXT,
+  root_cause TEXT,
+  art73_report_deadline TIMESTAMPTZ,
+  detected_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  investigating_since TIMESTAMPTZ,
+  mitigated_at TIMESTAMPTZ,
+  reported_at TIMESTAMPTZ,
+  closed_at TIMESTAMPTZ,
+  related_anomaly_ids UUID[],
+  related_hitl_ids UUID[],
+  related_agent_ids UUID[],
+  related_firewall_ids UUID[],
+  deadline_alert_flags JSONB DEFAULT '{}',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Phase 3: Incident timeline
+CREATE TABLE incident_timeline (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  incident_id UUID REFERENCES incidents(id),
+  event_type TEXT NOT NULL,
+  actor TEXT NOT NULL,
+  detail JSONB DEFAULT '{}',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Phase 3: Corrective actions
+CREATE TABLE incident_corrective_actions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  incident_id UUID REFERENCES incidents(id),
+  description TEXT NOT NULL,
+  owner TEXT,
+  due_date DATE,
+  status TEXT DEFAULT 'open',
+  completed_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Phase 4: Controls
+CREATE TABLE controls (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID NOT NULL,
+  name TEXT NOT NULL,
+  description TEXT,
+  regulation TEXT,
+  clause_ref TEXT,
+  policy_id UUID,
+  evaluation_type TEXT DEFAULT 'scheduled',
+  evaluation_query JSONB,
+  evaluation_schedule TEXT,
+  severity TEXT DEFAULT 'medium',
+  status TEXT DEFAULT 'not_evaluated',
+  owner TEXT,
+  notify_on_breach BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Phase 4: Control evaluations
+CREATE TABLE control_evaluations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  control_id UUID REFERENCES controls(id),
+  tenant_id UUID NOT NULL,
+  result TEXT NOT NULL CHECK (result IN ('pass','fail','warning')),
+  violated_count INTEGER DEFAULT 0,
+  detail JSONB DEFAULT '{}',
+  evaluated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Phase 5: Add classification column to agents
+ALTER TABLE agent_credentials
+  ADD COLUMN IF NOT EXISTS eu_ai_act_category TEXT,
+  ADD COLUMN IF NOT EXISTS classification_confidence TEXT,
+  ADD COLUMN IF NOT EXISTS classified_at TIMESTAMPTZ;
+
+-- Cross-cutting: demo requests
+CREATE TABLE demo_requests (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  first_name TEXT,
+  last_name TEXT,
+  job_title TEXT,
+  company TEXT NOT NULL,
+  email TEXT NOT NULL,
+  phone TEXT,
+  challenges TEXT,
+  consent BOOLEAN DEFAULT false,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
 ```
 
-### API Endpoint Test
-```bash
-curl http://localhost:3000/api/health
-curl http://localhost:3000/api/v1/verify/pubkey
+---
+
+## Vercel Cron Jobs (vercel.json)
+
+Add the following to `vercel.json` crons (all once-daily for Hobby plan):
+
+```json
+{
+  "crons": [
+    { "path": "/api/v1/cron/sla-sweep",                "schedule": "0 8 * * *" },
+    { "path": "/api/v1/cron/incident-deadline-alerts", "schedule": "0 9 * * *" },
+    { "path": "/api/v1/cron/control-sweep",            "schedule": "0 10 * * *" }
+  ]
+}
 ```
 
-### Dashboard UI Test (Browser)
-- Open `http://localhost:3000` in browser
-- Verify: RuneSignal branding, dark charcoal theme, emerald/amber accents
-- Verify: glassmorphism sidebar, module navigation, animated stat cards
-- Verify: S3 Provenance panel shows certificate table, model version alerts
-- Verify: responsive layout at different viewport sizes
+Required env var: `CRON_SECRET` — set in Vercel dashboard.
+
+---
+
+## Acceptance Criteria Summary
+
+| Milestone | Description | Phase |
+|---|---|---|
+| M1.1 | Evidence wizard shows real clause coverage from live data | 1 |
+| M1.2 | Evidence wizard includes agent/system selector as Step 0 | 1 |
+| M1.3 | Evidence history page lists all past bundles | 1 |
+| M2.1 | SLA sweep auto-denies/escalates overdue approval requests | 2 |
+| M2.2 | HITL signed receipts included in evidence bundles | 2 |
+| M3.1 | Incidents list page live with create/filter/status | 3 |
+| M3.2 | Incident detail page with timeline, commander, root cause | 3 |
+| M3.3 | Art73 report generated and downloadable from incident detail | 3 |
+| M3.4 | Daily cron sends deadline alerts for serious incidents | 3 |
+| M3.5 | Critical anomalies auto-create incidents | 3 |
+| M4.1 | Control monitoring dashboard live with seed + evaluate | 4 |
+| M4.2 | Daily cron evaluates all scheduled controls | 4 |
+| M4.3 | Control breach triggers Slack notification | 4 |
+| M4.4 | Evidence bundles include control status snapshot | 4 |
+| M5.1 | Agent detail page with merged behavior timeline | 5 |
+| M5.2 | EU AI Act risk tier visible in agent list + classifiable | 5 |
+| M5.3 | Veza-format agent export endpoint | 5 |
+| CT-1 | Review queue badge shows live count from API | Cross |
+| CT-2 | Role-based access control for compliance routes | Cross |
+| CT-3 | Idempotency keys on incident + approval request creation | Cross |
