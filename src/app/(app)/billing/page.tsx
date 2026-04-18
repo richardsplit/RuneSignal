@@ -111,39 +111,39 @@ export default function BillingPage() {
   };
 
   return (
-    <div style={{ padding: '0 2rem' }}>
-      <div style={{ marginBottom: '3rem', textAlign: 'center' }}>
-        <h1 className="gradient-text" style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>Subscription & Usage</h1>
-        <p style={{ color: 'var(--color-text-muted)', fontSize: '1.1rem' }}>Manage your plan and monitor your real-time API consumption.</p>
+    <div style={{ maxWidth: '1100px' }}>
+      <div style={{ marginBottom: '2.5rem', textAlign: 'center' }}>
+        <h1 className="page-title" style={{ fontSize: '2rem' }}>Subscription &amp; Usage</h1>
+        <p className="page-description">Manage your plan and monitor your real-time API consumption.</p>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem', maxWidth: '1200px', margin: '0 auto', marginBottom: '4rem' }}>
         {PLANS.map((plan) => (
-          <div 
-            key={plan.id} 
-            className={`glass-panel ${plan.highlight ? 'animate-pulse-subtle' : ''}`}
-            style={{ 
-              padding: '2.5rem', 
-              display: 'flex', 
+          <div
+            key={plan.id}
+            className="surface"
+            style={{
+              padding: '2.5rem',
+              display: 'flex',
               flexDirection: 'column',
               position: 'relative',
-              borderColor: plan.highlight ? 'var(--color-primary-emerald)' : 'var(--border-glass)',
-              borderWidth: plan.highlight ? '2px' : '1px'
+              border: `${plan.highlight ? '2px' : '1px'} solid ${plan.highlight ? 'var(--accent-border)' : 'var(--border-default)'}`,
             }}
           >
             {plan.highlight && (
-              <div style={{ 
-                position: 'absolute', 
-                top: '-0.75rem', 
-                left: '50%', 
-                transform: 'translateX(-50%)', 
-                background: 'var(--color-primary-emerald)', 
-                color: 'white', 
-                padding: '0.25rem 1rem', 
-                borderRadius: '1rem', 
-                fontSize: '0.75rem', 
+              <div style={{
+                position: 'absolute',
+                top: '-0.75rem',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                background: 'var(--accent)',
+                color: 'var(--text-inverse)',
+                padding: '0.25rem 1rem',
+                borderRadius: '1rem',
+                fontSize: '0.75rem',
                 fontWeight: 700,
-                textTransform: 'uppercase'
+                textTransform: 'uppercase',
+                whiteSpace: 'nowrap',
               }}>
                 Most Popular
               </div>
@@ -152,16 +152,16 @@ export default function BillingPage() {
             <h2 style={{ fontSize: '1.5rem', fontWeight: 600, marginBottom: '0.5rem' }}>{plan.name}</h2>
             <div style={{ marginBottom: '1.5rem' }}>
               <span style={{ fontSize: '2.5rem', fontWeight: 700 }}>{plan.price}</span>
-              {plan.period && <span style={{ color: 'var(--color-text-muted)' }}>{plan.period}</span>}
+              {plan.period && <span className="text-tertiary">{plan.period}</span>}
             </div>
-            <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem', marginBottom: '2rem', lineHeight: '1.6', minHeight: '3.2rem' }}>
+            <p className="text-secondary" style={{ fontSize: '0.9rem', marginBottom: '2rem', lineHeight: '1.6', minHeight: '3.2rem' }}>
               {plan.description}
             </p>
 
             <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 2.5rem 0', flex: 1 }}>
               {plan.features.map(f => (
                 <li key={f} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem', fontSize: '0.9rem' }}>
-                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="var(--color-primary-emerald)" strokeWidth="3">
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="var(--success)" strokeWidth="3">
                     <path d="M5 10l3 3 7-7" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                   {f}
@@ -182,42 +182,41 @@ export default function BillingPage() {
       </div>
 
       {/* Usage Metering Section */}
-      <div className="glass-panel" style={{ maxWidth: '800px', margin: '0 auto', padding: '2rem' }}>
+      <div className="surface" style={{ maxWidth: '800px', margin: '0 auto', padding: '2rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '1.5rem' }}>
           <div>
             <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.25rem' }}>Monthly Consumption</h2>
-            <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>API Governance requests for the current billing period.</p>
+            <p className="page-description" style={{ marginBottom: 0 }}>API Governance requests for the current billing period.</p>
           </div>
           <div style={{ textAlign: 'right' }}>
-            <span style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--color-text-main)' }}>{usage.monthly.toLocaleString()}</span>
-            <span style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}> / {currentTier === 'enterprise' ? '∞' : usage.limit.toLocaleString()} calls</span>
+            <span style={{ fontSize: '1.5rem', fontWeight: 700 }}>{usage.monthly.toLocaleString()}</span>
+            <span className="text-tertiary" style={{ fontSize: '0.9rem' }}> / {currentTier === 'enterprise' ? '∞' : usage.limit.toLocaleString()} calls</span>
           </div>
         </div>
 
-        <div style={{ 
-          height: '12px', 
-          background: 'rgba(255,255,255,0.05)', 
-          borderRadius: '6px', 
-          overflow: 'hidden', 
+        <div style={{
+          height: '12px',
+          background: 'var(--surface-3)',
+          borderRadius: '6px',
+          overflow: 'hidden',
           marginBottom: '1rem',
-          border: '1px solid var(--border-glass)'
+          border: '1px solid var(--border-subtle)',
         }}>
-          <div style={{ 
-            width: `${usage.percentage}%`, 
-            height: '100%', 
-            background: usage.percentage > 90 ? '#ef4444' : 'var(--color-primary-emerald)',
+          <div style={{
+            width: `${usage.percentage}%`,
+            height: '100%',
+            background: usage.percentage > 90 ? 'var(--danger)' : 'var(--success)',
             transition: 'width 1s ease-out',
-            boxShadow: '0 0 10px rgba(16, 185, 129, 0.4)'
-          }}></div>
+          }} />
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
-          <span>Utilization: {usage.percentage.toFixed(1)}%</span>
-          <span>Cycle resets in 14 days</span>
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <span className="t-caption">Utilization: {usage.percentage.toFixed(1)}%</span>
+          <span className="t-caption">Cycle resets in 14 days</span>
         </div>
       </div>
 
-      <div style={{ textAlign: 'center', marginTop: '4rem', color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>
+      <div className="text-tertiary" style={{ textAlign: 'center', marginTop: '4rem', fontSize: '0.85rem' }}>
         <p>All prices are in USD. Subscription is billed monthly and can be cancelled any time.</p>
         <p style={{ marginTop: '0.5rem' }}>Automated fine-tuning and compliance reports included in Pro/Enterprise.</p>
       </div>

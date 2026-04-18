@@ -85,26 +85,16 @@ function MetricCard({
   highlight?: 'good' | 'warn' | 'bad';
 }) {
   const color =
-    highlight === 'good'
-      ? '#10b981'
-      : highlight === 'warn'
-      ? '#f59e0b'
-      : highlight === 'bad'
-      ? '#f43f5e'
-      : '#a3a3a3';
+    highlight === 'good' ? 'var(--success)'
+    : highlight === 'warn' ? 'var(--warning)'
+    : highlight === 'bad' ? 'var(--danger)'
+    : undefined;
 
   return (
-    <div
-      style={{
-        background: '#1a1a1a',
-        border: '1px solid #2a2a2a',
-        borderRadius: 8,
-        padding: '16px 20px',
-      }}
-    >
-      <div style={{ fontSize: 12, color: '#737373', marginBottom: 6 }}>{label}</div>
-      <div style={{ fontSize: 24, fontWeight: 700, color }}>{value}</div>
-      {sub && <div style={{ fontSize: 11, color: '#525252', marginTop: 4 }}>{sub}</div>}
+    <div className="kpi-card">
+      <div className="kpi-label">{label}</div>
+      <div className="kpi-value" style={color ? { color } : undefined}>{value}</div>
+      {sub && <div className="t-caption" style={{ marginTop: '2px' }}>{sub}</div>}
     </div>
   );
 }
@@ -161,298 +151,107 @@ export default function ComplianceReportsPage() {
   const s = report?.summary;
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        background: '#0a0a0a',
-        color: '#e5e5e5',
-        fontFamily: 'Inter, system-ui, sans-serif',
-        padding: '32px',
-      }}
-    >
-      {/* Header */}
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'flex-start',
-          marginBottom: 32,
-        }}
-      >
+    <div style={{ maxWidth: '1100px' }}>
+
+      {/* Page header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.75rem' }}>
         <div>
-          <h1 style={{ fontSize: 24, fontWeight: 700, margin: 0 }}>
-            Compliance Reports
-          </h1>
-          <p style={{ color: '#737373', fontSize: 14, marginTop: 4 }}>
-            Generate point-in-time compliance evidence reports for audits and regulators
-          </p>
+          <h1 className="page-title">Compliance Reports</h1>
+          <p className="page-description">Generate point-in-time compliance evidence reports for audits and regulators</p>
         </div>
         {report && (
-          <button
-            onClick={handleExport}
-            style={{
-              background: '#10b981',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 6,
-              padding: '8px 16px',
-              cursor: 'pointer',
-              fontSize: 14,
-              fontWeight: 500,
-            }}
-          >
-            Export JSON
-          </button>
+          <button className="btn btn-primary" onClick={handleExport}>Export JSON</button>
         )}
       </div>
 
       {/* Controls */}
-      <div
-        style={{
-          display: 'flex',
-          gap: 12,
-          marginBottom: 32,
-          alignItems: 'flex-end',
-          flexWrap: 'wrap',
-        }}
-      >
+      <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
         <div>
-          <div style={{ fontSize: 12, color: '#737373', marginBottom: 4 }}>Framework</div>
-          <select
-            value={framework}
-            onChange={e => setFramework(e.target.value)}
-            style={{
-              background: '#1a1a1a',
-              border: '1px solid #2a2a2a',
-              borderRadius: 6,
-              color: '#e5e5e5',
-              padding: '8px 12px',
-              fontSize: 14,
-            }}
-          >
+          <label className="form-label">Framework</label>
+          <select className="form-input" value={framework} onChange={e => setFramework(e.target.value)}>
             {FRAMEWORKS.map(f => (
-              <option key={f.value} value={f.value}>
-                {f.label}
-              </option>
+              <option key={f.value} value={f.value}>{f.label}</option>
             ))}
           </select>
         </div>
-
         <div>
-          <div style={{ fontSize: 12, color: '#737373', marginBottom: 4 }}>Period</div>
-          <div style={{ display: 'flex', gap: 6 }}>
+          <label className="form-label">Period</label>
+          <div style={{ display: 'flex', gap: '0.375rem' }}>
             {PRESETS.map(p => (
               <button
                 key={p.days}
                 onClick={() => setDays(p.days)}
-                style={{
-                  background: days === p.days ? '#10b981' : '#1a1a1a',
-                  border: `1px solid ${days === p.days ? '#10b981' : '#2a2a2a'}`,
-                  borderRadius: 6,
-                  color: days === p.days ? '#fff' : '#a3a3a3',
-                  padding: '8px 12px',
-                  cursor: 'pointer',
-                  fontSize: 13,
-                }}
+                className={`btn ${days === p.days ? 'btn-primary' : 'btn-outline'}`}
+                style={{ fontSize: '0.8125rem' }}
               >
                 {p.label}
               </button>
             ))}
           </div>
         </div>
-
-        <button
-          onClick={fetchReport}
-          disabled={loading || !tenantId}
-          style={{
-            background: '#2563eb',
-            color: '#fff',
-            border: 'none',
-            borderRadius: 6,
-            padding: '9px 20px',
-            cursor: loading ? 'not-allowed' : 'pointer',
-            opacity: loading ? 0.7 : 1,
-            fontSize: 14,
-            fontWeight: 500,
-          }}
-        >
+        <button className="btn btn-primary" onClick={fetchReport} disabled={loading || !tenantId}>
           {loading ? 'Generating…' : 'Generate Report'}
         </button>
       </div>
 
-      {error && (
-        <div
-          style={{
-            background: '#1c0a0a',
-            border: '1px solid #7f1d1d',
-            borderRadius: 8,
-            padding: 16,
-            color: '#f87171',
-            marginBottom: 24,
-          }}
-        >
-          {error}
-        </div>
-      )}
+      {error && <div className="callout callout-danger" style={{ marginBottom: '1.25rem' }}>{error}</div>}
 
       {!report && !loading && (
-        <div
-          style={{
-            textAlign: 'center',
-            padding: '80px 0',
-            color: '#525252',
-          }}
-        >
-          Select a framework and period, then click Generate Report
+        <div className="empty-state">
+          <p className="empty-state-body">Select a framework and period, then click Generate Report</p>
         </div>
       )}
 
       {loading && (
-        <div
-          style={{
-            textAlign: 'center',
-            padding: '80px 0',
-            color: '#737373',
-          }}
-        >
-          Compiling compliance evidence…
+        <div style={{ textAlign: 'center', padding: '5rem 0' }}>
+          <p className="t-body-sm text-tertiary">Compiling compliance evidence…</p>
         </div>
       )}
 
       {report && s && (
         <>
-          {/* Report header */}
-          <div
-            style={{
-              background: '#111',
-              border: '1px solid #2a2a2a',
-              borderRadius: 8,
-              padding: '16px 20px',
-              marginBottom: 24,
-              display: 'flex',
-              gap: 32,
-              flexWrap: 'wrap',
-            }}
-          >
+          {/* Report metadata */}
+          <div className="surface" style={{ padding: '1rem 1.25rem', marginBottom: '1.25rem', display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
             <div>
-              <div style={{ fontSize: 11, color: '#525252', textTransform: 'uppercase', letterSpacing: 1 }}>
-                Report ID
-              </div>
-              <div style={{ fontSize: 13, fontFamily: 'monospace', color: '#a3a3a3' }}>
-                {report.id}
-              </div>
+              <span className="t-eyebrow">Report ID</span>
+              <div className="t-mono" style={{ color: 'var(--text-secondary)', marginTop: '0.125rem', fontSize: '0.75rem' }}>{report.id}</div>
             </div>
             <div>
-              <div style={{ fontSize: 11, color: '#525252', textTransform: 'uppercase', letterSpacing: 1 }}>
-                Framework
-              </div>
-              <div style={{ fontSize: 13, color: '#e5e5e5', textTransform: 'uppercase' }}>
-                {report.framework}
-              </div>
+              <span className="t-eyebrow">Framework</span>
+              <div style={{ color: 'var(--text-primary)', textTransform: 'uppercase', marginTop: '0.125rem', fontSize: '0.875rem', fontWeight: 600 }}>{report.framework}</div>
             </div>
             <div>
-              <div style={{ fontSize: 11, color: '#525252', textTransform: 'uppercase', letterSpacing: 1 }}>
-                Period
-              </div>
-              <div style={{ fontSize: 13, color: '#a3a3a3' }}>
-                {report.period.from.slice(0, 10)} → {report.period.to.slice(0, 10)}
-              </div>
+              <span className="t-eyebrow">Period</span>
+              <div className="text-secondary" style={{ marginTop: '0.125rem', fontSize: '0.8125rem' }}>{report.period.from.slice(0, 10)} → {report.period.to.slice(0, 10)}</div>
             </div>
             <div>
-              <div style={{ fontSize: 11, color: '#525252', textTransform: 'uppercase', letterSpacing: 1 }}>
-                Generated
-              </div>
-              <div style={{ fontSize: 13, color: '#a3a3a3' }}>
-                {new Date(report.generated_at).toLocaleString()}
-              </div>
+              <span className="t-eyebrow">Generated</span>
+              <div className="text-secondary" style={{ marginTop: '0.125rem', fontSize: '0.8125rem' }}>{new Date(report.generated_at).toLocaleString()}</div>
             </div>
           </div>
 
-          {/* Metrics grid */}
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-              gap: 12,
-              marginBottom: 32,
-            }}
-          >
-            <MetricCard
-              label="Audit Events"
-              value={s.total_audit_events.toLocaleString()}
-              sub={`${s.signed_events.toLocaleString()} signed`}
-            />
-            <MetricCard
-              label="Signature Coverage"
-              value={`${s.signature_coverage_pct}%`}
-              highlight={s.signature_coverage_pct === 100 ? 'good' : s.signature_coverage_pct >= 95 ? 'warn' : 'bad'}
-            />
-            <MetricCard
-              label="Active Agents"
-              value={s.active_agents}
-              sub={`${s.total_agents} total`}
-            />
-            <MetricCard
-              label="Policy Violations"
-              value={s.policy_violations}
-              highlight={s.policy_violations === 0 ? 'good' : s.policy_violations < 5 ? 'warn' : 'bad'}
-            />
-            <MetricCard
-              label="HITL Resolution Rate"
-              value={`${s.hitl_resolution_rate_pct}%`}
-              sub={`${s.hitl_tickets_resolved}/${s.hitl_tickets_created} tickets`}
-              highlight={s.hitl_resolution_rate_pct >= 95 ? 'good' : s.hitl_resolution_rate_pct >= 80 ? 'warn' : 'bad'}
-            />
-            <MetricCard
-              label="Firewall Block Rate"
-              value={`${s.firewall_block_rate_pct}%`}
-              sub={`${s.firewall_blocks} blocks / ${s.firewall_evaluations} evals`}
-              highlight={s.firewall_block_rate_pct < 5 ? 'good' : s.firewall_block_rate_pct < 15 ? 'warn' : 'bad'}
-            />
+          {/* Metrics */}
+          <div className="kpi-strip" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', marginBottom: '1.25rem' }}>
+            <MetricCard label="Audit Events" value={s.total_audit_events.toLocaleString()} sub={`${s.signed_events.toLocaleString()} signed`} />
+            <MetricCard label="Signature Coverage" value={`${s.signature_coverage_pct}%`} highlight={s.signature_coverage_pct === 100 ? 'good' : s.signature_coverage_pct >= 95 ? 'warn' : 'bad'} />
+            <MetricCard label="Active Agents" value={s.active_agents} sub={`${s.total_agents} total`} />
+            <MetricCard label="Policy Violations" value={s.policy_violations} highlight={s.policy_violations === 0 ? 'good' : s.policy_violations < 5 ? 'warn' : 'bad'} />
+            <MetricCard label="HITL Resolution Rate" value={`${s.hitl_resolution_rate_pct}%`} sub={`${s.hitl_tickets_resolved}/${s.hitl_tickets_created} tickets`} highlight={s.hitl_resolution_rate_pct >= 95 ? 'good' : s.hitl_resolution_rate_pct >= 80 ? 'warn' : 'bad'} />
+            <MetricCard label="Firewall Block Rate" value={`${s.firewall_block_rate_pct}%`} sub={`${s.firewall_blocks} blocks / ${s.firewall_evaluations} evals`} highlight={s.firewall_block_rate_pct < 5 ? 'good' : s.firewall_block_rate_pct < 15 ? 'warn' : 'bad'} />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, marginBottom: 32 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem', marginBottom: '1.25rem' }}>
             {/* Top Event Types */}
-            <div
-              style={{
-                background: '#111',
-                border: '1px solid #2a2a2a',
-                borderRadius: 8,
-                padding: 20,
-              }}
-            >
-              <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 16 }}>
-                Top Audit Event Types
-              </div>
+            <div className="surface" style={{ padding: '1.25rem' }}>
+              <h3 style={{ fontSize: '0.875rem', fontWeight: 600, marginBottom: '1rem' }}>Top Audit Event Types</h3>
               {report.audit_trail.top_event_types.length === 0 ? (
-                <div style={{ color: '#525252', fontSize: 13 }}>No events in this period</div>
+                <p className="t-body-sm text-tertiary">No events in this period</p>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                   {report.audit_trail.top_event_types.map(e => (
-                    <div
-                      key={e.event_type}
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        fontSize: 13,
-                      }}
-                    >
-                      <span style={{ color: '#a3a3a3', fontFamily: 'monospace' }}>
-                        {e.event_type}
-                      </span>
-                      <span
-                        style={{
-                          background: '#1a1a1a',
-                          border: '1px solid #2a2a2a',
-                          borderRadius: 4,
-                          padding: '1px 8px',
-                          fontSize: 12,
-                          color: '#737373',
-                        }}
-                      >
-                        {e.count.toLocaleString()}
-                      </span>
+                    <div key={e.event_type} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span className="t-mono" style={{ color: 'var(--text-secondary)', fontSize: '0.8125rem' }}>{e.event_type}</span>
+                      <span className="badge badge-neutral">{e.count.toLocaleString()}</span>
                     </div>
                   ))}
                 </div>
@@ -460,86 +259,26 @@ export default function ComplianceReportsPage() {
             </div>
 
             {/* HITL Trail */}
-            <div
-              style={{
-                background: '#111',
-                border: '1px solid #2a2a2a',
-                borderRadius: 8,
-                padding: 20,
-              }}
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  marginBottom: 16,
-                }}
-              >
-                <div style={{ fontSize: 14, fontWeight: 600 }}>HITL Oversight Trail</div>
-                <div style={{ display: 'flex', gap: 12, fontSize: 12, color: '#737373' }}>
+            <div className="surface" style={{ padding: '1.25rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                <h3 style={{ fontSize: '0.875rem', fontWeight: 600, margin: 0 }}>HITL Oversight Trail</h3>
+                <div style={{ display: 'flex', gap: '0.75rem' }}>
                   {report.hitl_trail.avg_resolution_hours !== null && (
-                    <span>
-                      Avg: {report.hitl_trail.avg_resolution_hours}h
-                    </span>
+                    <span className="t-caption">Avg: {report.hitl_trail.avg_resolution_hours}h</span>
                   )}
                   {report.hitl_trail.overdue_tickets > 0 && (
-                    <span style={{ color: '#f59e0b' }}>
-                      {report.hitl_trail.overdue_tickets} overdue
-                    </span>
+                    <span className="t-caption" style={{ color: 'var(--warning)' }}>{report.hitl_trail.overdue_tickets} overdue</span>
                   )}
                 </div>
               </div>
               {report.hitl_trail.tickets.length === 0 ? (
-                <div style={{ color: '#525252', fontSize: 13 }}>No HITL tickets in this period</div>
+                <p className="t-body-sm text-tertiary">No HITL tickets in this period</p>
               ) : (
-                <div
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 6,
-                    maxHeight: 240,
-                    overflowY: 'auto',
-                  }}
-                >
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem', maxHeight: '240px', overflowY: 'auto' }}>
                   {report.hitl_trail.tickets.slice(0, 20).map(t => (
-                    <div
-                      key={t.id}
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        fontSize: 12,
-                        padding: '6px 8px',
-                        background: '#1a1a1a',
-                        borderRadius: 4,
-                      }}
-                    >
-                      <span
-                        style={{
-                          color: '#a3a3a3',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
-                          maxWidth: 200,
-                        }}
-                      >
-                        {t.title}
-                      </span>
-                      <span
-                        style={{
-                          color:
-                            t.status === 'approved'
-                              ? '#10b981'
-                              : t.status === 'rejected'
-                              ? '#f43f5e'
-                              : '#f59e0b',
-                          flexShrink: 0,
-                          marginLeft: 8,
-                        }}
-                      >
-                        {t.status}
-                      </span>
+                    <div key={t.id} className="surface" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.375rem 0.625rem', background: 'var(--surface-2)' }}>
+                      <span className="t-body-sm" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '200px', color: 'var(--text-secondary)' }}>{t.title}</span>
+                      <span style={{ color: t.status === 'approved' ? 'var(--success)' : t.status === 'rejected' ? 'var(--danger)' : 'var(--warning)', flexShrink: 0, marginLeft: '0.5rem', fontSize: '0.75rem', fontWeight: 600 }}>{t.status}</span>
                     </div>
                   ))}
                 </div>
@@ -547,64 +286,19 @@ export default function ComplianceReportsPage() {
             </div>
           </div>
 
-          {/* Installed Policy Packs */}
+          {/* Policy Packs */}
           {report.installed_policy_packs.length > 0 && (
-            <div
-              style={{
-                background: '#111',
-                border: '1px solid #2a2a2a',
-                borderRadius: 8,
-                padding: 20,
-              }}
-            >
-              <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 16 }}>
-                Installed Regulatory Policy Packs
-              </div>
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
-                  gap: 12,
-                }}
-              >
+            <div className="surface" style={{ padding: '1.25rem' }}>
+              <h3 style={{ fontSize: '0.875rem', fontWeight: 600, marginBottom: '1rem' }}>Installed Regulatory Policy Packs</h3>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '0.75rem' }}>
                 {report.installed_policy_packs.map(pack => (
-                  <div
-                    key={pack.name}
-                    style={{
-                      background: '#1a1a1a',
-                      border: '1px solid #2a2a2a',
-                      borderRadius: 6,
-                      padding: '12px 16px',
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        marginBottom: 6,
-                      }}
-                    >
-                      <span style={{ fontSize: 13, fontWeight: 600 }}>{pack.name}</span>
-                      <span
-                        style={{
-                          fontSize: 10,
-                          textTransform: 'uppercase',
-                          background: '#10b981',
-                          color: '#fff',
-                          borderRadius: 3,
-                          padding: '1px 6px',
-                        }}
-                      >
-                        Active
-                      </span>
+                  <div key={pack.name} className="surface" style={{ padding: '0.875rem 1rem', background: 'var(--surface-2)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.375rem' }}>
+                      <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>{pack.name}</span>
+                      <span className="badge badge-success">Active</span>
                     </div>
-                    <div style={{ fontSize: 12, color: '#737373' }}>
-                      {pack.policies_count} policies · {pack.category}
-                    </div>
-                    <div style={{ fontSize: 11, color: '#525252', marginTop: 4 }}>
-                      Installed {new Date(pack.installed_at).toLocaleDateString()}
-                    </div>
+                    <div className="t-caption">{pack.policies_count} policies · {pack.category}</div>
+                    <div className="t-caption" style={{ marginTop: '0.25rem', color: 'var(--text-tertiary)' }}>Installed {new Date(pack.installed_at).toLocaleDateString()}</div>
                   </div>
                 ))}
               </div>

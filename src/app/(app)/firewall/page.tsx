@@ -16,17 +16,17 @@ interface FirewallEvaluation {
   created_at: string;
 }
 
-const VERDICT_COLORS: Record<string, string> = {
-  allow: 'var(--color-primary-emerald)',
-  block: '#ef4444',
-  escalate: '#f59e0b',
+const VERDICT_CONFIG: Record<FirewallEvaluation['verdict'], { label: string; badgeCls: string; color: string }> = {
+  allow:    { label: 'Allow',    badgeCls: 'badge badge-success', color: 'var(--success)' },
+  block:    { label: 'Block',    badgeCls: 'badge badge-danger',  color: 'var(--danger)'  },
+  escalate: { label: 'Escalate', badgeCls: 'badge badge-warning', color: 'var(--warning)' },
 };
 
-const VERDICT_BADGES: Record<string, string> = {
-  allow: '✅ Allow',
-  block: '🚫 Block',
-  escalate: '⚠️ Escalate',
-};
+function riskColor(score: number) {
+  if (score > 75) return 'var(--danger)';
+  if (score > 40) return 'var(--warning)';
+  return 'var(--success)';
+}
 
 export default function FirewallPage() {
   const [evaluations, setEvaluations] = useState<FirewallEvaluation[]>([]);
@@ -49,14 +49,13 @@ export default function FirewallPage() {
 
   useEffect(() => {
     fetchEvaluations();
-    const interval = setInterval(fetchEvaluations, 15000); // refresh every 15s
+    const interval = setInterval(fetchEvaluations, 15000);
     return () => clearInterval(interval);
   }, [fetchEvaluations]);
 
-  // Derived metrics
-  const total = evaluations.length;
-  const allowed = evaluations.filter(e => e.verdict === 'allow').length;
-  const blocked = evaluations.filter(e => e.verdict === 'block').length;
+  const total     = evaluations.length;
+  const allowed   = evaluations.filter(e => e.verdict === 'allow').length;
+  const blocked   = evaluations.filter(e => e.verdict === 'block').length;
   const escalated = evaluations.filter(e => e.verdict === 'escalate').length;
   const avgLatency = total > 0
     ? Math.round(evaluations.reduce((sum, e) => sum + (e.latency_ms || 0), 0) / total)
@@ -66,103 +65,109 @@ export default function FirewallPage() {
     : 0;
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '1400px', margin: '0 auto' }}>
+    <div style={{ maxWidth: '1400px' }}>
+
       {/* Header */}
       <div style={{ marginBottom: '2rem' }}>
-        <h1 style={{ fontSize: '1.75rem', fontWeight: 700, marginBottom: '0.5rem' }}>
-          🛡️ Action Firewall
-        </h1>
-        <p style={{ color: 'var(--color-text-muted)', fontSize: '0.95rem' }}>
-          Every AI agent action evaluated in real time — identity, policy, moral, risk.
-        </p>
+        <h1 className="page-title">Action Firewall</h1>
+        <p className="page-description">Every AI agent action evaluated in real time — identity, policy, moral, risk.</p>
       </div>
 
-      {/* Metrics row */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '1rem', marginBottom: '2rem' }}>
+      {/* KPI strip */}
+      <div className="kpi-strip" style={{ gridAutoColumns: 'repeat(6, 1fr)' }}>
         {[
-          { label: 'Total Evaluations', value: total, color: 'var(--color-text-main)' },
-          { label: 'Allowed', value: allowed, color: 'var(--color-primary-emerald)' },
-          { label: 'Blocked', value: blocked, color: '#ef4444' },
-          { label: 'Escalated', value: escalated, color: '#f59e0b' },
-          { label: 'Avg Latency', value: `${avgLatency}ms`, color: 'var(--color-text-main)' },
-          { label: 'Avg Risk Score', value: `${avgRisk}/100`, color: avgRisk > 50 ? '#ef4444' : avgRisk > 25 ? '#f59e0b' : 'var(--color-primary-emerald)' },
+          { label: 'Total Evaluations', value: total,              color: undefined },
+          { label: 'Allowed',           value: allowed,            color: 'var(--success)'  },
+          { label: 'Blocked',           value: blocked,            color: 'var(--danger)'   },
+          { label: 'Escalated',         value: escalated,          color: 'var(--warning)'  },
+          { label: 'Avg Latency',       value: `${avgLatency}ms`,  color: undefined         },
+          { label: 'Avg Risk Score',    value: `${avgRisk}/100`,   color: riskColor(avgRisk) },
         ].map(m => (
-          <div key={m.label} className="glass-panel" style={{ padding: '1.25rem', textAlign: 'center' }}>
-            <div style={{ fontSize: '1.5rem', fontWeight: 700, color: m.color }}>{m.value}</div>
-            <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.25rem' }}>{m.label}</div>
+          <div key={m.label} className="kpi-card">
+            <div className="kpi-label">{m.label}</div>
+            <div className="kpi-value" style={m.color ? { color: m.color } : undefined}>{m.value}</div>
           </div>
         ))}
       </div>
 
       {/* Main content: table + detail panel */}
       <div style={{ display: 'grid', gridTemplateColumns: selected ? '1fr 420px' : '1fr', gap: '1.5rem' }}>
+
         {/* Evaluations table */}
-        <div className="glass-panel" style={{ padding: 0, overflow: 'hidden' }}>
-          <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid var(--border-glass)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontWeight: 600 }}>Recent Evaluations</span>
-            <button
-              onClick={fetchEvaluations}
-              style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}
-            >
+        <div className="surface" style={{ overflow: 'hidden' }}>
+          <div className="panel-header">
+            <span className="panel-title">Recent Evaluations</span>
+            <button className="btn btn-ghost btn-sm" onClick={fetchEvaluations}>
               ↻ Refresh
             </button>
           </div>
 
           {loading ? (
-            <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>Loading evaluations…</div>
+            <div style={{ padding: '3rem', textAlign: 'center' }}>
+              <p className="t-body-sm text-tertiary">Loading evaluations…</p>
+            </div>
           ) : evaluations.length === 0 ? (
-            <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>
-              <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>🛡️</div>
-              <p>No evaluations yet. Send your first request to <code style={{ fontSize: '0.8rem' }}>POST /api/v1/firewall/evaluate</code></p>
+            <div className="empty-state" style={{ margin: '1rem', border: 'none' }}>
+              <p className="empty-state-title">No evaluations yet</p>
+              <p className="empty-state-body">
+                Send your first request to{' '}
+                <span className="inline-code">POST /api/v1/firewall/evaluate</span>
+              </p>
             </div>
           ) : (
             <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+              <table className="data-table">
                 <thead>
-                  <tr style={{ borderBottom: '1px solid var(--border-glass)' }}>
-                    {['Verdict', 'Action', 'Resource', 'Risk', 'Latency', 'Time', 'HITL'].map(h => (
-                      <th key={h} style={{ padding: '0.75rem 1rem', textAlign: 'left', fontWeight: 600, color: 'var(--color-text-muted)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{h}</th>
-                    ))}
+                  <tr>
+                    <th>Verdict</th>
+                    <th>Action</th>
+                    <th>Resource</th>
+                    <th>Risk</th>
+                    <th>Latency</th>
+                    <th>Time</th>
+                    <th>HITL</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {evaluations.map(ev => (
-                    <tr
-                      key={ev.id}
-                      onClick={() => setSelected(ev === selected ? null : ev)}
-                      style={{
-                        borderBottom: '1px solid var(--border-glass)',
-                        cursor: 'pointer',
-                        background: selected?.id === ev.id ? 'rgba(255,255,255,0.05)' : 'transparent',
-                        transition: 'background 0.15s',
-                      }}
-                      className="hover-highlight"
-                    >
-                      <td style={{ padding: '0.75rem 1rem' }}>
-                        <span style={{ color: VERDICT_COLORS[ev.verdict], fontWeight: 600, fontSize: '0.8rem' }}>
-                          {VERDICT_BADGES[ev.verdict]}
-                        </span>
-                      </td>
-                      <td style={{ padding: '0.75rem 1rem', fontFamily: 'monospace', fontSize: '0.8rem', maxWidth: '180px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ev.action}</td>
-                      <td style={{ padding: '0.75rem 1rem', fontFamily: 'monospace', fontSize: '0.8rem', maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ev.resource}</td>
-                      <td style={{ padding: '0.75rem 1rem' }}>
-                        <span style={{ color: ev.risk_score > 75 ? '#ef4444' : ev.risk_score > 40 ? '#f59e0b' : 'var(--color-primary-emerald)', fontWeight: 600 }}>
-                          {ev.risk_score}/100
-                        </span>
-                      </td>
-                      <td style={{ padding: '0.75rem 1rem', color: 'var(--color-text-muted)', fontSize: '0.8rem' }}>{ev.latency_ms}ms</td>
-                      <td style={{ padding: '0.75rem 1rem', color: 'var(--color-text-muted)', fontSize: '0.75rem' }}>
-                        {new Date(ev.created_at).toLocaleTimeString()}
-                      </td>
-                      <td style={{ padding: '0.75rem 1rem' }}>
-                        {ev.hitl_ticket_id && (
-                          <span style={{ fontSize: '0.75rem', background: 'rgba(245,158,11,0.15)', color: '#f59e0b', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>
-                            HITL
+                  {evaluations.map(ev => {
+                    const vc = VERDICT_CONFIG[ev.verdict];
+                    return (
+                      <tr
+                        key={ev.id}
+                        onClick={() => setSelected(ev === selected ? null : ev)}
+                        style={{
+                          cursor: 'pointer',
+                          background: selected?.id === ev.id ? 'var(--accent-soft)' : undefined,
+                        }}
+                      >
+                        <td><span className={vc.badgeCls}>{vc.label}</span></td>
+                        <td>
+                          <span className="t-mono" style={{ maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>
+                            {ev.action}
                           </span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                        <td>
+                          <span className="t-mono" style={{ maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>
+                            {ev.resource}
+                          </span>
+                        </td>
+                        <td>
+                          <span style={{ color: riskColor(ev.risk_score), fontWeight: 600, fontSize: '0.8125rem', fontVariantNumeric: 'tabular-nums' }}>
+                            {ev.risk_score}/100
+                          </span>
+                        </td>
+                        <td className="text-tertiary t-body-sm">{ev.latency_ms}ms</td>
+                        <td className="text-tertiary t-body-sm">
+                          {new Date(ev.created_at).toLocaleTimeString()}
+                        </td>
+                        <td>
+                          {ev.hitl_ticket_id && (
+                            <span className="badge badge-warning">HITL</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -171,60 +176,64 @@ export default function FirewallPage() {
 
         {/* Detail panel */}
         {selected && (
-          <div className="glass-panel" style={{ padding: '1.5rem', alignSelf: 'start' }}>
+          <div className="surface" style={{ padding: '1.5rem', alignSelf: 'start' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-              <h3 style={{ fontWeight: 600, fontSize: '1rem' }}>Evaluation Detail</h3>
-              <button onClick={() => setSelected(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)', fontSize: '1.2rem' }}>×</button>
+              <span className="panel-title">Evaluation Detail</span>
+              <button className="btn btn-ghost btn-icon" onClick={() => setSelected(null)} aria-label="Close">✕</button>
             </div>
 
-            <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
-              <span style={{ color: VERDICT_COLORS[selected.verdict], fontWeight: 700, fontSize: '1.1rem' }}>
-                {VERDICT_BADGES[selected.verdict]}
+            <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.25rem', flexWrap: 'wrap', alignItems: 'center' }}>
+              <span className={VERDICT_CONFIG[selected.verdict].badgeCls} style={{ fontSize: '0.8125rem', padding: '0.3rem 0.625rem' }}>
+                {VERDICT_CONFIG[selected.verdict].label}
               </span>
-              <span style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem', alignSelf: 'center' }}>
+              <span className="t-body-sm text-tertiary">
                 Risk: {selected.risk_score}/100 · {selected.latency_ms}ms
               </span>
             </div>
 
             {[
-              { label: 'Action', value: selected.action },
+              { label: 'Action',   value: selected.action },
               { label: 'Resource', value: selected.resource },
-              { label: 'Agent', value: selected.agent_id.slice(0, 16) + '…' },
-              { label: 'Eval ID', value: selected.id.slice(0, 16) + '…' },
+              { label: 'Agent',    value: selected.agent_id.slice(0, 16) + '…' },
+              { label: 'Eval ID',  value: selected.id.slice(0, 16) + '…' },
             ].map(row => (
-              <div key={row.label} style={{ marginBottom: '0.75rem' }}>
-                <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.2rem' }}>{row.label}</div>
-                <div style={{ fontFamily: 'monospace', fontSize: '0.85rem', wordBreak: 'break-all' }}>{row.value}</div>
+              <div key={row.label} style={{ marginBottom: '0.875rem' }}>
+                <div className="t-eyebrow" style={{ marginBottom: '0.25rem' }}>{row.label}</div>
+                <div className="t-mono" style={{ wordBreak: 'break-all', color: 'var(--text-primary)' }}>{row.value}</div>
               </div>
             ))}
 
             {selected.reasons.length > 0 && (
               <div style={{ marginBottom: '1.25rem' }}>
-                <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>Reasons</div>
+                <div className="t-eyebrow" style={{ marginBottom: '0.5rem' }}>Reasons</div>
                 {selected.reasons.map((r, i) => (
-                  <div key={i} style={{ fontSize: '0.82rem', color: '#f59e0b', marginBottom: '0.25rem' }}>• {r}</div>
+                  <div key={i} className="t-body-sm" style={{ color: 'var(--warning)', marginBottom: '0.25rem' }}>
+                    · {r}
+                  </div>
                 ))}
               </div>
             )}
 
             <div>
-              <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.75rem' }}>Check Pipeline</div>
+              <div className="t-eyebrow" style={{ marginBottom: '0.75rem' }}>Check Pipeline</div>
               {selected.checks.map((c, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.6rem', marginBottom: '0.75rem', padding: '0.6rem', background: 'rgba(255,255,255,0.03)', borderRadius: '6px' }}>
-                  <span style={{ fontSize: '0.9rem', marginTop: '1px' }}>{c.passed ? '✅' : '❌'}</span>
-                  <div>
-                    <div style={{ fontWeight: 600, fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--color-text-muted)', marginBottom: '0.2rem' }}>{c.check}</div>
-                    <div style={{ fontSize: '0.78rem', color: 'var(--color-text-main)', lineHeight: 1.4 }}>{c.detail}</div>
-                    <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', marginTop: '0.2rem' }}>{c.latency_ms}ms</div>
+                <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.625rem', marginBottom: '0.75rem', padding: '0.625rem', background: 'var(--hover-wash-soft)', borderRadius: 'var(--radius-md)' }}>
+                  <span className={`status-dot ${c.passed ? 'online' : 'critical'}`} style={{ marginTop: 4 }} />
+                  <div style={{ minWidth: 0 }}>
+                    <div className="t-eyebrow" style={{ marginBottom: '0.2rem' }}>{c.check}</div>
+                    <div className="t-body-sm text-primary" style={{ lineHeight: 1.4 }}>{c.detail}</div>
+                    <div className="t-caption">{c.latency_ms}ms</div>
                   </div>
                 </div>
               ))}
             </div>
 
             {selected.hitl_ticket_id && (
-              <div style={{ marginTop: '1rem', padding: '0.75rem', background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.3)', borderRadius: '8px' }}>
-                <div style={{ fontSize: '0.8rem', color: '#f59e0b', fontWeight: 600, marginBottom: '0.25rem' }}>⚠️ HITL Ticket Created</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontFamily: 'monospace' }}>{selected.hitl_ticket_id}</div>
+              <div className="callout callout-warning" style={{ marginTop: '1rem' }}>
+                <div>
+                  <div style={{ fontWeight: 600, marginBottom: '0.25rem', fontSize: '0.8125rem' }}>HITL Ticket Created</div>
+                  <div className="t-mono">{selected.hitl_ticket_id}</div>
+                </div>
               </div>
             )}
           </div>

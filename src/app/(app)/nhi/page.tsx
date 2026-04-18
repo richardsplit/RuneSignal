@@ -140,27 +140,16 @@ export default function NHIDashboard() {
       </div>
 
       {/* KPI strip */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(4, 1fr)',
-        gap: '1px',
-        background: 'var(--border-subtle)',
-        border: '1px solid var(--border-default)',
-        borderRadius: 'var(--radius-lg)',
-        overflow: 'hidden',
-        marginBottom: '1.75rem',
-      }}>
+      <div className="kpi-strip">
         {[
-          { label: 'Active Credentials', value: String(activeCount),  accentColor: activeCount > 0 ? 'var(--success)' : undefined },
-          { label: 'Expiring Soon',      value: String(expiringSoon), accentColor: expiringSoon > 0 ? 'var(--warning)' : undefined },
-          { label: 'Expired',            value: String(expiredCount), accentColor: undefined },
-          { label: 'Revoked',            value: String(revokedCount), accentColor: revokedCount > 0 ? 'var(--danger)' : undefined },
+          { label: 'Active Credentials', value: String(activeCount),  color: activeCount > 0 ? 'var(--success)' : undefined },
+          { label: 'Expiring Soon',      value: String(expiringSoon), color: expiringSoon > 0 ? 'var(--warning)' : undefined },
+          { label: 'Expired',            value: String(expiredCount), color: undefined },
+          { label: 'Revoked',            value: String(revokedCount), color: revokedCount > 0 ? 'var(--danger)' : undefined },
         ].map((k, i) => (
-          <div key={i} style={{ background: 'var(--bg-surface-1)', padding: '1.25rem 1.5rem' }}>
+          <div key={i} className="kpi-card">
             <div className="kpi-label">{k.label}</div>
-            <div className="kpi-value" style={{ color: k.accentColor ?? undefined }}>
-              {k.value}
-            </div>
+            <div className="kpi-value" style={k.color ? { color: k.color } : undefined}>{k.value}</div>
           </div>
         ))}
       </div>
@@ -172,9 +161,7 @@ export default function NHIDashboard() {
         <div className="surface" style={{ overflow: 'hidden' }}>
           <div className="panel-header">
             <span className="panel-title">Active Credentials</span>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-              {keys.length} total
-            </span>
+            <span className="t-caption">{keys.length} total</span>
           </div>
 
           {keys.length > 0 ? (
@@ -213,7 +200,7 @@ export default function NHIDashboard() {
                             <TtlRing days={k.ttl_days} />
                           </div>
                         ) : (
-                          <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>—</span>
+                          <span className="text-tertiary t-caption">—</span>
                         )}
                       </td>
                       <td style={{ textAlign: 'right' }}>
@@ -230,14 +217,8 @@ export default function NHIDashboard() {
                           {k.status === 'active' && (
                             <button
                               onClick={() => handleRevoke(k.id)}
-                              className="btn"
-                              style={{
-                                fontSize: '0.75rem',
-                                padding: '0.25rem 0.625rem',
-                                background: 'var(--danger-bg)',
-                                color: 'var(--danger)',
-                                border: '1px solid var(--danger-border)',
-                              }}
+                              className="btn btn-danger"
+                              style={{ fontSize: '0.75rem', padding: '0.25rem 0.625rem' }}
                             >
                               Kill Switch
                             </button>
@@ -245,13 +226,8 @@ export default function NHIDashboard() {
                           {k.status === 'revoked' && k.death_certificate_id && (
                             <a
                               href={`/provenance/${k.death_certificate_id}`}
-                              style={{
-                                fontSize: '0.75rem',
-                                color: 'var(--text-muted)',
-                                textDecoration: 'underline',
-                                textDecorationColor: 'var(--border-default)',
-                                textUnderlineOffset: '2px',
-                              }}
+                              className="t-caption"
+                              style={{ color: 'var(--text-tertiary)', textDecoration: 'underline', textUnderlineOffset: '2px' }}
                             >
                               View Death Cert
                             </a>
@@ -299,7 +275,7 @@ export default function NHIDashboard() {
                     alignItems: 'center',
                     gap: '0.625rem',
                     padding: '0.5rem 0.625rem',
-                    background: 'var(--bg-surface-2)',
+                    background: 'var(--surface-2)',
                     borderRadius: 'var(--radius-sm)',
                     border: '1px solid var(--border-subtle)',
                   }}>
@@ -309,12 +285,10 @@ export default function NHIDashboard() {
                       flexShrink: 0,
                     }} />
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <p className="mono" style={{ fontSize: '0.6875rem', color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <p className="t-mono" style={{ fontSize: '0.6875rem', color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {k.agent_id || 'unbound_pool'}
                       </p>
-                      <p style={{ fontSize: '0.625rem', color: 'var(--text-muted)' }}>
-                        {Math.ceil(k.ttl_days)}d remaining
-                      </p>
+                      <p className="t-caption">{Math.ceil(k.ttl_days)}d remaining</p>
                     </div>
                     <span className={k.ttl_days < 7 ? 'badge badge-warning' : 'badge badge-success'} style={{ fontSize: '0.625rem' }}>
                       {k.ttl_days < 7 ? 'Expiring' : 'Healthy'}

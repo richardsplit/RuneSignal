@@ -14,7 +14,7 @@ interface AnomalyEvent {
 }
 
 const SEVERITY_CONFIG: Record<string, { badgeClass: string; dotColor: string }> = {
-  low:      { badgeClass: 'badge badge-neutral',  dotColor: 'var(--text-muted)' },
+  low:      { badgeClass: 'badge badge-neutral',  dotColor: 'var(--text-tertiary)' },
   medium:   { badgeClass: 'badge badge-warning',  dotColor: 'var(--warning)' },
   high:     { badgeClass: 'badge badge-warning',  dotColor: 'var(--warning)' },
   critical: { badgeClass: 'badge badge-danger',   dotColor: 'var(--danger)' },
@@ -64,14 +64,14 @@ export default function AnomalyDashboard() {
 
   if (loading) {
     return (
-      <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-        Scanning telemetry...
+      <div style={{ padding: '3rem', textAlign: 'center' }}>
+        <p className="t-body-sm text-tertiary">Scanning telemetry…</p>
       </div>
     );
   }
 
   return (
-    <div style={{ maxWidth: 1000, margin: '0 auto', padding: '2rem 1.5rem' }}>
+    <div style={{ maxWidth: 1000 }}>
 
       {/* Page header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.75rem' }}>
@@ -79,50 +79,23 @@ export default function AnomalyDashboard() {
           <h1 className="page-title">Anomaly Detection</h1>
           <p className="page-description">Statistical behavioural deviations detected via Welford z-score streaming.</p>
         </div>
-        {/* Live pill */}
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: '0.4rem',
-          padding: '0.3rem 0.75rem',
-          background: 'var(--success-bg)',
-          border: '1px solid var(--success-border)',
-          borderRadius: 'var(--radius-xl)',
-          fontSize: '0.75rem',
-          color: 'var(--success)',
-          fontWeight: 600,
-          whiteSpace: 'nowrap',
-          flexShrink: 0,
-          marginTop: '0.25rem',
-        }}>
-          <span className="status-dot online" style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--success)', display: 'inline-block' }} />
+        <span className="chip chip-success" style={{ marginTop: '0.25rem', flexShrink: 0 }}>
+          <span className="status-dot online" />
           Live · 8s
-        </div>
+        </span>
       </div>
 
       {/* KPI strip */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(4, 1fr)',
-        border: '1px solid var(--border-default)',
-        borderRadius: 'var(--radius-md)',
-        overflow: 'hidden',
-        marginBottom: '1.5rem',
-      }}>
+      <div className="kpi-strip">
         {[
-          { label: 'Active Anomalies', value: anomalies.length, color: 'var(--text-primary)' },
-          { label: 'Critical',         value: criticalCount,     color: 'var(--danger)' },
-          { label: 'High',             value: highCount,          color: 'var(--warning)' },
-          { label: 'Resolved Today',   value: resolvedToday,      color: 'var(--success)' },
+          { label: 'Active Anomalies', value: anomalies.length, color: undefined },
+          { label: 'Critical',         value: criticalCount,    color: 'var(--danger)'  },
+          { label: 'High',             value: highCount,         color: 'var(--warning)' },
+          { label: 'Resolved Today',   value: resolvedToday,     color: 'var(--success)' },
         ].map((s, i) => (
-          <div
-            key={s.label}
-            style={{
-              padding: '1.25rem 1.5rem',
-              background: 'var(--bg-surface-1)',
-              borderRight: i < 3 ? '1px solid var(--border-default)' : 'none',
-            }}
-          >
+          <div key={i} className="kpi-card">
             <p className="kpi-label">{s.label}</p>
-            <p className="kpi-value" style={{ color: s.color }}>{s.value}</p>
+            <p className="kpi-value" style={s.color ? { color: s.color } : undefined}>{s.value}</p>
           </div>
         ))}
       </div>
@@ -173,7 +146,7 @@ export default function AnomalyDashboard() {
                         {TYPE_LABELS[anomaly.anomaly_type] || anomaly.anomaly_type}
                       </td>
                       <td>
-                        <span className="mono" style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <span className="t-mono" style={{ color: 'var(--text-tertiary)', display: 'block', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {anomaly.agent_id}
                         </span>
                       </td>
@@ -185,11 +158,11 @@ export default function AnomalyDashboard() {
                       <td>
                         <span className="mono" style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
                           {anomaly.baseline_value.toFixed(4)}
-                          <span style={{ color: 'var(--text-muted)', margin: '0 0.3rem' }}>→</span>
+                          <span style={{ color: 'var(--text-tertiary)', margin: '0 0.3rem' }}>→</span>
                           {anomaly.observed_value.toFixed(4)}
                         </span>
                       </td>
-                      <td style={{ color: 'var(--text-muted)', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
+                      <td style={{ color: 'var(--text-tertiary)', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
                         {new Date(anomaly.created_at).toLocaleString()}
                       </td>
                       <td>

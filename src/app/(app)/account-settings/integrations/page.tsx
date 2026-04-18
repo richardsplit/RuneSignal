@@ -129,23 +129,16 @@ export default function IntegrationsPage() {
   const providers = Object.keys(PROVIDER_INFO) as Array<keyof typeof PROVIDER_INFO>;
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '900px', margin: '0 auto' }}>
-      <div style={{ marginBottom: '2rem' }}>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.5rem' }}>Integrations</h1>
-        <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
+    <div style={{ maxWidth: '900px' }}>
+      <div style={{ marginBottom: '1.75rem' }}>
+        <h1 className="page-title">Integrations</h1>
+        <p className="page-description">
           Connect RuneSignal to your existing tools. HITL approval requests will be routed through active channels automatically.
         </p>
       </div>
 
       {message && (
-        <div style={{
-          padding: '1rem 1.25rem',
-          borderRadius: '8px',
-          marginBottom: '1.5rem',
-          background: message.type === 'success' ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)',
-          border: `1px solid ${message.type === 'success' ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)'}`,
-          color: message.type === 'success' ? '#10b981' : '#ef4444',
-        }}>
+        <div className={`callout ${message.type === 'success' ? 'callout-success' : 'callout-danger'}`} style={{ marginBottom: '1.25rem' }}>
           {message.text}
         </div>
       )}
@@ -158,21 +151,17 @@ export default function IntegrationsPage() {
           const isConfiguring = configuring === provider;
 
           return (
-            <div key={provider} className="glass-panel" style={{ padding: '1.5rem' }}>
+            <div key={provider} className="surface" style={{ padding: '1.5rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
                 <div style={{ flex: 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
                     <span style={{ fontSize: '1.5rem' }}>{info.icon}</span>
                     <h3 style={{ fontWeight: 600, fontSize: '1rem' }}>{info.name}</h3>
-                    {isConnected && (
-                      <span style={{ fontSize: '0.7rem', background: 'rgba(16,185,129,0.15)', color: '#10b981', padding: '0.15rem 0.5rem', borderRadius: '12px', fontWeight: 600 }}>
-                        Connected
-                      </span>
-                    )}
+                    {isConnected && <span className="badge badge-success">Connected</span>}
                   </div>
-                  <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', lineHeight: 1.5 }}>{info.description}</p>
+                  <p className="t-body-sm text-secondary" style={{ lineHeight: 1.5 }}>{info.description}</p>
                   {isConnected && channel && (
-                    <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.5rem' }}>
+                    <p className="t-caption" style={{ marginTop: '0.5rem' }}>
                       Last updated: {new Date(channel.updated_at).toLocaleDateString()}
                     </p>
                   )}
@@ -181,31 +170,36 @@ export default function IntegrationsPage() {
                 <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
                   {isConnected ? (
                     <>
-                      <button
-                        onClick={() => startConfigure(provider)}
-                        style={{ padding: '0.5rem 1rem', background: 'rgba(255,255,255,0.06)', border: '1px solid var(--border-glass)', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem', color: 'var(--color-text-muted)' }}
-                      >
-                        Reconfigure
-                      </button>
+                      <button className="btn btn-ghost" style={{ fontSize: '0.8rem' }} onClick={() => startConfigure(provider)}>Reconfigure</button>
                       {provider !== 'slack' && (
-                        <button
-                          onClick={() => disconnect(provider)}
-                          style={{ padding: '0.5rem 1rem', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem', color: '#ef4444' }}
-                        >
-                          Disconnect
-                        </button>
+                        <button className="btn btn-danger" style={{ fontSize: '0.8rem' }} onClick={() => disconnect(provider)}>Disconnect</button>
                       )}
                     </>
                   ) : (
                     <button
-                      onClick={() => {
+                      className="btn btn-primary"
+                      style={{ fontSize: '0.8rem' }}
+                      onClick={async () => {
                         if (provider === 'slack') {
-                          window.location.href = '/api/v1/integrations/slack/install';
+                          try {
+                            const res = await fetch('/api/v1/integrations/slack/install');
+                            if (res.redirected) {
+                              window.location.href = res.url;
+                            } else if (res.ok) {
+                              const data = await res.json();
+                              if (data.url) window.location.href = data.url;
+                              else setMessage({ type: 'success', text: 'Slack OAuth initiated.' });
+                            } else {
+                              const data = await res.json().catch(() => ({}));
+                              setMessage({ type: 'error', text: data.error || 'Slack connection requires an active session. Please sign in first.' });
+                            }
+                          } catch {
+                            setMessage({ type: 'error', text: 'Unable to reach the Slack OAuth endpoint. Ensure you are signed in.' });
+                          }
                         } else {
                           startConfigure(provider);
                         }
                       }}
-                      style={{ padding: '0.5rem 1.25rem', background: 'var(--color-primary-emerald)', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, color: '#000' }}
                     >
                       {provider === 'slack' ? 'Connect with Slack' : 'Configure'}
                     </button>
@@ -215,37 +209,27 @@ export default function IntegrationsPage() {
 
               {/* Config form */}
               {isConfiguring && info.fields.length > 0 && (
-                <div style={{ marginTop: '1.25rem', paddingTop: '1.25rem', borderTop: '1px solid var(--border-glass)' }}>
+                <div style={{ marginTop: '1.25rem', paddingTop: '1.25rem', borderTop: '1px solid var(--border-default)' }}>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.75rem', marginBottom: '1rem' }}>
                     {info.fields.map(field => (
                       <div key={field}>
-                        <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--color-text-muted)', marginBottom: '0.35rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                          {field.replace(/_/g, ' ')}
-                        </label>
+                        <label className="form-label" style={{ textTransform: 'capitalize' }}>{field.replace(/_/g, ' ')}</label>
                         <input
+                          className="form-input"
                           type={field.includes('token') || field.includes('secret') || field.includes('password') ? 'password' : 'text'}
                           value={formData[field] || ''}
                           onChange={e => setFormData({ ...formData, [field]: e.target.value })}
                           placeholder={field}
-                          style={{ width: '100%', padding: '0.6rem 0.75rem', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-glass)', borderRadius: '6px', color: 'var(--color-text-main)', fontSize: '0.85rem', boxSizing: 'border-box' }}
+                          style={{ width: '100%', boxSizing: 'border-box' }}
                         />
                       </div>
                     ))}
                   </div>
                   <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <button
-                      onClick={() => saveConfig(provider)}
-                      disabled={saving}
-                      style={{ padding: '0.6rem 1.25rem', background: 'var(--color-primary-emerald)', border: 'none', borderRadius: '6px', cursor: saving ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: '0.85rem', color: '#000', opacity: saving ? 0.7 : 1 }}
-                    >
+                    <button className="btn btn-primary" onClick={() => saveConfig(provider)} disabled={saving}>
                       {saving ? 'Saving…' : 'Save & Connect'}
                     </button>
-                    <button
-                      onClick={() => setConfiguring(null)}
-                      style={{ padding: '0.6rem 1rem', background: 'none', border: '1px solid var(--border-glass)', borderRadius: '6px', cursor: 'pointer', fontSize: '0.85rem', color: 'var(--color-text-muted)' }}
-                    >
-                      Cancel
-                    </button>
+                    <button className="btn btn-ghost" onClick={() => setConfiguring(null)}>Cancel</button>
                   </div>
                 </div>
               )}

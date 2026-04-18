@@ -5,7 +5,7 @@ import { createBrowserClient } from '@supabase/ssr';
 
 type MFAFactor = {
   id: string;
-  type: string;
+  factor_type: string;
   status: string;
   friendly_name?: string;
   created_at: string;
@@ -38,7 +38,7 @@ export default function MFAPage() {
     try {
       const { data, error: listError } = await supabase.auth.mfa.listFactors();
       if (listError) throw listError;
-      setFactors((data?.totp as MFAFactor[]) || []);
+      setFactors((data?.totp as unknown as MFAFactor[]) || []);
     } catch (err: any) {
       setError(err.message || 'Failed to load MFA factors');
     } finally {
@@ -110,154 +110,127 @@ export default function MFAPage() {
   const isMFAEnabled = verifiedFactors.length > 0;
 
   return (
-    <div className="p-6 max-w-2xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Multi-Factor Authentication</h1>
-        <p className="text-gray-500 mt-1">
+    <div style={{ maxWidth: '680px' }}>
+      <div style={{ marginBottom: '1.75rem' }}>
+        <h1 className="page-title">Multi-Factor Authentication</h1>
+        <p className="page-description">
           Add an extra layer of security to your RuneSignal account using an authenticator app.
         </p>
       </div>
 
-      {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">{error}</div>
-      )}
-      {success && (
-        <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded text-green-700 text-sm">{success}</div>
-      )}
+      {error && <div className="callout callout-danger" style={{ marginBottom: '1rem' }}>{error}</div>}
+      {success && <div className="callout callout-success" style={{ marginBottom: '1rem' }}>{success}</div>}
 
       {/* Status Banner */}
-      <div className={`mb-6 p-4 rounded-lg border ${isMFAEnabled ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-200'}`}>
-        <div className="flex items-center gap-3">
-          <span className="text-2xl">{isMFAEnabled ? '🔐' : '⚠️'}</span>
-          <div>
-            <div className={`font-semibold ${isMFAEnabled ? 'text-green-800' : 'text-yellow-800'}`}>
-              {isMFAEnabled ? 'MFA is Enabled' : 'MFA is Not Enabled'}
-            </div>
-            <div className={`text-sm ${isMFAEnabled ? 'text-green-600' : 'text-yellow-600'}`}>
-              {isMFAEnabled
-                ? `${verifiedFactors.length} active authenticator(s) protecting your account`
-                : 'We strongly recommend enabling MFA for governance platform access'}
-            </div>
+      <div className={`callout ${isMFAEnabled ? 'callout-success' : 'callout-warning'}`} style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <span style={{ fontSize: '1.5rem' }}>{isMFAEnabled ? '🔐' : '⚠️'}</span>
+        <div>
+          <div style={{ fontWeight: 600, marginBottom: '0.125rem' }}>
+            {isMFAEnabled ? 'MFA is Enabled' : 'MFA is Not Enabled'}
+          </div>
+          <div className="t-body-sm">
+            {isMFAEnabled
+              ? `${verifiedFactors.length} active authenticator(s) protecting your account`
+              : 'We strongly recommend enabling MFA for governance platform access'}
           </div>
         </div>
       </div>
 
       {loading ? (
-        <div className="text-center py-8 text-gray-500">Loading MFA settings...</div>
+        <div style={{ textAlign: 'center', padding: '2rem 0' }}>
+          <p className="t-body-sm text-tertiary">Loading MFA settings…</p>
+        </div>
       ) : (
         <>
           {/* Active factors */}
           {verifiedFactors.length > 0 && (
-            <div className="mb-6">
-              <h2 className="text-sm font-semibold text-gray-700 mb-3">Active Authenticators</h2>
-              <div className="space-y-2">
+            <div style={{ marginBottom: '1.5rem' }}>
+              <p className="t-eyebrow" style={{ marginBottom: '0.75rem' }}>Active Authenticators</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 {verifiedFactors.map(factor => (
-                  <div key={factor.id} className="flex items-center justify-between bg-white border border-gray-200 rounded-lg p-4">
-                    <div className="flex items-center gap-3">
-                      <span className="text-xl">📱</span>
+                  <div key={factor.id} className="surface" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                      <span style={{ fontSize: '1.25rem' }}>📱</span>
                       <div>
-                        <div className="font-medium text-gray-900">{factor.friendly_name || 'Authenticator App'}</div>
-                        <div className="text-xs text-gray-500">Added {new Date(factor.created_at).toLocaleDateString()}</div>
+                        <div style={{ fontWeight: 500 }}>{factor.friendly_name || 'Authenticator App'}</div>
+                        <div className="t-caption">Added {new Date(factor.created_at).toLocaleDateString()}</div>
                       </div>
                     </div>
-                    <button
-                      onClick={() => unenrollFactor(factor.id, factor.friendly_name)}
-                      className="text-xs px-3 py-1.5 border border-red-200 text-red-600 rounded-lg hover:bg-red-50"
-                    >
-                      Remove
-                    </button>
+                    <button className="btn btn-danger" style={{ fontSize: '0.75rem' }} onClick={() => unenrollFactor(factor.id, factor.friendly_name)}>Remove</button>
                   </div>
                 ))}
               </div>
             </div>
           )}
 
-          {/* Enrollment flow */}
+          {/* Idle: set up */}
           {step === 'idle' && (
-            <div className="bg-white border border-gray-200 rounded-lg p-5">
-              <h2 className="font-semibold text-gray-900 mb-2">
+            <div className="surface" style={{ padding: '1.25rem' }}>
+              <h2 style={{ fontSize: '0.9375rem', fontWeight: 600, marginBottom: '0.5rem' }}>
                 {isMFAEnabled ? 'Add Another Authenticator' : 'Set Up Authenticator App'}
               </h2>
-              <p className="text-sm text-gray-500 mb-4">
+              <p className="t-body-sm text-secondary" style={{ marginBottom: '1rem' }}>
                 Use apps like Google Authenticator, Authy, or 1Password to generate time-based one-time passwords.
               </p>
-              <button
-                onClick={startEnrollment}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700"
-              >
+              <button className="btn btn-primary" onClick={startEnrollment}>
                 {isMFAEnabled ? 'Add Authenticator' : 'Enable MFA'}
               </button>
             </div>
           )}
 
+          {/* Enrolling: QR scan */}
           {step === 'enrolling' && qrCode && (
-            <div className="bg-white border border-gray-200 rounded-lg p-5">
-              <h2 className="font-semibold text-gray-900 mb-4">Scan QR Code</h2>
-              <div className="flex flex-col md:flex-row gap-6">
+            <div className="surface" style={{ padding: '1.25rem' }}>
+              <h2 style={{ fontSize: '0.9375rem', fontWeight: 600, marginBottom: '1rem' }}>Scan QR Code</h2>
+              <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
                 <div>
-                  <div className="text-sm text-gray-500 mb-3">Scan with your authenticator app:</div>
-                  <div className="border border-gray-200 rounded-lg p-3 bg-white inline-block">
-                    {/* Only render as SVG if content matches a strict SVG signature — prevents XSS */}
+                  <p className="t-body-sm text-secondary" style={{ marginBottom: '0.75rem' }}>Scan with your authenticator app:</p>
+                  <div className="surface" style={{ padding: '0.75rem', display: 'inline-block', background: '#fff' }}>
                     {/^<svg[\s>]/i.test(qrCode) ? (
-                      <div
-                        dangerouslySetInnerHTML={{ __html: qrCode }}
-                        className="w-40 h-40"
-                        // Sandboxed: no scripts can execute inside an inline SVG rendered in a div
-                      />
+                      <div dangerouslySetInnerHTML={{ __html: qrCode }} style={{ width: 160, height: 160 }} />
                     ) : (
-                      <img src={qrCode} alt="MFA QR Code" className="w-40 h-40" />
+                      <img src={qrCode} alt="MFA QR Code" style={{ width: 160, height: 160 }} />
                     )}
                   </div>
                 </div>
-                <div className="flex-1">
-                  <div className="text-sm text-gray-500 mb-2">Or enter this secret manually:</div>
-                  <code className="block bg-gray-100 rounded px-3 py-2 text-sm font-mono break-all mb-4">
+                <div style={{ flex: 1, minWidth: '200px' }}>
+                  <p className="t-body-sm text-secondary" style={{ marginBottom: '0.5rem' }}>Or enter this secret manually:</p>
+                  <code className="t-mono" style={{ display: 'block', background: 'var(--surface-3)', borderRadius: 'var(--radius-sm)', padding: '0.5rem 0.75rem', fontSize: '0.75rem', wordBreak: 'break-all', marginBottom: '1rem' }}>
                     {secret}
                   </code>
-                  <div className="text-sm text-gray-700 mb-2">Enter the 6-digit code from your app:</div>
+                  <p className="t-body-sm" style={{ marginBottom: '0.5rem' }}>Enter the 6-digit code from your app:</p>
                   <input
+                    className="form-input"
                     type="text"
                     value={verifyCode}
                     onChange={e => setVerifyCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                     placeholder="000000"
                     maxLength={6}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-center text-xl font-mono tracking-widest focus:outline-none focus:ring-2 focus:ring-blue-500 mb-3"
+                    style={{ width: '100%', textAlign: 'center', fontSize: '1.25rem', fontFamily: 'monospace', letterSpacing: '0.25em', marginBottom: '0.75rem' }}
                   />
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => { setStep('idle'); setQrCode(''); setSecret(''); setVerifyCode(''); }}
-                      className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={verifyAndActivate}
-                      disabled={verifyCode.length !== 6}
-                      className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
-                    >
-                      Verify & Activate
-                    </button>
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <button className="btn btn-ghost" style={{ flex: 1 }} onClick={() => { setStep('idle'); setQrCode(''); setSecret(''); setVerifyCode(''); }}>Cancel</button>
+                    <button className="btn btn-primary" style={{ flex: 1 }} onClick={verifyAndActivate} disabled={verifyCode.length !== 6}>Verify &amp; Activate</button>
                   </div>
                 </div>
               </div>
             </div>
           )}
 
+          {/* Verifying */}
           {step === 'verifying' && (
-            <div className="text-center py-8 text-gray-500">Verifying code...</div>
+            <div style={{ textAlign: 'center', padding: '2rem 0' }}>
+              <p className="t-body-sm text-tertiary">Verifying code…</p>
+            </div>
           )}
 
+          {/* Done */}
           {step === 'done' && (
-            <div className="bg-green-50 border border-green-200 rounded-lg p-5 text-center">
-              <div className="text-3xl mb-2">✅</div>
-              <div className="font-semibold text-green-800">MFA Successfully Enabled</div>
-              <div className="text-sm text-green-600 mt-1">
-                Your account is now protected with two-factor authentication.
-              </div>
-              <button
-                onClick={() => setStep('idle')}
-                className="mt-3 text-sm text-blue-600 hover:underline"
-              >
+            <div className="callout callout-success" style={{ textAlign: 'center', padding: '1.5rem' }}>
+              <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>✅</div>
+              <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>MFA Successfully Enabled</div>
+              <div className="t-body-sm">Your account is now protected with two-factor authentication.</div>
+              <button className="btn btn-ghost" style={{ marginTop: '0.75rem', fontSize: '0.8125rem' }} onClick={() => setStep('idle')}>
                 Add another authenticator
               </button>
             </div>

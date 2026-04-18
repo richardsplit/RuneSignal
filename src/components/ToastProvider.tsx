@@ -20,21 +20,9 @@ const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
 /* ─── Icon ───────────────────────────────────────────────────────────── */
 function ToastIcon({ type }: { type: ToastType }) {
-  const bg = type === 'error' ? 'var(--danger)' : type === 'info' ? 'var(--info)' : 'var(--success)';
+  const cls = `toast-icon${type === 'error' ? ' error' : type === 'info' ? ' info' : ''}`;
   return (
-    <div style={{
-      width: '18px',
-      height: '18px',
-      borderRadius: '50%',
-      background: bg,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      color: '#09090b',
-      fontSize: '0.5625rem',
-      fontWeight: 800,
-      flexShrink: 0,
-    }}>
+    <div className={cls} style={{ color: 'var(--text-inverse)' }}>
       {type === 'error' ? '✕' : type === 'info' ? 'i' : '✓'}
     </div>
   );

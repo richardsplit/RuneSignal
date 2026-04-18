@@ -171,27 +171,16 @@ export default function ComplianceDashboard() {
       </div>
 
       {/* KPI strip */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(4, 1fr)',
-        gap: '1px',
-        background: 'var(--border-subtle)',
-        border: '1px solid var(--border-default)',
-        borderRadius: 'var(--radius-lg)',
-        overflow: 'hidden',
-        marginBottom: '1.75rem',
-      }}>
+      <div className="kpi-strip">
         {[
-          { label: 'Frameworks',          value: String(frameworks.length),  accentColor: undefined },
-          { label: 'Total Controls',      value: String(totalControls),      accentColor: undefined },
-          { label: 'Evidence Items',      value: String(totalEvidence),      accentColor: 'var(--accent)' },
-          { label: 'Avg. Readiness',      value: `${avgProgress}%`,          accentColor: avgProgress >= 75 ? 'var(--success)' : avgProgress >= 40 ? 'var(--warning)' : 'var(--danger)' },
+          { label: 'Frameworks',     value: String(frameworks.length), color: undefined },
+          { label: 'Total Controls', value: String(totalControls),     color: undefined },
+          { label: 'Evidence Items', value: String(totalEvidence),     color: 'var(--accent)' },
+          { label: 'Avg. Readiness', value: `${avgProgress}%`,        color: avgProgress >= 75 ? 'var(--success)' : avgProgress >= 40 ? 'var(--warning)' : 'var(--danger)' },
         ].map((k, i) => (
-          <div key={i} style={{ background: 'var(--bg-surface-1)', padding: '1.25rem 1.5rem' }}>
+          <div key={i} className="kpi-card">
             <div className="kpi-label">{k.label}</div>
-            <div className="kpi-value" style={{ color: k.accentColor ?? undefined }}>
-              {k.value}
-            </div>
+            <div className="kpi-value" style={k.color ? { color: k.color } : undefined}>{k.value}</div>
           </div>
         ))}
       </div>
@@ -256,7 +245,7 @@ export default function ComplianceDashboard() {
                       outlineOffset: '-2px',
                     }}
                     onClick={() => { setActiveFw(fw); setActiveTab('controls'); }}
-                    onMouseEnter={e => ((e.currentTarget as HTMLElement).style.background = 'var(--bg-surface-2)')}
+                    onMouseEnter={e => ((e.currentTarget as HTMLElement).style.background = 'var(--surface-2)')}
                     onMouseLeave={e => ((e.currentTarget as HTMLElement).style.background = '')}
                   >
                     <div style={{ padding: '1.25rem' }}>
@@ -266,13 +255,13 @@ export default function ComplianceDashboard() {
                           <p style={{ fontSize: '0.9375rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.25rem' }}>
                             {fw.name}
                           </p>
-                          <span style={{ fontSize: '0.6875rem', color: 'var(--text-muted)' }}>v{fw.version}</span>
+                          <span className="t-caption">v{fw.version}</span>
                         </div>
                         <span className={badgeCls}>{jurisdiction}</span>
                       </div>
 
                       {/* Description */}
-                      <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1.5, marginBottom: '1rem' }}>
+                      <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', lineHeight: 1.5, marginBottom: '1rem' }}>
                         {fw.description}
                       </p>
 
@@ -282,11 +271,11 @@ export default function ComplianceDashboard() {
                           <span className="kpi-label">Controls</span>
                           <span style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)', fontVariantNumeric: 'tabular-nums' }}>
                             {fw.evidence_count}
-                            <span style={{ fontSize: '0.75rem', fontWeight: 400, color: 'var(--text-muted)', marginLeft: '0.25rem' }}>
+                            <span style={{ fontSize: '0.75rem', fontWeight: 400, color: 'var(--text-tertiary)', marginLeft: '0.25rem' }}>
                               / {fw.controls_count}
                             </span>
                           </span>
-                          <span style={{ fontSize: '0.6875rem', color: 'var(--text-muted)' }}>satisfied</span>
+                          <span className="t-caption">satisfied</span>
                         </div>
                         <ProgressRing pct={fw.progress_pct} />
                       </div>

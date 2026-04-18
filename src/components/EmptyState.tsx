@@ -20,28 +20,18 @@ const DefaultIcon = () => (
 
 export default function EmptyState({ title, description, action, icon }: EmptyStateProps) {
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '3.5rem 2rem',
-      textAlign: 'center',
-      gap: '0.75rem',
-    }}>
-      <div style={{ color: 'var(--text-muted)', marginBottom: '0.25rem' }}>
-        {icon ?? <DefaultIcon />}
-      </div>
-      <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-secondary)' }}>{title}</p>
-      {description && (
-        <p style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', maxWidth: '320px', lineHeight: 1.5 }}>
-          {description}
-        </p>
+    <div className="empty-state">
+      {icon && (
+        <div style={{ color: 'var(--text-tertiary)', marginBottom: '0.5rem' }}>
+          {icon}
+        </div>
       )}
+      <p className="empty-state-title">{title}</p>
+      {description && <p className="empty-state-body">{description}</p>}
       {action && (
         <button
-          className="btn btn-outline"
-          style={{ marginTop: '0.5rem', fontSize: '0.8125rem' }}
+          className="btn btn-outline btn-sm"
+          style={{ marginTop: '0.75rem' }}
           onClick={action.onClick}
         >
           {action.label}

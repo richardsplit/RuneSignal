@@ -19,8 +19,8 @@ export default function TenantManagementPage() {
       setWorkspaces(JSON.parse(saved));
     } else {
       const initial = [
-        { id: 'org-production-992a', name: 'Production Cluster', plan: 'Enterprise', agents: 42, status: 'ACTIVE', color: 'var(--color-primary-emerald)' },
-        { id: 'org-staging-441f', name: 'Staging Environment', plan: 'Pro', agents: 12, status: 'ACTIVE', color: 'var(--color-info-cyan)' }
+        { id: 'org-production-992a', name: 'Production Cluster', plan: 'Enterprise', agents: 42, status: 'ACTIVE', color: 'var(--accent)' },
+        { id: 'org-staging-441f', name: 'Staging Environment', plan: 'Pro', agents: 12, status: 'ACTIVE', color: 'var(--info)' }
       ];
       setWorkspaces(initial);
       localStorage.setItem('runesignal_workspaces', JSON.stringify(initial));
@@ -35,7 +35,7 @@ export default function TenantManagementPage() {
   }, [workspaces]);
 
   const handleCreateSuccess = (newWorkspace: any) => {
-    const workspaceWithColor = { ...newWorkspace, color: 'var(--color-primary-emerald)' };
+    const workspaceWithColor = { ...newWorkspace, color: 'var(--accent)' };
     setWorkspaces([...workspaces, workspaceWithColor]);
   };
 
@@ -50,42 +50,33 @@ export default function TenantManagementPage() {
   };
 
   return (
-    <div style={{ padding: '0 2rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+    <div style={{ maxWidth: '1100px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem' }}>
         <div>
-          <h1 className="gradient-text" style={{ fontSize: '2rem', marginBottom: '0.25rem' }}>Tenant Management</h1>
-          <p style={{ color: 'var(--color-text-muted)' }}>Configure organizational settings, billing, and team access control across workspaces.</p>
+          <h1 className="page-title">Tenant Management</h1>
+          <p className="page-description">Configure organizational settings, billing, and team access control across workspaces.</p>
         </div>
         <button className="btn btn-primary" onClick={() => setIsCreateOpen(true)}>Create New Workspace</button>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '1.5rem' }}>
         {workspaces.map((ws) => (
-          <div key={ws.id} className="glass-panel animate-fade-in" style={{ padding: '1.5rem', borderTop: `4px solid ${ws.color || 'var(--color-primary-emerald)'}` }}>
+          <div key={ws.id} className="surface" style={{ padding: '1.5rem', borderTop: `3px solid ${ws.color || 'var(--accent)'}` }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
               <div>
-                <h3 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.25rem' }}>{ws.name}</h3>
-                <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', fontFamily: 'monospace' }}>{ws.id}</p>
+                <h3 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '0.25rem' }}>{ws.name}</h3>
+                <p className="t-mono text-tertiary" style={{ fontSize: '0.75rem' }}>{ws.id}</p>
               </div>
-              <span style={{ 
-                fontSize: '0.75rem', 
-                padding: '0.2rem 0.5rem', 
-                borderRadius: '12px',
-                background: 'rgba(16, 185, 129, 0.1)',
-                color: 'var(--color-primary-emerald)',
-                fontWeight: 600
-              }}>
-                {ws.status}
-              </span>
+              <span className="badge badge-success">{ws.status}</span>
             </div>
-            
+
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
               <div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginBottom: '0.25rem' }}>Agents</div>
+                <div className="kpi-label">Agents</div>
                 <div style={{ fontSize: '1.1rem', fontWeight: 600 }}>{ws.agents}</div>
               </div>
               <div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginBottom: '0.25rem' }}>Plan</div>
+                <div className="kpi-label">Plan</div>
                 <div style={{ fontSize: '1.1rem', fontWeight: 600 }}>{ws.plan}</div>
               </div>
             </div>

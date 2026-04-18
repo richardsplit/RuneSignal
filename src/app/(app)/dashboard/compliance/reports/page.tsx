@@ -27,21 +27,9 @@ const ARTICLE_LABELS: Record<string, { label: string; desc: string }> = {
 };
 
 function CoverageScoreBadge({ score }: { score: number }) {
-  const color = score >= 90 ? '#22c55e' : score >= 60 ? '#f59e0b' : '#ef4444';
+  const cls = score >= 90 ? 'badge-success' : score >= 60 ? 'badge-warning' : 'badge-danger';
   return (
-    <span style={{
-      display: 'inline-flex',
-      alignItems: 'center',
-      gap: '4px',
-      background: `${color}22`,
-      color,
-      border: `1px solid ${color}44`,
-      borderRadius: '6px',
-      padding: '2px 10px',
-      fontSize: '0.75rem',
-      fontWeight: 700,
-      fontVariantNumeric: 'tabular-nums',
-    }}>
+    <span className={`badge ${cls}`} style={{ fontVariantNumeric: 'tabular-nums' }}>
       {score.toFixed(1)}% cryptographic coverage
     </span>
   );
@@ -49,20 +37,20 @@ function CoverageScoreBadge({ score }: { score: number }) {
 
 function ArticleCoverageGrid({ coverage }: { coverage: Record<string, boolean> }) {
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', margin: '12px 0' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.5rem', margin: '0.75rem 0' }}>
       {Object.entries(ARTICLE_LABELS).map(([key, { label, desc }]) => {
         const covered = coverage?.[key];
         return (
           <div key={key} style={{
-            border: `1px solid ${covered ? '#22c55e44' : '#ef444444'}`,
-            borderRadius: '8px',
-            padding: '10px',
-            background: covered ? '#22c55e0a' : '#ef44440a',
+            border: `1px solid ${covered ? 'var(--success-border)' : 'var(--danger-border)'}`,
+            borderRadius: 'var(--radius-md)',
+            padding: '0.625rem',
+            background: covered ? 'var(--success-bg)' : 'var(--danger-bg)',
             textAlign: 'center',
           }}>
-            <div style={{ fontSize: '0.6875rem', fontWeight: 700, color: covered ? '#22c55e' : '#ef4444' }}>{label}</div>
-            <div style={{ fontSize: '0.625rem', color: 'var(--text-muted)', marginTop: '2px' }}>{desc}</div>
-            <div style={{ marginTop: '6px', fontSize: '0.75rem' }}>{covered ? '✓' : '✗'}</div>
+            <div className="t-eyebrow" style={{ color: covered ? 'var(--success)' : 'var(--danger)' }}>{label}</div>
+            <div className="t-caption" style={{ marginTop: '2px' }}>{desc}</div>
+            <div style={{ marginTop: '0.375rem', fontSize: '0.75rem', color: covered ? 'var(--success)' : 'var(--danger)' }}>{covered ? '✓' : '✗'}</div>
           </div>
         );
       })}
@@ -83,8 +71,8 @@ function ReportStatusCard({ report, onRefresh }: { report: Report; onRefresh: ()
       border: '1px solid var(--border-default)',
       borderRadius: '10px',
       padding: '16px',
-      background: 'var(--bg-surface-1)',
-      marginBottom: '12px',
+      background: 'var(--surface-1)',
+      marginBottom: '0.75rem',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -95,8 +83,8 @@ function ReportStatusCard({ report, onRefresh }: { report: Report; onRefresh: ()
             fontSize: '0.625rem',
             padding: '2px 6px',
             borderRadius: '4px',
-            background: report.status === 'ready' ? '#22c55e22' : report.status === 'failed' ? '#ef444422' : '#3b82f622',
-            color: report.status === 'ready' ? '#22c55e' : report.status === 'failed' ? '#ef4444' : '#3b82f6',
+            background: report.status === 'ready' ? 'var(--success-bg)' : report.status === 'failed' ? 'var(--danger-bg)' : 'var(--info-bg)',
+            color: report.status === 'ready' ? 'var(--success)' : report.status === 'failed' ? 'var(--danger)' : 'var(--info)',
             fontWeight: 600,
           }}>
             {report.status === 'generating' ? '⏳ Generating…' : report.status === 'ready' ? '✓ Ready' : '✗ Failed'}
@@ -108,7 +96,8 @@ function ReportStatusCard({ report, onRefresh }: { report: Report; onRefresh: ()
               href={`/api/v1/compliance/reports/${report.id}`}
               target="_blank"
               download
-              style={downloadBtnStyle}
+              className="btn btn-ghost"
+              style={{ fontSize: '0.6875rem' }}
             >
               ↓ JSON
             </a>
@@ -116,7 +105,8 @@ function ReportStatusCard({ report, onRefresh }: { report: Report; onRefresh: ()
               href={`/api/v1/compliance/reports/${report.id}/pdf`}
               target="_blank"
               download
-              style={{ ...downloadBtnStyle, background: 'var(--accent)', color: '#000', borderColor: 'var(--accent)' }}
+              className="btn btn-primary"
+              style={{ fontSize: '0.6875rem' }}
             >
               ↓ PDF Report
             </a>
@@ -124,13 +114,13 @@ function ReportStatusCard({ report, onRefresh }: { report: Report; onRefresh: ()
         )}
       </div>
 
-      <div style={{ fontSize: '0.6875rem', color: 'var(--text-muted)', marginBottom: '8px' }}>
+      <div className="t-caption" style={{ marginBottom: '0.5rem' }}>
         {new Date(report.evidence_period_start).toLocaleDateString()} → {new Date(report.evidence_period_end).toLocaleDateString()}
         {' · '}Generated {new Date(report.generated_at).toLocaleString()}
       </div>
 
       {report.status === 'generating' && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', fontSize: '0.75rem' }}>
+        <div className="t-caption" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <span style={{ animation: 'spin 1s linear infinite', display: 'inline-block' }}>⏳</span>
           Compiling evidence from S3 ledger, S7 HITL records, and S11 explainability logs…
         </div>
@@ -155,25 +145,13 @@ function ReportStatusCard({ report, onRefresh }: { report: Report; onRefresh: ()
       )}
 
       {report.status === 'failed' && (
-        <div style={{ fontSize: '0.75rem', color: '#ef4444', background: '#ef444411', padding: '8px', borderRadius: '6px' }}>
+        <div className="callout callout-danger" style={{ padding: '0.5rem 0.75rem', marginTop: '0.5rem' }}>
           Generation failed: {report.error_message || 'Unknown error'}
         </div>
       )}
     </div>
   );
 }
-
-const downloadBtnStyle: React.CSSProperties = {
-  fontSize: '0.6875rem',
-  padding: '4px 10px',
-  borderRadius: '5px',
-  border: '1px solid var(--border-default)',
-  background: 'var(--bg-surface-2)',
-  color: 'var(--text-secondary)',
-  textDecoration: 'none',
-  fontWeight: 600,
-  cursor: 'pointer',
-};
 
 export default function ComplianceReportsPage() {
   const [reports, setReports] = useState<Report[]>([]);
@@ -229,99 +207,54 @@ export default function ComplianceReportsPage() {
   };
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '900px' }}>
-      <div style={{ marginBottom: '1.5rem' }}>
-        <h1 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
-          Compliance Reports
-        </h1>
-        <p style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+    <div style={{ maxWidth: '900px' }}>
+      <div style={{ marginBottom: '1.75rem' }}>
+        <h1 className="page-title">Compliance Reports</h1>
+        <p className="page-description">
           Generate EU AI Act evidence packages mapped to Articles 13, 14, 17, and 26.
-          Enforcement deadline: <strong style={{ color: '#f59e0b' }}>August 2, 2026</strong>.
+          Enforcement deadline: <strong style={{ color: 'var(--warning)' }}>August 2, 2026</strong>.
         </p>
       </div>
 
       {/* Generator Form */}
-      <div style={{
-        border: '1px solid var(--border-default)',
-        borderRadius: '10px',
-        padding: '20px',
-        background: 'var(--bg-surface-1)',
-        marginBottom: '24px',
-      }}>
-        <h2 style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 16px' }}>
-          Generate Evidence Package
-        </h2>
-        <form onSubmit={handleGenerate} style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'flex-end' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <label style={{ fontSize: '0.6875rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              From
-            </label>
-            <input
-              type="date"
-              value={form.period_start}
-              onChange={e => setForm(f => ({ ...f, period_start: e.target.value }))}
-              style={inputStyle}
-              required
-            />
+      <div className="surface" style={{ padding: '1.25rem', marginBottom: '1.5rem' }}>
+        <h2 style={{ fontSize: '0.875rem', fontWeight: 600, marginBottom: '1rem' }}>Generate Evidence Package</h2>
+        <form onSubmit={handleGenerate} style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', alignItems: 'flex-end' }}>
+          <div className="form-field">
+            <label className="form-label">From</label>
+            <input className="form-input" type="date" value={form.period_start} onChange={e => setForm(f => ({ ...f, period_start: e.target.value }))} required />
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <label style={{ fontSize: '0.6875rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              To
-            </label>
-            <input
-              type="date"
-              value={form.period_end}
-              onChange={e => setForm(f => ({ ...f, period_end: e.target.value }))}
-              style={inputStyle}
-              required
-            />
+          <div className="form-field">
+            <label className="form-label">To</label>
+            <input className="form-input" type="date" value={form.period_end} onChange={e => setForm(f => ({ ...f, period_end: e.target.value }))} required />
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <label style={{ fontSize: '0.6875rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Framework
-            </label>
-            <select
-              value={form.framework}
-              onChange={e => setForm(f => ({ ...f, framework: e.target.value }))}
-              style={inputStyle}
-            >
+          <div className="form-field">
+            <label className="form-label">Framework</label>
+            <select className="form-input" value={form.framework} onChange={e => setForm(f => ({ ...f, framework: e.target.value }))}>
               <option value="EU_AI_ACT_2024">EU AI Act 2024</option>
               <option value="NIST_AI_RMF">NIST AI RMF</option>
             </select>
           </div>
-          <button type="submit" disabled={generating} style={submitBtnStyle(generating)}>
+          <button className="btn btn-primary" type="submit" disabled={generating}>
             {generating ? 'Generating…' : 'Generate Report'}
           </button>
         </form>
-        {error && (
-          <div style={{ marginTop: '12px', fontSize: '0.75rem', color: '#ef4444', background: '#ef444411', padding: '8px', borderRadius: '6px' }}>
-            {error}
-          </div>
-        )}
+        {error && <div className="callout callout-danger" style={{ marginTop: '0.75rem' }}>{error}</div>}
       </div>
 
       {/* Reports List */}
       <div>
-        <h2 style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 12px' }}>
-          Past Reports
-        </h2>
+        <h2 style={{ fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.75rem' }}>Past Reports</h2>
         {loading ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             {[1, 2].map(i => (
-              <div key={i} style={{ height: '100px', borderRadius: '10px', background: 'var(--bg-surface-1)', animation: 'pulse 1.5s ease-in-out infinite' }} />
+              <div key={i} className="skeleton-pulse" style={{ height: '100px', borderRadius: 'var(--radius-md)' }} />
             ))}
           </div>
         ) : reports.length === 0 ? (
-          <div style={{
-            border: '1px dashed var(--border-default)',
-            borderRadius: '10px',
-            padding: '40px',
-            textAlign: 'center',
-            color: 'var(--text-muted)',
-          }}>
-            <div style={{ fontSize: '1.5rem', marginBottom: '8px' }}>📋</div>
-            <div style={{ fontWeight: 600, marginBottom: '4px', color: 'var(--text-secondary)' }}>No reports yet</div>
-            <div style={{ fontSize: '0.8125rem' }}>Generate your first EU AI Act evidence package.</div>
+          <div className="empty-state">
+            <p className="empty-state-title">No reports yet</p>
+            <p className="empty-state-body">Generate your first EU AI Act evidence package.</p>
           </div>
         ) : (
           reports.map(report => (
@@ -332,26 +265,3 @@ export default function ComplianceReportsPage() {
     </div>
   );
 }
-
-const inputStyle: React.CSSProperties = {
-  padding: '6px 10px',
-  borderRadius: '6px',
-  border: '1px solid var(--border-default)',
-  background: 'var(--bg-surface-2)',
-  color: 'var(--text-primary)',
-  fontSize: '0.8125rem',
-  outline: 'none',
-};
-
-const submitBtnStyle = (disabled: boolean): React.CSSProperties => ({
-  padding: '7px 16px',
-  borderRadius: '6px',
-  background: disabled ? 'var(--bg-surface-2)' : 'var(--accent)',
-  color: disabled ? 'var(--text-muted)' : '#000',
-  border: 'none',
-  cursor: disabled ? 'not-allowed' : 'pointer',
-  fontSize: '0.8125rem',
-  fontWeight: 600,
-  opacity: disabled ? 0.6 : 1,
-  transition: 'all 0.15s',
-});

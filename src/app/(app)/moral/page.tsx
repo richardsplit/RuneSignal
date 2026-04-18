@@ -66,20 +66,9 @@ export default function MoralOSDashboard() {
 
   if (loading) {
     return (
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: '60vh',
-        gap: '0.625rem',
-        color: 'var(--text-muted)',
-        fontSize: '0.875rem',
-      }}>
-        <span
-          className="status-dot online"
-          style={{ animation: 'skeletonPulse 1.4s ease-in-out infinite' }}
-        />
-        Loading policy data…
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60vh', gap: '0.625rem' }}>
+        <span className="status-dot online" style={{ animation: 'skeletonPulse 1.4s ease-in-out infinite' }} />
+        <span className="t-body-sm text-tertiary">Loading policy data…</span>
       </div>
     );
   }
@@ -107,49 +96,23 @@ export default function MoralOSDashboard() {
         </button>
       </div>
 
-      {/* KPI strip — joined border-radius pattern */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(4, 1fr)',
-        marginBottom: '1.75rem',
-        border: '1px solid var(--border-default)',
-        borderRadius: 'var(--radius-lg)',
-        overflow: 'hidden',
-        background: 'var(--bg-surface-1)',
-      }}>
-        {/* SOUL Version */}
-        <div style={{
-          padding: '1.25rem 1.5rem',
-          borderRight: '1px solid var(--border-subtle)',
-        }}>
+      {/* KPI strip */}
+      <div className="kpi-strip">
+        <div className="kpi-card">
           <div className="kpi-label">SOUL Version</div>
-          <div className="kpi-value accent">
-            {soulData ? `v${soulData.version}` : '—'}
-          </div>
+          <div className="kpi-value" style={{ color: 'var(--accent)' }}>{soulData ? `v${soulData.version}` : '—'}</div>
         </div>
-
-        {/* Total Events */}
-        <div style={{
-          padding: '1.25rem 1.5rem',
-          borderRight: '1px solid var(--border-subtle)',
-        }}>
+        <div className="kpi-card">
           <div className="kpi-label">Total Events</div>
           <div className="kpi-value">{totalEvents}</div>
         </div>
-
-        {/* Blocks */}
-        <div style={{
-          padding: '1.25rem 1.5rem',
-          borderRight: '1px solid var(--border-subtle)',
-        }}>
+        <div className="kpi-card">
           <div className="kpi-label">Blocks</div>
-          <div className="kpi-value danger">{blockCount}</div>
+          <div className="kpi-value" style={{ color: 'var(--danger)' }}>{blockCount}</div>
         </div>
-
-        {/* Clear Rate */}
-        <div style={{ padding: '1.25rem 1.5rem' }}>
+        <div className="kpi-card">
           <div className="kpi-label">Clear Rate</div>
-          <div className="kpi-value success">{clearRate}%</div>
+          <div className="kpi-value" style={{ color: 'var(--success)' }}>{clearRate}%</div>
         </div>
       </div>
 

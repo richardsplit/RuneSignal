@@ -1,9 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useToast } from '@/components/ToastProvider';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
+import { createBrowserClient } from '@lib/db/supabase';
+import type { User } from '@supabase/supabase-js';
 
 /* ── Route → breadcrumb label ────────────────────────────────────── */
 const ROUTE_LABELS: Record<string, { section: string | null; title: string }> = {
@@ -42,6 +44,31 @@ export default function Header() {
   const pathname = usePathname();
   const router = useRouter();
   const route = ROUTE_LABELS[pathname] ?? { section: null, title: pathname };
+
+  const [user, setUser] = useState<User | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const supabase = createBrowserClient();
+    supabase.auth.getUser().then(({ data }) => setUser(data.user));
+  }, []);
+
+  useEffect(() => {
+    const close = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false);
+    };
+    document.addEventListener('mousedown', close);
+    return () => document.removeEventListener('mousedown', close);
+  }, []);
+
+  const handleLogout = async () => {
+    const supabase = createBrowserClient();
+    await supabase.auth.signOut();
+    router.push('/login');
+  };
+
+  const initials = user?.email ? user.email.slice(0, 2).toUpperCase() : 'RG';
 
   return (
     <header className="app-topbar" role="banner">
@@ -88,13 +115,65 @@ export default function Header() {
           <span className="notif-dot" aria-hidden />
         </button>
 
-        <button
-          onClick={() => router.push('/account-settings')}
-          aria-label="Account"
-          className="avatar-btn"
-        >
-          RG
-        </button>
+        <div style={{ position: 'relative' }} ref={menuRef}>
+          <button
+            onClick={() => setMenuOpen(v => !v)}
+            aria-label="Account menu"
+            aria-expanded={menuOpen}
+            className="avatar-btn"
+          >
+            {initials}
+          </button>
+
+          {menuOpen && (
+            <div style={{
+              position: 'absolute',
+              top: 'calc(100% + 8px)',
+              right: 0,
+              width: 224,
+              background: 'var(--surface-1)',
+              border: '1px solid var(--border-default)',
+              borderRadius: 'var(--radius-md)',
+              boxShadow: 'var(--shadow-lg)',
+              zIndex: 999,
+              overflow: 'hidden',
+            }}>
+              <div style={{ padding: '0.875rem 1rem', borderBottom: '1px solid var(--border-subtle)' }}>
+                <div style={{ fontWeight: 600, fontSize: '0.8125rem', color: 'var(--text-primary)', marginBottom: '0.175rem' }}>
+                  {user?.user_metadata?.full_name ?? user?.email?.split('@')[0] ?? 'User'}
+                </div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {user?.email ?? 'Not signed in'}
+                </div>
+              </div>
+
+              {[
+                { label: 'Account Settings', href: '/account-settings' },
+                { label: 'Security & MFA',   href: '/account-settings/mfa' },
+                { label: 'Billing',           href: '/billing' },
+              ].map(item => (
+                <button
+                  key={item.href}
+                  onClick={() => { setMenuOpen(false); router.push(item.href); }}
+                  style={{ display: 'block', width: '100%', padding: '0.5rem 1rem', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.8125rem', color: 'var(--text-secondary)', fontFamily: 'inherit' }}
+                  className="hover-surface"
+                >
+                  {item.label}
+                </button>
+              ))}
+
+              <div style={{ height: 1, background: 'var(--border-subtle)' }} />
+
+              <button
+                onClick={handleLogout}
+                style={{ display: 'block', width: '100%', padding: '0.5rem 1rem', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.8125rem', color: 'var(--danger)', fontFamily: 'inherit' }}
+                className="hover-surface"
+              >
+                Sign Out
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );

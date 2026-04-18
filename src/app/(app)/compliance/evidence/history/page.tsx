@@ -118,7 +118,7 @@ export default function EvidenceHistoryPage() {
 
       {/* Filter bar */}
       <div style={{ display: 'flex', gap: '0.625rem', marginBottom: '1.25rem', alignItems: 'center' }}>
-        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Filter:</span>
+        <span className="t-caption">Filter:</span>
         {['all', 'eu_ai_act', 'iso_42001'].map(f => (
           <button
             key={f}
@@ -168,9 +168,7 @@ export default function EvidenceHistoryPage() {
           <div className="surface" style={{ overflow: 'hidden', marginBottom: '1rem' }}>
             <div className="panel-header">
               <span className="panel-title">Evidence Bundles</span>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                {total} total
-              </span>
+              <span className="t-caption">{total} total</span>
             </div>
             <div style={{ overflowX: 'auto' }}>
               <table className="data-table" style={{ width: '100%' }}>
@@ -191,9 +189,7 @@ export default function EvidenceHistoryPage() {
                         <span style={{ fontSize: '0.8125rem', color: 'var(--text-primary)', fontWeight: 500 }}>
                           {REGULATION_LABELS[b.regulation] || b.regulation}
                         </span>
-                        <div style={{ fontSize: '0.6875rem', color: 'var(--text-muted)' }}>
-                          v{b.version}
-                        </div>
+                        <div className="t-caption">v{b.version}</div>
                       </td>
                       <td>
                         <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
@@ -211,7 +207,7 @@ export default function EvidenceHistoryPage() {
                         </span>
                       </td>
                       <td>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                        <span className="t-caption">
                           {b.generated_at
                             ? new Date(b.generated_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
                             : '\u2014'}
@@ -252,7 +248,7 @@ export default function EvidenceHistoryPage() {
           {/* Pagination */}
           {totalPages > 1 && (
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+              <span className="t-caption">
                 Page {page + 1} of {totalPages}
               </span>
               <div style={{ display: 'flex', gap: '0.5rem' }}>

@@ -102,14 +102,14 @@ export default function RedTeamDashboard() {
 
   if (loading) {
     return (
-      <div style={{ padding: '3rem', color: 'var(--text-muted)' }}>
-        Initializing Red Team War Room...
+      <div style={{ padding: '3rem', textAlign: 'center' }}>
+        <p className="t-body-sm text-tertiary">Initializing Red Team War Room…</p>
       </div>
     );
   }
 
   return (
-    <div style={{ maxWidth: 1100, margin: '0 auto', padding: '2rem 1.5rem' }}>
+    <div style={{ maxWidth: 1100 }}>
 
       {/* Page header */}
       <div style={{ marginBottom: '1.75rem' }}>
@@ -127,7 +127,7 @@ export default function RedTeamDashboard() {
           <p className="kpi-label" style={{ marginBottom: '1rem', textAlign: 'center' }}>Fleet Resilience</p>
           <div style={{ position: 'relative', width: 144, height: 144 }}>
             <svg viewBox="0 0 120 120" style={{ width: '100%', height: '100%', transform: 'rotate(-90deg)' }}>
-              <circle cx="60" cy="60" r="50" fill="none" stroke="var(--bg-surface-3)" strokeWidth="10" />
+              <circle cx="60" cy="60" r="50" fill="none" stroke="var(--surface-3)" strokeWidth="10" />
               <circle
                 cx="60" cy="60" r="50" fill="none"
                 stroke={scoreGradientHex}
@@ -146,7 +146,7 @@ export default function RedTeamDashboard() {
               <span className="mono" style={{ fontSize: '2.25rem', fontWeight: 700, color: scoreColor, lineHeight: 1 }}>
                 {Math.round(resilienceScore)}
               </span>
-              <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginTop: 2 }}>/ 100</span>
+              <span className="t-caption" style={{ marginTop: 2 }}>/ 100</span>
             </div>
           </div>
         </div>
@@ -213,7 +213,7 @@ export default function RedTeamDashboard() {
               {/* Campaign panel header */}
               <div className="panel-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                  <span className="mono" style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Target:</span>
+                  <span className="t-caption">Target:</span>
                   <span
                     className="mono"
                     style={{
@@ -227,11 +227,11 @@ export default function RedTeamDashboard() {
                     {campaign.status}
                   </span>
                 </div>
-                <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                <span className="t-body-sm text-tertiary">
                   <span style={{ color: 'var(--success)', fontWeight: 600 }}>{campaign.successful_defenses}</span>
                   {' / '}
                   {campaign.total_attacks}
-                  <span style={{ color: 'var(--text-muted)' }}> defended</span>
+                  <span> defended</span>
                 </span>
               </div>
 
@@ -265,7 +265,7 @@ export default function RedTeamDashboard() {
                               <span className="badge badge-danger" style={{ fontSize: '0.65rem' }}>Breached</span>
                             )}
                           </td>
-                          <td style={{ color: 'var(--text-muted)', fontSize: '0.73rem', whiteSpace: 'nowrap' }}>
+                          <td className="text-tertiary t-body-sm" style={{ whiteSpace: 'nowrap' }}>
                             {new Date(attack.executed_at).toLocaleString()}
                           </td>
                         </tr>

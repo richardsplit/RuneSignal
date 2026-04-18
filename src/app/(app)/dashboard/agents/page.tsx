@@ -19,12 +19,12 @@ interface Agent {
 }
 
 const RISK_COLORS: Record<string, string> = {
-  critical: '#ef4444', high: '#f97316', medium: '#f59e0b',
-  low: '#22c55e', unclassified: '#6b7280',
+  critical: 'var(--danger)', high: 'var(--warning)', medium: 'var(--warning)',
+  low: 'var(--success)', unclassified: 'var(--text-tertiary)',
 };
 
 const STATUS_COLORS: Record<string, string> = {
-  active: '#22c55e', inactive: '#6b7280', shadow: '#f59e0b', decommissioned: '#ef4444',
+  active: 'var(--success)', inactive: 'var(--text-tertiary)', shadow: 'var(--warning)', decommissioned: 'var(--danger)',
 };
 
 function Badge({ label, color }: { label: string; color: string }) {
@@ -32,14 +32,14 @@ function Badge({ label, color }: { label: string; color: string }) {
     <span style={{
       fontSize: '0.625rem',
       padding: '2px 7px',
-      borderRadius: '4px',
-      background: `${color}22`,
+      borderRadius: 'var(--radius-sm)',
+      background: `color-mix(in srgb, ${color} 12%, transparent)`,
       color,
-      border: `1px solid ${color}44`,
+      border: `1px solid color-mix(in srgb, ${color} 30%, transparent)`,
       fontWeight: 600,
-      textTransform: 'uppercase',
+      textTransform: 'uppercase' as const,
       letterSpacing: '0.04em',
-      whiteSpace: 'nowrap',
+      whiteSpace: 'nowrap' as const,
     }}>
       {label}
     </span>
@@ -52,16 +52,16 @@ function AgentRow({ agent }: { agent: Agent }) {
       <td style={tdStyle}>
         <div style={{ fontWeight: 600, fontSize: '0.8125rem', color: 'var(--text-primary)' }}>{agent.name}</div>
         {agent.description && (
-          <div style={{ fontSize: '0.6875rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+          <div className="t-caption" style={{ marginTop: '2px' }}>
             {agent.description.slice(0, 60)}{agent.description.length > 60 ? '…' : ''}
           </div>
         )}
       </td>
       <td style={tdStyle}>
-        <Badge label={agent.framework} color="#3b82f6" />
+        <Badge label={agent.framework} color="var(--info)" />
       </td>
       <td style={tdStyle}>
-        <Badge label={agent.platform} color="#8b5cf6" />
+        <Badge label={agent.platform} color="var(--accent)" />
       </td>
       <td style={tdStyle}>
         <Badge label={agent.risk_classification} color={RISK_COLORS[agent.risk_classification] || '#6b7280'} />
@@ -75,13 +75,13 @@ function AgentRow({ agent }: { agent: Agent }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <Badge
             label={agent.is_sanctioned ? 'Sanctioned' : 'Shadow'}
-            color={agent.is_sanctioned ? '#22c55e' : '#f59e0b'}
+            color={agent.is_sanctioned ? 'var(--success)' : 'var(--warning)'}
           />
-          <Badge label={agent.status} color={STATUS_COLORS[agent.status] || '#6b7280'} />
+          <Badge label={agent.status} color={STATUS_COLORS[agent.status] || 'var(--text-tertiary)'} />
         </div>
       </td>
       <td style={tdStyle}>
-        <span style={{ fontSize: '0.6875rem', color: 'var(--text-muted)' }}>
+        <span className="t-caption">
           {agent.last_active_at
             ? new Date(agent.last_active_at).toLocaleDateString()
             : '—'}
@@ -100,8 +100,8 @@ const thStyle: React.CSSProperties = {
   padding: '8px 12px',
   fontSize: '0.625rem',
   fontWeight: 700,
-  color: 'var(--text-muted)',
-  textTransform: 'uppercase',
+  color: 'var(--text-tertiary)',
+  textTransform: 'uppercase' as const,
   letterSpacing: '0.08em',
   textAlign: 'left',
   borderBottom: '1px solid var(--border-default)',
@@ -159,79 +159,41 @@ export default function AgentInventoryPage() {
   const shadowAgents = agents.filter(a => !a.is_sanctioned && a.status !== 'decommissioned');
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '1100px' }}>
+    <div style={{ maxWidth: '1100px' }}>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '1.75rem' }}>
         <div>
-          <h1 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
-            Agent Inventory
-          </h1>
-          <p style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-            Discover and govern all AI agents operating in your organization.
-          </p>
+          <h1 className="page-title">Agent Inventory</h1>
+          <p className="page-description">Discover and govern all AI agents operating in your organization.</p>
         </div>
-        <button
-          onClick={() => setShowAddModal(true)}
-          style={{
-            padding: '7px 14px',
-            borderRadius: '6px',
-            background: 'var(--accent)',
-            color: '#000',
-            border: 'none',
-            cursor: 'pointer',
-            fontSize: '0.8125rem',
-            fontWeight: 600,
-          }}
-        >
-          + Add Agent
-        </button>
+        <button className="btn btn-primary" onClick={() => setShowAddModal(true)}>+ Add Agent</button>
       </div>
 
       {/* Stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '24px' }}>
+      <div className="kpi-strip" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
         {[
-          { label: 'Total Agents', value: agents.length, color: '#3b82f6' },
-          { label: 'Shadow AI (Unsanctioned)', value: shadowCount, color: '#f59e0b' },
-          { label: 'High Risk', value: agents.filter(a => a.risk_classification === 'high' || a.risk_classification === 'critical').length, color: '#ef4444' },
+          { label: 'Total Agents',           value: agents.length,                                                                                            color: undefined },
+          { label: 'Shadow AI (Unsanctioned)', value: shadowCount,                                                                                             color: 'var(--warning)' },
+          { label: 'High Risk',              value: agents.filter(a => a.risk_classification === 'high' || a.risk_classification === 'critical').length, color: 'var(--danger)' },
         ].map(stat => (
-          <div key={stat.label} style={{
-            border: '1px solid var(--border-default)',
-            borderRadius: '10px',
-            padding: '16px',
-            background: 'var(--bg-surface-1)',
-          }}>
-            <div style={{ fontSize: '1.5rem', fontWeight: 700, color: stat.color }}>{stat.value}</div>
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>{stat.label}</div>
+          <div key={stat.label} className="kpi-card">
+            <div className="kpi-value" style={stat.color ? { color: stat.color } : undefined}>{stat.value}</div>
+            <div className="kpi-label">{stat.label}</div>
           </div>
         ))}
       </div>
 
       {/* Shadow AI Warning */}
       {shadowCount > 0 && (
-        <div style={{
-          border: '1px solid #f59e0b44',
-          borderRadius: '8px',
-          padding: '12px 16px',
-          background: '#f59e0b0a',
-          marginBottom: '20px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px',
-        }}>
-          <span style={{ fontSize: '1.125rem' }}>⚠️</span>
-          <div>
-            <span style={{ fontWeight: 600, color: '#f59e0b', fontSize: '0.8125rem' }}>
-              {shadowCount} unsanctioned agent{shadowCount !== 1 ? 's' : ''} detected
-            </span>
-            <span style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', marginLeft: '6px' }}>
-              — Shadow AI increases EU AI Act Article 26 compliance risk. Review and classify these agents.
-            </span>
-          </div>
+        <div className="callout callout-warning" style={{ marginBottom: '1.25rem' }}>
+          <strong>{shadowCount} unsanctioned agent{shadowCount !== 1 ? 's' : ''} detected</strong>
+          {' — '}
+          Shadow AI increases EU AI Act Article 26 compliance risk. Review and classify these agents.
         </div>
       )}
 
       {/* Filter Bar */}
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
         {[
           { key: 'framework', label: 'Framework', options: ['', 'langchain', 'autogen', 'crewai', 'custom', 'unknown'] },
           { key: 'platform', label: 'Platform', options: ['', 'openai', 'anthropic', 'azure', 'aws', 'custom'] },
@@ -240,17 +202,10 @@ export default function AgentInventoryPage() {
         ].map(({ key, label, options }) => (
           <select
             key={key}
+            className="form-input"
             value={(filters as any)[key]}
             onChange={e => setFilters(f => ({ ...f, [key]: e.target.value }))}
-            style={{
-              padding: '5px 10px',
-              borderRadius: '6px',
-              border: '1px solid var(--border-default)',
-              background: 'var(--bg-surface-1)',
-              color: 'var(--text-secondary)',
-              fontSize: '0.75rem',
-              cursor: 'pointer',
-            }}
+            style={{ fontSize: '0.75rem', padding: '0.3125rem 0.625rem', cursor: 'pointer' }}
           >
             <option value="">{label}: All</option>
             {options.filter(Boolean).map(o => (
@@ -262,34 +217,23 @@ export default function AgentInventoryPage() {
 
       {/* Table */}
       {loading ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
           {[1,2,3].map(i => (
-            <div key={i} style={{ height: '44px', borderRadius: '8px', background: 'var(--bg-surface-1)' }} />
+            <div key={i} className="skeleton-pulse" style={{ height: '44px', borderRadius: 'var(--radius-md)' }} />
           ))}
         </div>
       ) : agents.length === 0 ? (
-        <div style={{
-          border: '1px dashed var(--border-default)',
-          borderRadius: '10px',
-          padding: '48px',
-          textAlign: 'center',
-          color: 'var(--text-muted)',
-        }}>
-          <div style={{ fontSize: '2rem', marginBottom: '12px' }}>🤖</div>
-          <div style={{ fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
-            All clear — no shadow AI detected
-          </div>
-          <div style={{ fontSize: '0.8125rem' }}>
-            Add agents manually or use the SDK to auto-register them on first call.
-          </div>
+        <div className="empty-state">
+          <p className="empty-state-title">All clear — no shadow AI detected</p>
+          <p className="empty-state-body">Add agents manually or use the SDK to auto-register them on first call.</p>
         </div>
       ) : (
-        <div style={{ border: '1px solid var(--border-default)', borderRadius: '10px', overflow: 'hidden' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <div className="surface" style={{ overflow: 'hidden' }}>
+          <table className="data-table" style={{ width: '100%' }}>
             <thead>
-              <tr style={{ background: 'var(--bg-surface-1)' }}>
+              <tr>
                 {['Name', 'Framework', 'Platform', 'Risk Level', 'EU AI Act Category', 'Status', 'Last Active'].map(h => (
-                  <th key={h} style={thStyle}>{h}</th>
+                  <th key={h}>{h}</th>
                 ))}
               </tr>
             </thead>
@@ -304,64 +248,55 @@ export default function AgentInventoryPage() {
 
       {/* Add Agent Modal */}
       {showAddModal && (
-        <div style={{
-          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex',
-          alignItems: 'center', justifyContent: 'center', zIndex: 1000,
-        }}>
-          <div style={{
-            background: 'var(--bg-surface-1)', border: '1px solid var(--border-default)',
-            borderRadius: '12px', padding: '24px', width: '400px', maxWidth: '95vw',
-          }}>
-            <h2 style={{ fontSize: '1rem', fontWeight: 700, margin: '0 0 16px', color: 'var(--text-primary)' }}>
-              Add Agent
-            </h2>
-            <form onSubmit={handleAddAgent} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <input
-                placeholder="Agent name"
-                value={newAgent.name}
-                onChange={e => setNewAgent(a => ({ ...a, name: e.target.value }))}
-                required
-                style={{ padding: '8px 10px', borderRadius: '6px', border: '1px solid var(--border-default)', background: 'var(--bg-surface-2)', color: 'var(--text-primary)', fontSize: '0.8125rem' }}
-              />
-              <select
-                value={newAgent.framework}
-                onChange={e => setNewAgent(a => ({ ...a, framework: e.target.value }))}
-                style={{ padding: '8px 10px', borderRadius: '6px', border: '1px solid var(--border-default)', background: 'var(--bg-surface-2)', color: 'var(--text-primary)', fontSize: '0.8125rem' }}
-              >
-                {['langchain', 'autogen', 'crewai', 'custom', 'unknown'].map(o => <option key={o}>{o}</option>)}
-              </select>
-              <select
-                value={newAgent.platform}
-                onChange={e => setNewAgent(a => ({ ...a, platform: e.target.value }))}
-                style={{ padding: '8px 10px', borderRadius: '6px', border: '1px solid var(--border-default)', background: 'var(--bg-surface-2)', color: 'var(--text-primary)', fontSize: '0.8125rem' }}
-              >
-                {['openai', 'anthropic', 'azure', 'aws', 'custom'].map(o => <option key={o}>{o}</option>)}
-              </select>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8125rem', color: 'var(--text-secondary)', cursor: 'pointer' }}>
+        <div className="modal-overlay" onClick={() => setShowAddModal(false)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '420px' }}>
+            <div className="modal-header">
+              <span className="modal-title">Add Agent</span>
+              <button className="modal-close" onClick={() => setShowAddModal(false)} aria-label="Close">×</button>
+            </div>
+            <div className="modal-body">
+              <form onSubmit={handleAddAgent} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 <input
-                  type="checkbox"
-                  checked={newAgent.is_sanctioned}
-                  onChange={e => setNewAgent(a => ({ ...a, is_sanctioned: e.target.checked }))}
+                  className="form-input"
+                  placeholder="Agent name"
+                  value={newAgent.name}
+                  onChange={e => setNewAgent(a => ({ ...a, name: e.target.value }))}
+                  required
+                  style={{ width: '100%' }}
                 />
-                Sanctioned by IT/Security
-              </label>
-              <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '4px' }}>
-                <button
-                  type="button"
-                  onClick={() => setShowAddModal(false)}
-                  style={{ padding: '7px 14px', borderRadius: '6px', border: '1px solid var(--border-default)', background: 'transparent', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '0.8125rem' }}
+                <select
+                  className="form-input"
+                  value={newAgent.framework}
+                  onChange={e => setNewAgent(a => ({ ...a, framework: e.target.value }))}
+                  style={{ width: '100%' }}
                 >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={adding}
-                  style={{ padding: '7px 14px', borderRadius: '6px', background: 'var(--accent)', color: '#000', border: 'none', cursor: 'pointer', fontSize: '0.8125rem', fontWeight: 600 }}
+                  {['langchain', 'autogen', 'crewai', 'custom', 'unknown'].map(o => <option key={o}>{o}</option>)}
+                </select>
+                <select
+                  className="form-input"
+                  value={newAgent.platform}
+                  onChange={e => setNewAgent(a => ({ ...a, platform: e.target.value }))}
+                  style={{ width: '100%' }}
                 >
-                  {adding ? 'Adding…' : 'Add Agent'}
-                </button>
-              </div>
-            </form>
+                  {['openai', 'anthropic', 'azure', 'aws', 'custom'].map(o => <option key={o}>{o}</option>)}
+                </select>
+                <label className="t-body-sm" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={newAgent.is_sanctioned}
+                    onChange={e => setNewAgent(a => ({ ...a, is_sanctioned: e.target.checked }))}
+                    style={{ accentColor: 'var(--accent)' }}
+                  />
+                  Sanctioned by IT/Security
+                </label>
+                <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', marginTop: '0.25rem' }}>
+                  <button type="button" className="btn btn-ghost" onClick={() => setShowAddModal(false)}>Cancel</button>
+                  <button type="submit" className="btn btn-primary" disabled={adding}>
+                    {adding ? 'Adding…' : 'Add Agent'}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}

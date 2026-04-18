@@ -32,13 +32,13 @@ interface Template {
   timeout_ms: number;
 }
 
-const CATEGORY_COLORS: Record<string, string> = {
-  alerting: 'bg-red-100 text-red-700',
-  observability: 'bg-purple-100 text-purple-700',
-  ticketing: 'bg-blue-100 text-blue-700',
-  crm: 'bg-green-100 text-green-700',
-  regulatory: 'bg-yellow-100 text-yellow-700',
-  custom: 'bg-gray-100 text-gray-700',
+const CATEGORY_BADGE: Record<string, string> = {
+  alerting:      'badge badge-danger',
+  observability: 'badge badge-accent',
+  ticketing:     'badge badge-info',
+  crm:           'badge badge-success',
+  regulatory:    'badge badge-warning',
+  custom:        'badge badge-neutral',
 };
 
 export default function PluginsPage() {
@@ -132,153 +132,120 @@ export default function PluginsPage() {
   const totalErrors = plugins.reduce((sum, p) => sum + (p.total_errors || 0), 0);
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Plugin System</h1>
-        <p className="text-gray-500 mt-1">Connect RuneSignal governance events to external systems via webhooks</p>
+    <div style={{ maxWidth: '1100px' }}>
+
+      {/* Page header */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '2rem', gap: '1rem' }}>
+        <div>
+          <h1 className="page-title">Plugin System</h1>
+          <p className="page-description">Connect governance events to external systems via webhooks.</p>
+        </div>
       </div>
 
       {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">{error}</div>
+        <div className="callout callout-danger" style={{ marginBottom: '1rem' }}>{error}</div>
       )}
 
-      {/* Stats */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
+      {/* KPI strip */}
+      <div className="kpi-strip">
         {[
-          { label: 'Active Plugins', value: activePlugins.length, color: 'text-green-600' },
-          { label: 'Total Installed', value: plugins.length, color: 'text-blue-600' },
-          { label: 'Total Fires', value: totalFires.toLocaleString(), color: 'text-purple-600' },
-          { label: 'Total Errors', value: totalErrors.toLocaleString(), color: totalErrors > 0 ? 'text-red-600' : 'text-gray-600' },
-        ].map(s => (
-          <div key={s.label} className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className={`text-2xl font-bold ${s.color}`}>{s.value}</div>
-            <div className="text-sm text-gray-500">{s.label}</div>
+          { label: 'Active Plugins',  value: activePlugins.length,           color: 'var(--success)' },
+          { label: 'Total Installed', value: plugins.length,                  color: undefined },
+          { label: 'Total Fires',     value: totalFires.toLocaleString(),     color: 'var(--accent)' },
+          { label: 'Total Errors',    value: totalErrors.toLocaleString(),    color: totalErrors > 0 ? 'var(--danger)' : undefined },
+        ].map((s, i) => (
+          <div key={i} className="kpi-card">
+            <div className="kpi-label">{s.label}</div>
+            <div className="kpi-value" style={s.color ? { color: s.color } : undefined}>{s.value}</div>
           </div>
         ))}
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-2 mb-6 border-b border-gray-200">
+      {/* Tab bar */}
+      <div className="tab-bar">
         {(['installed', 'catalog'] as const).map(tab => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 text-sm font-medium capitalize border-b-2 transition-colors ${
-              activeTab === tab
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
-            }`}
-          >
+          <button key={tab} onClick={() => setActiveTab(tab)} className={`tab${activeTab === tab ? ' active' : ''}`}>
             {tab === 'installed' ? `Installed (${plugins.length})` : `Catalog (${templates.length})`}
           </button>
         ))}
       </div>
 
       {loading ? (
-        <div className="text-center py-12 text-gray-500">Loading plugins...</div>
+        <div style={{ padding: '3rem', textAlign: 'center' }}>
+          <p className="t-body-sm text-tertiary">Loading plugins\u2026</p>
+        </div>
       ) : activeTab === 'installed' ? (
         plugins.length === 0 ? (
-          <div className="text-center py-16">
-            <div className="text-4xl mb-3">🔌</div>
-            <p className="text-gray-600 font-medium">No plugins installed yet</p>
-            <p className="text-gray-400 text-sm mt-1">Browse the catalog to get started</p>
-            <button
-              onClick={() => setActiveTab('catalog')}
-              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700"
-            >
+          <div className="empty-state">
+            <p className="empty-state-title">No plugins installed yet</p>
+            <p className="empty-state-body">Browse the catalog to connect your first integration.</p>
+            <button className="btn btn-primary" style={{ marginTop: '0.5rem' }} onClick={() => setActiveTab('catalog')}>
               Browse Catalog
             </button>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             {plugins.map(plugin => (
-              <div key={plugin.id} className={`bg-white border rounded-lg p-5 ${!plugin.is_active ? 'opacity-60' : ''}`}>
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl">{plugin.icon || '🔌'}</span>
+              <div key={plugin.id} className="surface" style={{ padding: '1.25rem', opacity: plugin.is_active ? 1 : 0.6 }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem' }}>
+                  <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+                    <span style={{ fontSize: '1.5rem', lineHeight: 1, flexShrink: 0 }}>{plugin.icon || '\uD83D\uDD0C'}</span>
                     <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-gray-900">{plugin.name}</span>
-                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${CATEGORY_COLORS[plugin.category] || CATEGORY_COLORS.custom}`}>
-                          {plugin.category}
-                        </span>
-                        {!plugin.is_active && (
-                          <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">Inactive</span>
-                        )}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.25rem' }}>
+                        <span style={{ fontWeight: 600, fontSize: '0.9375rem' }}>{plugin.name}</span>
+                        <span className={CATEGORY_BADGE[plugin.category] || CATEGORY_BADGE.custom} style={{ textTransform: 'capitalize' }}>{plugin.category}</span>
+                        {!plugin.is_active && <span className="badge badge-neutral">Inactive</span>}
                       </div>
-                      <p className="text-sm text-gray-500 mt-0.5">{plugin.description}</p>
+                      <p className="t-body-sm text-secondary">{plugin.description}</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => togglePlugin(plugin)}
-                      className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
-                        plugin.is_active
-                          ? 'border-gray-300 text-gray-600 hover:bg-gray-50'
-                          : 'border-green-300 text-green-600 hover:bg-green-50'
-                      }`}
-                    >
+                  <div style={{ display: 'flex', gap: '0.375rem', flexShrink: 0 }}>
+                    <button className={`btn ${plugin.is_active ? 'btn-ghost' : 'btn-outline'}`} style={{ fontSize: '0.75rem' }} onClick={() => togglePlugin(plugin)}>
                       {plugin.is_active ? 'Disable' : 'Enable'}
                     </button>
-                    <button
-                      onClick={() => deletePlugin(plugin)}
-                      className="px-3 py-1.5 text-xs font-medium rounded-lg border border-red-200 text-red-600 hover:bg-red-50"
-                    >
-                      Remove
-                    </button>
+                    <button className="btn btn-danger" style={{ fontSize: '0.75rem' }} onClick={() => deletePlugin(plugin)}>Remove</button>
                   </div>
                 </div>
-                <div className="mt-4 flex items-center gap-6 text-xs text-gray-500">
-                  <span>Fires: <strong className="text-gray-700">{plugin.total_fires || 0}</strong></span>
-                  <span>Errors: <strong className={plugin.total_errors > 0 ? 'text-red-600' : 'text-gray-700'}>{plugin.total_errors || 0}</strong></span>
-                  <span>Retry: <strong className="text-gray-700">{plugin.retry_count}x</strong></span>
-                  <span>Timeout: <strong className="text-gray-700">{plugin.timeout_ms}ms</strong></span>
-                  {plugin.last_fired_at && (
-                    <span>Last fired: <strong className="text-gray-700">{new Date(plugin.last_fired_at).toLocaleString()}</strong></span>
-                  )}
+                <div style={{ display: 'flex', gap: '1rem', marginTop: '0.75rem', flexWrap: 'wrap' }}>
+                  <span className="t-caption">Fires: <strong>{plugin.total_fires || 0}</strong></span>
+                  <span className="t-caption">Errors: <strong style={{ color: plugin.total_errors > 0 ? 'var(--danger)' : undefined }}>{plugin.total_errors || 0}</strong></span>
+                  <span className="t-caption">Retry: <strong>{plugin.retry_count}x</strong></span>
+                  <span className="t-caption">Timeout: <strong>{plugin.timeout_ms}ms</strong></span>
+                  {plugin.last_fired_at && <span className="t-caption">Last fired: <strong>{new Date(plugin.last_fired_at).toLocaleString()}</strong></span>}
                 </div>
-                <div className="mt-3 flex flex-wrap gap-1">
-                  {plugin.triggers.map(t => (
-                    <span key={t} className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-mono">{t}</span>
-                  ))}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.375rem', marginTop: '0.625rem' }}>
+                  {plugin.triggers.map(t => <span key={t} className="badge badge-neutral t-mono" style={{ letterSpacing: 0 }}>{t}</span>)}
                 </div>
               </div>
             ))}
           </div>
         )
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
           {templates.map(template => {
             const alreadyInstalled = plugins.some(p => p.name === template.name);
             return (
-              <div key={template.id} className="bg-white border border-gray-200 rounded-lg p-5">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl">{template.icon || '🔌'}</span>
+              <div key={template.id} className="surface" style={{ padding: '1.25rem' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+                  <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+                    <span style={{ fontSize: '1.5rem', lineHeight: 1, flexShrink: 0 }}>{template.icon || '\uD83D\uDD0C'}</span>
                     <div>
-                      <div className="font-semibold text-gray-900">{template.name}</div>
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${CATEGORY_COLORS[template.category] || CATEGORY_COLORS.custom}`}>
-                        {template.category}
-                      </span>
+                      <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>{template.name}</div>
+                      <span className={CATEGORY_BADGE[template.category] || CATEGORY_BADGE.custom} style={{ textTransform: 'capitalize' }}>{template.category}</span>
                     </div>
                   </div>
                   <button
+                    className={alreadyInstalled ? 'btn btn-ghost' : 'btn btn-primary'}
+                    style={{ fontSize: '0.75rem', flexShrink: 0 }}
                     disabled={alreadyInstalled}
                     onClick={() => setInstallModal(template)}
-                    className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-                      alreadyInstalled
-                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                        : 'bg-blue-600 text-white hover:bg-blue-700'
-                    }`}
                   >
                     {alreadyInstalled ? 'Installed' : 'Install'}
                   </button>
                 </div>
-                <p className="text-sm text-gray-500 mb-3">{template.description}</p>
-                <div className="flex flex-wrap gap-1">
-                  {template.triggers.map(t => (
-                    <span key={t} className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-mono">{t}</span>
-                  ))}
+                <p className="t-body-sm text-secondary" style={{ marginBottom: '0.625rem' }}>{template.description}</p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.375rem' }}>
+                  {template.triggers.map(t => <span key={t} className="badge badge-neutral t-mono" style={{ letterSpacing: 0 }}>{t}</span>)}
                 </div>
               </div>
             );
@@ -288,46 +255,44 @@ export default function PluginsPage() {
 
       {/* Install Modal */}
       {installModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl w-full max-w-md p-6">
-            <h2 className="text-lg font-bold mb-1">Install {installModal.name}</h2>
-            <p className="text-sm text-gray-500 mb-4">{installModal.description}</p>
-            <div className="space-y-3">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Endpoint URL *</label>
-                <input
-                  type="url"
-                  value={endpointUrl}
-                  onChange={e => setEndpointUrl(e.target.value)}
-                  placeholder="https://your-webhook-url.com/endpoint"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Auth Header (optional)</label>
-                <input
-                  type="text"
-                  value={authHeader}
-                  onChange={e => setAuthHeader(e.target.value)}
-                  placeholder="Authorization: Bearer <token>"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
+        <div className="modal-overlay" onClick={() => { setInstallModal(null); setEndpointUrl(''); setAuthHeader(''); }}>
+          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '480px' }}>
+            <div className="modal-header">
+              <span className="modal-title">Install {installModal.name}</span>
+              <button className="modal-close" onClick={() => { setInstallModal(null); setEndpointUrl(''); setAuthHeader(''); }} aria-label="Close">\u2715</button>
             </div>
-            <div className="flex gap-2 mt-5">
-              <button
-                onClick={() => { setInstallModal(null); setEndpointUrl(''); setAuthHeader(''); }}
-                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={installPlugin}
-                disabled={!endpointUrl || installing}
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
-              >
-                {installing ? 'Installing...' : 'Install Plugin'}
-              </button>
+            <div className="modal-body">
+              <p className="t-body-sm text-secondary" style={{ marginBottom: '1.25rem' }}>{installModal.description}</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
+                <div>
+                  <label className="t-eyebrow" style={{ display: 'block', marginBottom: '0.375rem' }}>Endpoint URL *</label>
+                  <input
+                    className="form-input"
+                    type="url"
+                    value={endpointUrl}
+                    onChange={e => setEndpointUrl(e.target.value)}
+                    placeholder="https://your-webhook-url.com/endpoint"
+                    style={{ width: '100%' }}
+                  />
+                </div>
+                <div>
+                  <label className="t-eyebrow" style={{ display: 'block', marginBottom: '0.375rem' }}>Auth Header <span className="text-tertiary">(optional)</span></label>
+                  <input
+                    className="form-input"
+                    type="text"
+                    value={authHeader}
+                    onChange={e => setAuthHeader(e.target.value)}
+                    placeholder="Authorization: Bearer <token>"
+                    style={{ width: '100%' }}
+                  />
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1.25rem' }}>
+                <button className="btn btn-ghost" style={{ flex: 1 }} onClick={() => { setInstallModal(null); setEndpointUrl(''); setAuthHeader(''); }}>Cancel</button>
+                <button className="btn btn-primary" style={{ flex: 1 }} disabled={!endpointUrl || installing} onClick={installPlugin}>
+                  {installing ? 'Installing\u2026' : 'Install Plugin'}
+                </button>
+              </div>
             </div>
           </div>
         </div>

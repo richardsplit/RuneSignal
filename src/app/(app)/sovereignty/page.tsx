@@ -79,12 +79,14 @@ export default function SovereigntyPage() {
 
   if (loading) {
     return (
-      <div style={{ padding: '3rem', color: 'var(--text-muted)' }}>Loading…</div>
+      <div style={{ padding: '3rem', textAlign: 'center' }}>
+        <p className="t-body-sm text-tertiary">Loading…</p>
+      </div>
     );
   }
 
   return (
-    <div style={{ maxWidth: 960, margin: '0 auto', padding: '2rem 1.5rem' }}>
+    <div style={{ maxWidth: 960 }}>
 
       {/* Page header */}
       <div style={{ marginBottom: '1.75rem' }}>
@@ -125,7 +127,7 @@ export default function SovereigntyPage() {
                       borderRadius: 'var(--radius-sm)',
                       border: `1px solid ${active ? 'var(--accent-border)' : 'var(--border-default)'}`,
                       background: active ? 'var(--accent-dim)' : 'transparent',
-                      color: active ? 'var(--accent)' : 'var(--text-muted)',
+                      color: active ? 'var(--accent)' : 'var(--text-tertiary)',
                       cursor: 'pointer',
                       fontSize: '0.8rem',
                       fontWeight: active ? 600 : 400,
@@ -187,7 +189,7 @@ export default function SovereigntyPage() {
                   borderRadius: 'var(--radius-sm)',
                   border: `1px solid ${dataClass === c ? 'var(--accent-border)' : 'var(--border-subtle)'}`,
                   background: dataClass === c ? 'var(--accent-dim)' : 'transparent',
-                  color: dataClass === c ? 'var(--accent)' : 'var(--text-muted)',
+                  color: dataClass === c ? 'var(--accent)' : 'var(--text-tertiary)',
                   cursor: 'pointer',
                   fontSize: '0.7rem',
                   fontWeight: dataClass === c ? 700 : 400,
@@ -220,9 +222,7 @@ export default function SovereigntyPage() {
                 {providers.map((p, i) => (
                   <tr key={i}>
                     <td style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{p.provider}</td>
-                    <td>
-                      <span className="mono" style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{p.model}</span>
-                    </td>
+                    <td><span className="t-mono text-tertiary">{p.model}</span></td>
                     <td style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
                       {p.region.toUpperCase()}
                     </td>
@@ -241,7 +241,7 @@ export default function SovereigntyPage() {
                         {p.pci_eligible ? '✓' : '—'}
                       </span>
                     </td>
-                    <td style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>{p.notes || '—'}</td>
+                    <td className="text-tertiary t-body-sm">{p.notes || '—'}</td>
                   </tr>
                 ))}
               </tbody>

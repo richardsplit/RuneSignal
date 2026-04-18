@@ -142,7 +142,7 @@ export default function SSOSettingsPage() {
         <div style={{
           fontSize: '0.6875rem',
           fontWeight: 600,
-          color: 'var(--text-muted)',
+          color: 'var(--text-tertiary)',
           textTransform: 'uppercase',
           letterSpacing: '0.07em',
           marginBottom: '0.625rem',
@@ -164,7 +164,7 @@ export default function SSOSettingsPage() {
                 alignItems: 'center',
                 gap: '0.625rem',
                 padding: '0.625rem 0.875rem',
-                background: selectedProvider === p.id ? 'var(--bg-surface-2)' : 'var(--bg-surface-1)',
+                background: selectedProvider === p.id ? 'var(--surface-2)' : 'var(--surface-1)',
                 border: `1px solid ${selectedProvider === p.id ? 'var(--accent-border)' : 'var(--border-default)'}`,
                 borderRadius: 'var(--radius-md)',
                 cursor: 'pointer',
@@ -184,7 +184,7 @@ export default function SSOSettingsPage() {
                 height: 22,
                 borderRadius: 'var(--radius-sm)',
                 background: selectedProvider === p.id ? 'var(--accent-dim)' : 'rgba(255,255,255,0.05)',
-                color: selectedProvider === p.id ? 'var(--accent)' : 'var(--text-muted)',
+                color: selectedProvider === p.id ? 'var(--accent)' : 'var(--text-tertiary)',
                 fontSize: '0.625rem',
                 fontWeight: 700,
                 letterSpacing: '0.02em',
@@ -237,7 +237,7 @@ export default function SSOSettingsPage() {
                 }
                 style={{
                   width: '100%',
-                  background: 'var(--bg-canvas)',
+                  background: 'var(--canvas)',
                   border: '1px solid var(--border-default)',
                   borderRadius: 'var(--radius-md)',
                   color: 'var(--text-primary)',
@@ -258,7 +258,7 @@ export default function SSOSettingsPage() {
             alignItems: 'center',
             justifyContent: 'space-between',
             padding: '0.875rem 1rem',
-            background: 'var(--bg-canvas)',
+            background: 'var(--canvas)',
             border: '1px solid var(--border-subtle)',
             borderRadius: 'var(--radius-md)',
             marginTop: '0.25rem',
@@ -273,7 +273,7 @@ export default function SSOSettingsPage() {
               </div>
               <div className="toggle-description" style={{
                 fontSize: '0.75rem',
-                color: 'var(--text-muted)',
+                color: 'var(--text-tertiary)',
                 marginTop: '0.125rem',
               }}>
                 Require all users to log in via SSO. Password-based logins will be disabled.
@@ -287,7 +287,7 @@ export default function SSOSettingsPage() {
               style={{
                 width: 40,
                 height: 22,
-                background: enforceSso ? 'var(--accent)' : 'var(--bg-surface-3)',
+                background: enforceSso ? 'var(--accent)' : 'var(--surface-3)',
                 borderRadius: 11,
                 border: 'none',
                 cursor: 'pointer',
@@ -317,16 +317,16 @@ export default function SSOSettingsPage() {
       <div className="surface" style={{ marginBottom: '1.25rem', overflow: 'hidden' }}>
         <div className="panel-header">
           <span className="panel-title">Redirect URI</span>
-          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+          <span className="t-caption">
             Add this to your identity provider
           </span>
         </div>
         <div style={{ padding: '1rem 1.25rem' }}>
           <code
-            className="code-block mono"
+            className="code-block t-mono"
             style={{
               display: 'block',
-              background: 'var(--bg-canvas)',
+              background: 'var(--canvas)',
               border: '1px solid var(--border-subtle)',
               borderRadius: 'var(--radius-md)',
               padding: '0.625rem 0.875rem',

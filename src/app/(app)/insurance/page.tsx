@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import { useToast } from '@/components/ToastProvider';
+import { useTenant } from '@lib/contexts/TenantContext';
 import { AgentRiskProfile, ApiError } from '@/lib/api';
 
 // InsuranceClaim type kept locally — S5 insurance is admin-gated and not
@@ -47,7 +48,7 @@ function RiskGauge({ score }: { score: number }) {
         <div style={{ width: `${score}%`, height: '100%', background: color, borderRadius: '2px', transition: 'width 0.4s ease' }} />
       </div>
       <span style={{ fontSize: '0.875rem', fontWeight: 700, color, fontVariantNumeric: 'tabular-nums', minWidth: '22px' }}>{score}</span>
-      <span style={{ fontSize: '0.6875rem', color: 'var(--text-muted)' }}>{label}</span>
+      <span className="t-caption">{label}</span>
     </div>
   );
 }
@@ -62,6 +63,7 @@ const CLAIM_STATUS: Record<InsuranceClaim['status'], { cls: string; label: strin
 /* ─── Page ───────────────────────────────────────────────────────────── */
 export default function InsurancePage() {
   const { showToast } = useToast();
+  const { tenantId } = useTenant();
 
   const [profiles, setProfiles] = useState<AgentRiskProfile[]>([]);
   const [claims,   setClaims]   = useState<InsuranceClaim[]>([]);
@@ -106,7 +108,7 @@ export default function InsurancePage() {
       });
       if (res.ok) {
         showToast('Actuarial refresh complete.', 'success');
-        fetchInsuranceData(); // Refresh data after recalculation
+        load(); // Refresh data after recalculation
       } else {
         showToast('Risk calculation failed.', 'error');
       }
@@ -161,50 +163,27 @@ export default function InsurancePage() {
       {error && <ApiErrorBanner message={error} onRetry={load} />}
 
       {/* KPI strip */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(4, 1fr)',
-        gap: '1px',
-        background: 'var(--border-subtle)',
-        border: '1px solid var(--border-default)',
-        borderRadius: 'var(--radius-lg)',
-        overflow: 'hidden',
-        marginBottom: '1.75rem',
-      }}>
+      <div className="kpi-strip">
         {[
-          { label: 'Total Coverage',       value: `$${totalCoverage.toLocaleString()}`, color: undefined },
-          { label: 'Fleet Avg Risk Score',  value: loading ? '…' : `${avgRisk} / 100`,  color: avgRisk >= 50 ? 'var(--warning)' : undefined },
-          { label: 'Monthly Premium',       value: loading ? '…' : `$${monthlyPremium.toLocaleString()}`, color: 'var(--success)' },
-          { label: 'Active Claims',         value: activeClaims, color: activeClaims > 0 ? 'var(--warning)' : undefined },
+          { label: 'Total Coverage',      value: `$${totalCoverage.toLocaleString()}`, color: undefined },
+          { label: 'Fleet Avg Risk Score', value: `${avgRisk} / 100`,                  color: avgRisk >= 50 ? 'var(--warning)' : undefined },
+          { label: 'Monthly Premium',      value: `$${monthlyPremium.toLocaleString()}`, color: 'var(--success)' },
+          { label: 'Active Claims',        value: activeClaims,                         color: activeClaims > 0 ? 'var(--warning)' : undefined },
         ].map((k, i) => (
-          <div key={i} style={{ background: 'var(--bg-surface-1)', padding: '1.25rem 1.5rem' }}>
+          <div key={i} className="kpi-card">
             <div className="kpi-label">{k.label}</div>
             {loading && i > 0
-              ? <div className="skeleton-pulse" style={{ height: 28, width: '40%', borderRadius: 4 }} />
-              : <div className="kpi-value" style={{ color: k.color as string | undefined }}>{k.value}</div>
+              ? <div className="skeleton-pulse" style={{ height: 28, width: '40%', borderRadius: 4, marginTop: 2 }} />
+              : <div className="kpi-value" style={k.color ? { color: k.color as string } : undefined}>{k.value}</div>
             }
           </div>
         ))}
       </div>
 
       {/* Tabs */}
-      <div style={{ display: 'flex', borderBottom: '1px solid var(--border-default)', marginBottom: '1.5rem' }}>
+      <div className="tab-bar">
         {(['profiles', 'claims'] as const).map(t => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            style={{
-              padding: '0.625rem 1rem',
-              fontSize: '0.8125rem',
-              fontWeight: 500,
-              background: 'transparent',
-              border: 'none',
-              borderBottom: `2px solid ${tab === t ? 'var(--accent)' : 'transparent'}`,
-              color: tab === t ? 'var(--text-primary)' : 'var(--text-muted)',
-              cursor: 'pointer',
-              marginBottom: '-1px',
-            }}
-          >
+          <button key={t} onClick={() => setTab(t)} className={`tab${tab === t ? ' active' : ''}`}>
             {t === 'profiles' ? 'Agent Risk Profiles' : `Claims (${claims.length})`}
           </button>
         ))}
@@ -222,13 +201,7 @@ export default function InsurancePage() {
             >
               Coverage Policy
             </button>
-            <button 
-              className="btn btn-primary" 
-              style={{ background: 'var(--color-info-cyan)', borderColor: 'var(--color-info-cyan)' }}
-              onClick={() => setIsModalOpen(true)}
-            >
-              File Claim
-            </button>
+            <button className="btn btn-primary" onClick={() => showToast('Opening claim filing form...')}>File Claim</button>
           </div>
           <table className="data-table">
             <thead>
@@ -251,26 +224,26 @@ export default function InsurancePage() {
                 const updated   = new Date(p.last_computed_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
                 return (
                   <tr key={p.id} style={{
-                    background: p.risk_score >= 80 ? 'rgba(248,113,113,0.02)'
-                              : p.risk_score >= 40 ? 'rgba(251,191,36,0.015)'
+                    background: p.risk_score >= 80 ? 'var(--danger-soft)'
+                              : p.risk_score >= 40 ? 'var(--warning-soft)'
                               : undefined,
                   }}>
                     <td>
                       <div style={{ fontWeight: 600 }}>{agentName}</div>
-                      <div className="mono" style={{ fontSize: '0.6875rem', color: 'var(--text-muted)', marginTop: '1px' }}>{p.agent_id}</div>
+                      <div className="t-mono text-tertiary" style={{ fontSize: '0.6875rem', marginTop: '1px' }}>{p.agent_id}</div>
                     </td>
                     <td><RiskGauge score={p.risk_score} /></td>
-                    <td style={{ color: p.total_violations > 0 ? 'var(--danger)' : 'var(--text-muted)', fontWeight: p.total_violations > 0 ? 600 : 400 }}>
+                    <td style={{ color: p.total_violations > 0 ? 'var(--danger)' : 'var(--text-tertiary)', fontWeight: p.total_violations > 0 ? 600 : 400 }}>
                       {p.total_violations}
                     </td>
                     <td style={{ color: 'var(--text-secondary)' }}>{p.hitl_escalations}</td>
-                    <td style={{ color: p.model_version_anomalies > 0 ? 'var(--warning)' : 'var(--text-muted)' }}>
+                    <td style={{ color: p.model_version_anomalies > 0 ? 'var(--warning)' : 'var(--text-tertiary)' }}>
                       {p.model_version_anomalies}
                     </td>
-                    <td style={{ color: 'var(--text-muted)', fontSize: '0.8125rem' }}>{updated}</td>
+                    <td className="text-tertiary t-body-sm">{updated}</td>
                     <td style={{ textAlign: 'right' }}>
-                      <span className="mono" style={{ fontWeight: 600, fontSize: '0.875rem' }}>${premium.toLocaleString()}</span>
-                      <span style={{ fontSize: '0.6875rem', color: 'var(--text-muted)', marginLeft: '0.25rem' }}>/mo</span>
+                      <span className="t-mono" style={{ fontWeight: 600, fontSize: '0.875rem' }}>${premium.toLocaleString()}</span>
+                      <span className="t-caption" style={{ marginLeft: '0.25rem' }}>/mo</span>
                     </td>
                   </tr>
                 );
@@ -301,16 +274,14 @@ export default function InsurancePage() {
                   const filed = new Date(c.filed_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
                   return (
                     <tr key={c.id}>
-                      <td><span className="mono" style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{c.id}</span></td>
+                      <td><span className="t-mono text-tertiary">{c.id}</span></td>
                       <td><span style={{ fontWeight: 600 }}>{c.agent_id}</span></td>
                       <td style={{ fontSize: '0.8125rem' }}>{c.incident_type}</td>
                       <td>
-                        <span className="mono" style={{ fontWeight: 700 }}>
-                          ${c.financial_impact.toLocaleString()}
-                        </span>
+                        <span className="t-mono" style={{ fontWeight: 700 }}>${c.financial_impact.toLocaleString()}</span>
                       </td>
                       <td><span className={CLAIM_STATUS[c.status].cls}>{CLAIM_STATUS[c.status].label}</span></td>
-                      <td style={{ color: 'var(--text-muted)', fontSize: '0.8125rem' }}>{filed}</td>
+                      <td className="text-tertiary t-body-sm">{filed}</td>
                       <td style={{ textAlign: 'right' }}>
                         <button
                           className="btn btn-ghost"
@@ -326,9 +297,9 @@ export default function InsurancePage() {
               </tbody>
             </table>
           ) : (
-            <div style={{ padding: '3rem', textAlign: 'center' }}>
-              <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>No active claims</p>
-              <p style={{ fontSize: '0.8125rem', color: 'var(--text-muted)' }}>Fleet is operating within policy bounds.</p>
+            <div className="empty-state">
+              <p className="empty-state-title">No active claims</p>
+              <p className="empty-state-body">Fleet is operating within policy bounds.</p>
             </div>
           )}
         </div>
@@ -338,7 +309,7 @@ export default function InsurancePage() {
       {!loading && (
         <div style={{ marginTop: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <span className="status-dot" style={{ background: isDemo ? 'var(--warning)' : 'var(--success)' }} />
-          <span style={{ fontSize: '0.6875rem', color: 'var(--text-muted)' }}>
+          <span className="t-caption">
             {isDemo ? 'Demo data — connect Supabase for live risk profiles' : `${profiles.length} profiles loaded from API`}
           </span>
         </div>

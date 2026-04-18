@@ -106,7 +106,7 @@ const CAT_LABELS: Record<EventCategory, string> = {
 const ACTOR_TYPE_COLOR: Record<AuditEvent['actorType'], string> = {
   agent:  'var(--info)',
   human:  'var(--accent)',
-  system: 'var(--text-muted)',
+  system: 'var(--text-tertiary)',
 };
 
 /* ─── Sub-components ─────────────────────────────────────────────────── */
@@ -129,29 +129,13 @@ function TimelineDot({ severity, glow }: { severity: EventSeverity; glow?: boole
 
 function ActorChip({ actor, type }: { actor: string; type: AuditEvent['actorType'] }) {
   const color = ACTOR_TYPE_COLOR[type];
-  const bgMap: Record<AuditEvent['actorType'], string> = {
-    agent:  'var(--info-bg)',
-    human:  'var(--accent-dim)',
-    system: 'rgba(255,255,255,0.03)',
-  };
-  const borderMap: Record<AuditEvent['actorType'], string> = {
-    agent:  'var(--info-border)',
-    human:  'var(--accent-border)',
-    system: 'var(--border-subtle)',
+  const chipCls: Record<AuditEvent['actorType'], string> = {
+    agent:  'badge badge-info',
+    human:  'badge badge-accent',
+    system: 'badge badge-neutral',
   };
   return (
-    <span style={{
-      display: 'inline-flex',
-      alignItems: 'center',
-      gap: '0.25rem',
-      fontSize: '0.6875rem',
-      fontWeight: 600,
-      color,
-      background: bgMap[type],
-      border: `1px solid ${borderMap[type]}`,
-      borderRadius: '4px',
-      padding: '0.125rem 0.375rem',
-    }}>
+    <span className={chipCls[type]} style={{ textTransform: 'none', letterSpacing: 0, fontWeight: 600, fontSize: '0.6875rem' }}>
       {actor}
     </span>
   );
@@ -195,25 +179,16 @@ export default function AuditPage() {
       </div>
 
       {/* KPI strip */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(4, 1fr)',
-        gap: '1px',
-        background: 'var(--border-subtle)',
-        border: '1px solid var(--border-default)',
-        borderRadius: 'var(--radius-lg)',
-        overflow: 'hidden',
-        marginBottom: '1.75rem',
-      }}>
+      <div className="kpi-strip">
         {[
           { label: 'Total Events (30d)', value: EVENTS.length, color: undefined },
-          { label: 'Critical',  value: EVENTS.filter(e => e.severity === 'critical').length, color: 'var(--danger)'  },
-          { label: 'Warnings',  value: EVENTS.filter(e => e.severity === 'warning').length,  color: 'var(--warning)' },
-          { label: 'Human Actions', value: EVENTS.filter(e => e.actorType === 'human').length, color: 'var(--accent)' },
+          { label: 'Critical',      value: EVENTS.filter(e => e.severity === 'critical').length, color: 'var(--danger)'  },
+          { label: 'Warnings',      value: EVENTS.filter(e => e.severity === 'warning').length,  color: 'var(--warning)' },
+          { label: 'Human Actions', value: EVENTS.filter(e => e.actorType === 'human').length,   color: 'var(--accent)'  },
         ].map((k, i) => (
-          <div key={i} style={{ background: 'var(--bg-surface-1)', padding: '1.25rem 1.5rem' }}>
+          <div key={i} className="kpi-card">
             <div className="kpi-label">{k.label}</div>
-            <div className="kpi-value" style={{ color: k.color }}>{k.value}</div>
+            <div className="kpi-value" style={k.color ? { color: k.color } : undefined}>{k.value}</div>
           </div>
         ))}
       </div>
@@ -226,58 +201,31 @@ export default function AuditPage() {
         flexWrap: 'wrap',
         alignItems: 'center',
       }}>
-        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 500 }}>Severity</span>
-        {(['all', 'critical', 'warning', 'info', 'success'] as const).map(s => {
-          const active = severityFilter === s;
-          const color = s !== 'all' ? SEV_CONFIG[s].color : 'var(--text-secondary)';
-          return (
-            <button
-              key={s}
-              onClick={() => setSeverityFilter(s)}
-              style={{
-                padding: '0.3rem 0.625rem',
-                borderRadius: '5px',
-                border: '1px solid',
-                borderColor: active ? (s !== 'all' ? SEV_CONFIG[s].border : 'var(--border-strong)') : 'transparent',
-                background: active ? (s !== 'all' ? SEV_CONFIG[s].bg : 'rgba(255,255,255,0.04)') : 'transparent',
-                color: active ? color : 'var(--text-muted)',
-                fontSize: '0.75rem',
-                fontWeight: 500,
-                cursor: 'pointer',
-                textTransform: 'capitalize',
-              }}
-            >
-              {s === 'all' ? 'All' : SEV_CONFIG[s].label}
-            </button>
-          );
-        })}
+        <span className="t-eyebrow">Severity</span>
+        {(['all', 'critical', 'warning', 'info', 'success'] as const).map(s => (
+          <button
+            key={s}
+            onClick={() => setSeverityFilter(s)}
+            className={`chip${severityFilter === s ? (s === 'all' ? ' chip-accent' : s === 'critical' ? ' chip-danger' : s === 'warning' ? ' chip-warning' : s === 'success' ? ' chip-success' : ' chip-accent') : ''}`}
+            style={{ cursor: 'pointer', border: 'none', fontFamily: 'inherit' }}
+          >
+            {s === 'all' ? 'All' : SEV_CONFIG[s].label}
+          </button>
+        ))}
 
-        <div style={{ width: '1px', height: '16px', background: 'var(--border-default)' }} />
+        <div style={{ width: '1px', height: '16px', background: 'var(--border-default)', flexShrink: 0 }} />
 
-        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 500 }}>Module</span>
-        {(['all', ...categories] as const).map(c => {
-          const active = categoryFilter === c;
-          return (
-            <button
-              key={c}
-              onClick={() => setCategoryFilter(c as typeof categoryFilter)}
-              style={{
-                padding: '0.3rem 0.625rem',
-                borderRadius: '5px',
-                border: '1px solid',
-                borderColor: active ? 'var(--accent-border)' : 'transparent',
-                background: active ? 'var(--accent-dim)' : 'transparent',
-                color: active ? 'var(--accent)' : 'var(--text-muted)',
-                fontSize: '0.75rem',
-                fontWeight: 500,
-                cursor: 'pointer',
-                textTransform: 'capitalize',
-              }}
-            >
-              {c === 'all' ? 'All' : CAT_LABELS[c as EventCategory]}
-            </button>
-          );
-        })}
+        <span className="t-eyebrow">Module</span>
+        {(['all', ...categories] as const).map(c => (
+          <button
+            key={c}
+            onClick={() => setCategoryFilter(c as typeof categoryFilter)}
+            className={`chip${categoryFilter === c ? ' chip-accent' : ''}`}
+            style={{ cursor: 'pointer', border: 'none', fontFamily: 'inherit', textTransform: 'capitalize' }}
+          >
+            {c === 'all' ? 'All' : CAT_LABELS[c as EventCategory]}
+          </button>
+        ))}
       </div>
 
       {/* Timeline */}
@@ -291,7 +239,7 @@ export default function AuditPage() {
             gap: '0.75rem',
             marginBottom: '1rem',
           }}>
-            <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            <span className="t-eyebrow">
               {date}
             </span>
             <div style={{ flex: 1, height: '1px', background: 'var(--border-subtle)' }} />
@@ -329,14 +277,11 @@ export default function AuditPage() {
                   </div>
 
                   {/* Card */}
-                  <div style={{
+                  <div className="surface" style={{
                     flex: 1,
-                    background: 'var(--bg-surface-1)',
                     border: `1px solid ${event.severity === 'critical' ? sev.border : 'var(--border-subtle)'}`,
-                    borderRadius: 'var(--radius-lg)',
                     padding: '1rem 1.25rem',
                     marginBottom: '0.75rem',
-                    transition: 'border-color var(--t-base)',
                   }}>
                     {/* Card top row */}
                     <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem', marginBottom: '0.5rem' }}>
@@ -381,19 +326,9 @@ export default function AuditPage() {
       ))}
 
       {filtered.length === 0 && (
-        <div style={{
-          padding: '4rem 2rem',
-          textAlign: 'center',
-          background: 'var(--bg-surface-1)',
-          border: '1px solid var(--border-default)',
-          borderRadius: 'var(--radius-lg)',
-        }}>
-          <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '0.375rem' }}>
-            No events match the current filters
-          </p>
-          <p style={{ fontSize: '0.8125rem', color: 'var(--text-muted)' }}>
-            Adjust severity or module filters to see events.
-          </p>
+        <div className="empty-state">
+          <p className="empty-state-title">No events match the current filters</p>
+          <p className="empty-state-body">Adjust severity or module filters to see events.</p>
         </div>
       )}
 

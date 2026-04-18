@@ -129,27 +129,18 @@ export default function ExceptionsPage() {
       {error && !isDemo && <ApiErrorBanner message={error} onRetry={load} />}
 
       {/* KPI strip */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(4, 1fr)',
-        gap: '1px',
-        background: 'var(--border-subtle)',
-        border: '1px solid var(--border-default)',
-        borderRadius: 'var(--radius-lg)',
-        overflow: 'hidden',
-        marginBottom: '1.75rem',
-      }}>
+      <div className="kpi-strip">
         {[
-          { label: 'Open Exceptions',    value: openItems.length,  color: undefined },
-          { label: 'Critical Pending',   value: criticalCount,     color: criticalCount > 0 ? 'var(--danger)' : undefined },
-          { label: 'SLA Breaches (24h)', value: 0,                 color: 'var(--success)' },
-          { label: 'Avg Resolution',     value: '14m',             color: 'var(--info)' },
+          { label: 'Open Exceptions',    value: openItems.length, color: undefined },
+          { label: 'Critical Pending',   value: criticalCount,    color: criticalCount > 0 ? 'var(--danger)' : undefined },
+          { label: 'SLA Breaches (24h)', value: 0,                color: 'var(--success)' },
+          { label: 'Avg Resolution',     value: '14m',            color: 'var(--info)' },
         ].map((k, i) => (
-          <div key={i} style={{ background: 'var(--bg-surface-1)', padding: '1.25rem 1.5rem' }}>
+          <div key={i} className="kpi-card">
             <div className="kpi-label">{k.label}</div>
             {loading
-              ? <div className="skeleton-pulse" style={{ height: 28, width: '35%', borderRadius: 4 }} />
-              : <div className="kpi-value" style={{ color: k.color }}>{k.value}</div>
+              ? <div className="skeleton-pulse" style={{ height: 28, width: '35%', borderRadius: 4, marginTop: 2 }} />
+              : <div className="kpi-value" style={k.color ? { color: k.color } : undefined}>{k.value}</div>
             }
           </div>
         ))}
@@ -157,21 +148,8 @@ export default function ExceptionsPage() {
 
       {/* Critical callout */}
       {!loading && criticalCount > 0 && (
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.75rem',
-          padding: '0.75rem 1.25rem',
-          borderRadius: 'var(--radius-md)',
-          border: '1px solid var(--danger-border)',
-          background: 'var(--danger-bg)',
-          marginBottom: '1.5rem',
-          fontSize: '0.8125rem',
-        }}>
-          <span style={{ color: 'var(--danger)', fontWeight: 700 }}>●</span>
-          <span style={{ color: 'var(--text-primary)' }}>
-            <strong>{criticalCount} critical exception{criticalCount > 1 ? 's' : ''}</strong> require immediate review — SLA window closing.
-          </span>
+        <div className="callout callout-danger" style={{ marginBottom: '1.5rem' }}>
+          <strong>{criticalCount} critical exception{criticalCount > 1 ? 's' : ''}</strong> require immediate review — SLA window closing.
         </div>
       )}
 
@@ -198,9 +176,11 @@ export default function ExceptionsPage() {
               <SkeletonTable rows={4} cols={['10%', '15%', '30%', '10%', '10%', '10%', '10%']} />
             ) : openItems.length === 0 ? (
               <tr>
-                <td colSpan={7} style={{ padding: '3rem', textAlign: 'center' }}>
-                  <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>All clear</p>
-                  <p style={{ fontSize: '0.8125rem', color: 'var(--text-muted)' }}>No open exceptions. Fleet operating within policy bounds.</p>
+                <td colSpan={7}>
+                  <div className="empty-state">
+                    <p className="empty-state-title">All clear</p>
+                    <p className="empty-state-body">No open exceptions. Fleet operating within policy bounds.</p>
+                  </div>
                 </td>
               </tr>
             ) : openItems.map(exc => {
@@ -209,11 +189,11 @@ export default function ExceptionsPage() {
               const slaOverdue = sla === 'Overdue';
               return (
                 <tr key={exc.id} style={{
-                  background: exc.priority === 'critical' ? 'rgba(248,113,113,0.025)' : undefined,
+                  background: exc.priority === 'critical' ? 'var(--danger-soft)' : undefined,
                   opacity: isPending ? 0.5 : 1,
                   transition: 'opacity 0.15s',
                 }}>
-                  <td><span className="mono" style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{exc.id}</span></td>
+                  <td><span className="t-mono text-tertiary">{exc.id}</span></td>
                   <td><span style={{ fontWeight: 600 }}>{exc.agent_credentials?.agent_name ?? exc.agent_id}</span></td>
                   <td style={{ maxWidth: '240px', fontSize: '0.8125rem' }}>{exc.title}</td>
                   <td><span className={PRIORITY_MAP[exc.priority].cls}>{exc.priority}</span></td>
@@ -226,7 +206,7 @@ export default function ExceptionsPage() {
                       {sla}
                     </span>
                   </td>
-                  <td style={{ color: 'var(--text-muted)', fontSize: '0.8125rem' }}>{relativeTime(exc.created_at)}</td>
+                  <td className="text-tertiary t-body-sm">{relativeTime(exc.created_at)}</td>
                   <td style={{ textAlign: 'right' }}>
                     <div style={{ display: 'flex', gap: '0.375rem', justifyContent: 'flex-end' }}>
                       <button
@@ -281,13 +261,13 @@ export default function ExceptionsPage() {
             <tbody>
               {resolvedItems.map(exc => (
                 <tr key={exc.id}>
-                  <td><span className="mono" style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{exc.id}</span></td>
+                  <td><span className="t-mono text-tertiary">{exc.id}</span></td>
                   <td><span style={{ fontWeight: 600 }}>{exc.agent_credentials?.agent_name ?? exc.agent_id}</span></td>
                   <td style={{ fontSize: '0.8125rem' }}>{exc.title}</td>
                   <td><span className={PRIORITY_MAP[exc.priority].cls}>{exc.priority}</span></td>
                   <td><span className={STATUS_MAP[exc.status].cls}>{STATUS_MAP[exc.status].label}</span></td>
                   <td style={{ color: 'var(--text-secondary)', fontSize: '0.8125rem' }}>{exc.resolved_by ?? '—'}</td>
-                  <td style={{ color: 'var(--text-muted)', fontSize: '0.8125rem' }}>{relativeTime(exc.created_at)}</td>
+                  <td className="text-tertiary t-body-sm">{relativeTime(exc.created_at)}</td>
                 </tr>
               ))}
             </tbody>
@@ -299,7 +279,7 @@ export default function ExceptionsPage() {
       {!loading && (
         <div style={{ marginTop: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <span className="status-dot" style={{ background: isDemo ? 'var(--warning)' : 'var(--success)' }} />
-          <span style={{ fontSize: '0.6875rem', color: 'var(--text-muted)' }}>
+          <span className="t-caption">
             {isDemo ? 'Demo data — connect Supabase to see live exceptions' : 'Live data from API'}
           </span>
         </div>

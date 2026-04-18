@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useToast } from '@/components/ToastProvider';
 import { agents as agentsApi, AgentCredential, ApiError } from '@/lib/api';
 import { ApiErrorBanner, SkeletonTable } from '@/components/Skeleton';
+import AgentRegistrationModal from '@/components/features/identity/AgentRegistrationModal';
 
 /* ─── Demo fallback (used when API is unavailable) ───────────────────── */
 const DEMO_AGENTS: AgentCredential[] = [
@@ -41,6 +42,7 @@ export default function IdentityPage() {
   const [error, setError]     = useState<string | null>(null);
   const [filter, setFilter]   = useState<'all' | AgentCredential['status']>('all');
   const [isDemo, setIsDemo]   = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -76,7 +78,7 @@ export default function IdentityPage() {
         </div>
         <button
           className="btn btn-primary"
-          onClick={() => showToast('Opening Agent Registration Wizard...')}
+          onClick={() => setModalOpen(true)}
         >
           Register Agent
         </button>
@@ -86,27 +88,18 @@ export default function IdentityPage() {
       {error && <ApiErrorBanner message={error} onRetry={load} />}
 
       {/* KPI strip */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(4, 1fr)',
-        gap: '1px',
-        background: 'var(--border-subtle)',
-        border: '1px solid var(--border-default)',
-        borderRadius: 'var(--radius-lg)',
-        overflow: 'hidden',
-        marginBottom: '1.75rem',
-      }}>
+      <div className="kpi-strip">
         {[
-          { label: 'Total Agents',        value: data.length,    color: undefined },
-          { label: 'Active',              value: activeCount,    color: 'var(--success)'  },
-          { label: 'Suspended',           value: suspendedCount, color: suspendedCount > 0 ? 'var(--warning)' : undefined },
-          { label: 'Data source',         value: isDemo ? 'Demo' : 'Live', color: isDemo ? 'var(--warning)' : 'var(--success)' },
+          { label: 'Total Agents', value: data.length,    color: undefined },
+          { label: 'Active',       value: activeCount,    color: 'var(--success)'  },
+          { label: 'Suspended',    value: suspendedCount, color: suspendedCount > 0 ? 'var(--warning)' : undefined },
+          { label: 'Data source',  value: isDemo ? 'Demo' : 'Live', color: isDemo ? 'var(--warning)' : 'var(--success)' },
         ].map((k, i) => (
-          <div key={i} style={{ background: 'var(--bg-surface-1)', padding: '1.25rem 1.5rem' }}>
+          <div key={i} className="kpi-card">
             <div className="kpi-label">{k.label}</div>
             {loading
-              ? <div className="skeleton-pulse" style={{ height: 28, width: '40%', borderRadius: 4 }} />
-              : <div className="kpi-value" style={{ color: k.color }}>{k.value}</div>
+              ? <div className="skeleton-pulse" style={{ height: 28, width: '40%', borderRadius: 4, marginTop: 2 }} />
+              : <div className="kpi-value" style={k.color ? { color: k.color } : undefined}>{k.value}</div>
             }
           </div>
         ))}
@@ -121,18 +114,8 @@ export default function IdentityPage() {
               <button
                 key={f}
                 onClick={() => setFilter(f)}
-                style={{
-                  padding: '0.3rem 0.625rem',
-                  borderRadius: '5px',
-                  border: '1px solid',
-                  borderColor: filter === f ? 'var(--accent-border)' : 'transparent',
-                  background: filter === f ? 'var(--accent-dim)' : 'transparent',
-                  color: filter === f ? 'var(--accent)' : 'var(--text-muted)',
-                  fontSize: '0.75rem',
-                  fontWeight: 500,
-                  cursor: 'pointer',
-                  textTransform: 'capitalize',
-                }}
+                className={`chip${filter === f ? ' chip-accent' : ''}`}
+                style={{ cursor: 'pointer', border: 'none', fontFamily: 'inherit', textTransform: 'capitalize' }}
               >
                 {f === 'all' ? 'All' : f.charAt(0).toUpperCase() + f.slice(1)}
               </button>
@@ -140,7 +123,7 @@ export default function IdentityPage() {
           </div>
           <button
             className="btn btn-primary"
-            onClick={() => showToast('Opening Agent Registration Wizard...')}
+            onClick={() => setModalOpen(true)}
           >
             Register New Agent
           </button>
@@ -218,6 +201,12 @@ export default function IdentityPage() {
           </tbody>
         </table>
       </div>
+
+      <AgentRegistrationModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onSuccess={() => { setModalOpen(false); load(); }}
+      />
 
       {/* Footer meta */}
       {!loading && (

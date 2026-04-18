@@ -94,52 +94,27 @@ export default function ConflictPage() {
       </div>
 
       {/* KPI strip */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(4, 1fr)',
-        gap: '1px',
-        background: 'var(--border-subtle)',
-        border: '1px solid var(--border-default)',
-        borderRadius: 'var(--radius-lg)',
-        overflow: 'hidden',
-        marginBottom: '1.75rem',
-      }}>
+      <div className="kpi-strip">
         {[
-          { label: 'Total Mediated',   value: '1,842', color: undefined },
-          { label: 'Blocked (24h)',    value: String(blocked + 24), color: 'var(--danger)' },
-          { label: 'Queued',           value: String(queued + 7),   color: 'var(--warning)' },
-          { label: 'Active Policies',  value: String(POLICIES.length), color: undefined },
+          { label: 'Total Mediated',  value: '1,842',                color: undefined },
+          { label: 'Blocked (24h)',   value: String(blocked + 24),   color: 'var(--danger)'  },
+          { label: 'Queued',          value: String(queued + 7),     color: 'var(--warning)' },
+          { label: 'Active Policies', value: String(POLICIES.length), color: undefined },
         ].map((k, i) => (
-          <div key={i} style={{ background: 'var(--bg-surface-1)', padding: '1.25rem 1.5rem' }}>
+          <div key={i} className="kpi-card">
             <div className="kpi-label">{k.label}</div>
-            <div className="kpi-value" style={{ color: k.color }}>{k.value}</div>
+            <div className="kpi-value" style={k.color ? { color: k.color } : undefined}>{k.value}</div>
           </div>
         ))}
       </div>
 
       {/* Tab bar */}
-      <div style={{
-        display: 'flex',
-        gap: '0',
-        borderBottom: '1px solid var(--border-default)',
-        marginBottom: '1.5rem',
-      }}>
+      <div className="tab-bar">
         {(['feed', 'policies'] as const).map(t => (
           <button
             key={t}
             onClick={() => setTab(t)}
-            style={{
-              padding: '0.625rem 1rem',
-              fontSize: '0.8125rem',
-              fontWeight: 500,
-              background: 'transparent',
-              border: 'none',
-              borderBottom: `2px solid ${tab === t ? 'var(--accent)' : 'transparent'}`,
-              color: tab === t ? 'var(--text-primary)' : 'var(--text-muted)',
-              cursor: 'pointer',
-              transition: 'color var(--t-fast)',
-              marginBottom: '-1px',
-            }}
+            className={`tab${tab === t ? ' active' : ''}`}
           >
             {t === 'feed' ? 'Intent Feed' : 'Policies'}
           </button>
@@ -166,17 +141,17 @@ export default function ConflictPage() {
                 const { label, cls } = INTENT_STATUS[item.status];
                 return (
                   <tr key={item.id} style={{
-                    background: item.status === 'block' ? 'rgba(248,113,113,0.02)' : undefined,
+                    background: item.status === 'block' ? 'var(--danger-soft)' : undefined,
                   }}>
-                    <td><span className="mono" style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{item.id}</span></td>
+                    <td><span className="t-mono" style={{ color: 'var(--text-tertiary)' }}>{item.id}</span></td>
                     <td><span style={{ fontWeight: 600 }}>{item.agent}</span></td>
                     <td style={{ maxWidth: '220px' }}>
                       <span style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)' }}>"{item.intent}"</span>
                     </td>
                     <td><SimilarityBar value={item.similarity} /></td>
                     <td><span className={cls}>{label}</span></td>
-                    <td style={{ color: 'var(--text-muted)', fontSize: '0.8125rem' }}>{item.reason}</td>
-                    <td style={{ color: 'var(--text-muted)', fontSize: '0.8125rem', whiteSpace: 'nowrap' }}>{item.ts}</td>
+                    <td className="text-tertiary t-body-sm">{item.reason}</td>
+                    <td className="text-tertiary t-body-sm" style={{ whiteSpace: 'nowrap' }}>{item.ts}</td>
                   </tr>
                 );
               })}
@@ -204,7 +179,7 @@ export default function ConflictPage() {
                 <tr key={p.id}>
                   <td>
                     <div style={{ fontWeight: 600, fontSize: '0.875rem' }}>{p.name}</div>
-                    <div className="mono" style={{ fontSize: '0.6875rem', color: 'var(--text-muted)', marginTop: '1px' }}>{p.id}</div>
+                    <div className="t-mono" style={{ color: 'var(--text-tertiary)', marginTop: '1px' }}>{p.id}</div>
                   </td>
                   <td><span className="badge badge-neutral" style={{ textTransform: 'none', letterSpacing: 0, fontWeight: 500, fontSize: '0.75rem' }}>{p.category}</span></td>
                   <td style={{ color: 'var(--text-secondary)', fontSize: '0.8125rem' }}>{p.description}</td>

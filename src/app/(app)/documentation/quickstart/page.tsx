@@ -219,54 +219,14 @@ function CodeBlock({ code, language }: { code: string; language: string }) {
   };
 
   return (
-    <div
-      style={{
-        position: 'relative',
-        background: '#0d1117',
-        border: '1px solid #21262d',
-        borderRadius: 8,
-        overflow: 'hidden',
-      }}
-    >
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          padding: '8px 16px',
-          background: '#161b22',
-          borderBottom: '1px solid #21262d',
-        }}
-      >
-        <span style={{ fontSize: 11, color: '#8b949e', fontFamily: 'monospace' }}>
-          {language}
-        </span>
-        <button
-          onClick={handleCopy}
-          style={{
-            background: 'transparent',
-            border: '1px solid #30363d',
-            borderRadius: 4,
-            color: '#8b949e',
-            padding: '3px 10px',
-            fontSize: 11,
-            cursor: 'pointer',
-          }}
-        >
+    <div style={{ position: 'relative', background: 'var(--surface-2)', border: '1px solid var(--border-default)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 1rem', background: 'var(--surface-3)', borderBottom: '1px solid var(--border-subtle)' }}>
+        <span className="t-mono" style={{ fontSize: '0.6875rem', color: 'var(--text-tertiary)' }}>{language}</span>
+        <button className="btn btn-ghost" onClick={handleCopy} style={{ fontSize: '0.6875rem', padding: '0.125rem 0.5rem' }}>
           {copied ? '✓ Copied' : 'Copy'}
         </button>
       </div>
-      <pre
-        style={{
-          margin: 0,
-          padding: '16px',
-          overflowX: 'auto',
-          fontSize: 13,
-          lineHeight: 1.6,
-          color: '#c9d1d9',
-          fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
-        }}
-      >
+      <pre style={{ margin: 0, padding: '1rem', overflowX: 'auto', fontSize: '0.8125rem', lineHeight: 1.6, color: 'var(--text-secondary)', fontFamily: "'JetBrains Mono', 'Fira Code', monospace" }}>
         <code>{code}</code>
       </pre>
     </div>
@@ -283,37 +243,12 @@ export default function QuickstartPage() {
   };
 
   return (
-    <div
-      style={{
-        color: '#e5e5e5',
-        fontFamily: 'Inter, system-ui, sans-serif',
-        maxWidth: 800,
-        margin: '0 auto',
-        padding: '40px 32px',
-      }}
-    >
+    <div style={{ maxWidth: '800px' }}>
       {/* Header */}
-      <div style={{ marginBottom: 40 }}>
-        <div
-          style={{
-            display: 'inline-block',
-            background: '#10b981',
-            color: '#fff',
-            fontSize: 11,
-            fontWeight: 600,
-            textTransform: 'uppercase',
-            letterSpacing: 1,
-            padding: '3px 10px',
-            borderRadius: 3,
-            marginBottom: 12,
-          }}
-        >
-          Quickstart
-        </div>
-        <h1 style={{ fontSize: 32, fontWeight: 700, margin: '0 0 12px' }}>
-          Protect your first AI agent in 5 minutes
-        </h1>
-        <p style={{ color: '#737373', fontSize: 16, lineHeight: 1.6, margin: 0 }}>
+      <div style={{ marginBottom: '2rem' }}>
+        <span className="badge badge-success" style={{ marginBottom: '0.75rem', display: 'inline-block' }}>Quickstart</span>
+        <h1 className="page-title" style={{ fontSize: '1.75rem', marginBottom: '0.75rem' }}>Protect your first AI agent in 5 minutes</h1>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '1rem', lineHeight: 1.6, margin: 0 }}>
           RuneSignal is the AI Agent Action Firewall — a policy evaluation layer that sits between
           your AI agent and consequential actions. Every action is checked against your policies,
           risk profile, and compliance rules before execution.
@@ -321,86 +256,37 @@ export default function QuickstartPage() {
       </div>
 
       {/* Language tabs */}
-      <div
-        style={{
-          display: 'flex',
-          gap: 8,
-          marginBottom: 32,
-          position: 'sticky',
-          top: 16,
-          zIndex: 10,
-          background: '#0a0a0a',
-          padding: '12px 0',
-          borderBottom: '1px solid #2a2a2a',
-        }}
-      >
+      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', position: 'sticky', top: 0, zIndex: 10, background: 'var(--canvas)', padding: '0.75rem 0', borderBottom: '1px solid var(--border-subtle)' }}>
         {(Object.keys(langLabels) as Lang[]).map(l => (
-          <button
-            key={l}
-            onClick={() => setLang(l)}
-            style={{
-              background: lang === l ? '#10b981' : '#1a1a1a',
-              border: `1px solid ${lang === l ? '#10b981' : '#2a2a2a'}`,
-              borderRadius: 6,
-              color: lang === l ? '#fff' : '#a3a3a3',
-              padding: '7px 16px',
-              cursor: 'pointer',
-              fontSize: 13,
-              fontWeight: 500,
-            }}
-          >
+          <button key={l} onClick={() => setLang(l)} className={`btn ${lang === l ? 'btn-primary' : 'btn-outline'}`} style={{ fontSize: '0.8125rem' }}>
             {langLabels[l]}
           </button>
         ))}
       </div>
 
       {/* Steps */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 40 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
         {STEPS.map((step, idx) => (
           <div key={step.id}>
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16, marginBottom: 16 }}>
-              <div
-                style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: '50%',
-                  background: '#10b981',
-                  color: '#fff',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: 14,
-                  fontWeight: 700,
-                  flexShrink: 0,
-                }}
-              >
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem', marginBottom: '1rem' }}>
+              <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--accent)', color: 'var(--text-inverse)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.875rem', fontWeight: 700, flexShrink: 0 }}>
                 {idx + 1}
               </div>
               <div>
-                <h2 style={{ fontSize: 18, fontWeight: 600, margin: '4px 0 4px' }}>
-                  {step.title.replace(/^\d+\.\s/, '')}
-                </h2>
-                <p style={{ color: '#737373', fontSize: 14, margin: 0 }}>
-                  {step.description}
-                </p>
+                <h2 style={{ fontSize: '1.0625rem', fontWeight: 600, margin: '0.25rem 0' }}>{step.title.replace(/^\d+\.\s/, '')}</h2>
+                <p className="t-body-sm text-secondary" style={{ margin: 0 }}>{step.description}</p>
               </div>
             </div>
-            <CodeBlock
-              code={CODE_SAMPLES[step.id][lang]}
-              language={lang === 'node' ? 'TypeScript' : lang === 'python' ? 'Python' : 'Shell'}
-            />
+            <CodeBlock code={CODE_SAMPLES[step.id][lang]} language={lang === 'node' ? 'TypeScript' : lang === 'python' ? 'Python' : 'Shell'} />
           </div>
         ))}
       </div>
 
       {/* Response format */}
-      <div style={{ marginTop: 56, marginBottom: 32 }}>
-        <h2 style={{ fontSize: 20, fontWeight: 600, marginBottom: 8 }}>
-          Firewall Response Format
-        </h2>
-        <p style={{ color: '#737373', fontSize: 14, marginBottom: 20 }}>
-          Every call to <code style={{ color: '#10b981' }}>/api/v1/firewall/evaluate</code> returns
-          a structured verdict with full reasoning.
+      <div style={{ marginTop: '3rem', marginBottom: '1.5rem' }}>
+        <h2 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '0.5rem' }}>Firewall Response Format</h2>
+        <p className="t-body-sm text-secondary" style={{ marginBottom: '1rem' }}>
+          Every call to <code className="t-mono" style={{ color: 'var(--accent)' }}>/api/v1/firewall/evaluate</code> returns a structured verdict with full reasoning.
         </p>
         <CodeBlock
           language="JSON"
@@ -423,74 +309,19 @@ export default function QuickstartPage() {
       </div>
 
       {/* Links */}
-      <div
-        style={{
-          background: '#111',
-          border: '1px solid #2a2a2a',
-          borderRadius: 8,
-          padding: 24,
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: 16,
-          marginTop: 40,
-        }}
-      >
-        <div>
-          <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>
-            📖 Full API Reference
+      <div className="surface" style={{ padding: '1.5rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '2rem' }}>
+        {[
+          { icon: '📖', title: 'Full API Reference', desc: 'Complete documentation for all 30+ API endpoints with interactive Try It console.', href: '/documentation', cta: 'Open API Reference →' },
+          { icon: '🔑', title: 'Get an API Key', desc: 'Generate an API key from your account settings to authenticate SDK and API calls.', href: '/account-settings', cta: 'Account Settings →' },
+          { icon: '🛡️', title: 'Policy Packs', desc: 'Install pre-built HIPAA, SOX, GDPR, or PCI-DSS policy packs with one click.', href: '/policies', cta: 'Browse Policy Packs →' },
+          { icon: '⚙️', title: 'Integrate Approvals', desc: 'Connect Slack, Teams, Jira, or ServiceNow for interactive HITL approval workflows.', href: '/account-settings/integrations', cta: 'Configure Integrations →' },
+        ].map(item => (
+          <div key={item.href}>
+            <div style={{ fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.25rem' }}>{item.icon} {item.title}</div>
+            <div className="t-caption" style={{ marginBottom: '0.5rem' }}>{item.desc}</div>
+            <a href={item.href} style={{ fontSize: '0.75rem', color: 'var(--accent)', textDecoration: 'none' }}>{item.cta}</a>
           </div>
-          <div style={{ fontSize: 12, color: '#737373' }}>
-            Complete documentation for all 30+ API endpoints with interactive Try It console.
-          </div>
-          <a
-            href="/documentation"
-            style={{ display: 'block', fontSize: 12, color: '#10b981', marginTop: 8 }}
-          >
-            Open API Reference →
-          </a>
-        </div>
-        <div>
-          <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>
-            🔑 Get an API Key
-          </div>
-          <div style={{ fontSize: 12, color: '#737373' }}>
-            Generate an API key from your account settings to authenticate SDK and API calls.
-          </div>
-          <a
-            href="/account-settings"
-            style={{ display: 'block', fontSize: 12, color: '#10b981', marginTop: 8 }}
-          >
-            Account Settings →
-          </a>
-        </div>
-        <div>
-          <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>
-            🛡️ Policy Packs
-          </div>
-          <div style={{ fontSize: 12, color: '#737373' }}>
-            Install pre-built HIPAA, SOX, GDPR, or PCI-DSS policy packs with one click.
-          </div>
-          <a
-            href="/policies"
-            style={{ display: 'block', fontSize: 12, color: '#10b981', marginTop: 8 }}
-          >
-            Browse Policy Packs →
-          </a>
-        </div>
-        <div>
-          <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>
-            ⚙️ Integrate Approvals
-          </div>
-          <div style={{ fontSize: 12, color: '#737373' }}>
-            Connect Slack, Teams, Jira, or ServiceNow for interactive HITL approval workflows.
-          </div>
-          <a
-            href="/account-settings/integrations"
-            style={{ display: 'block', fontSize: 12, color: '#10b981', marginTop: 8 }}
-          >
-            Configure Integrations →
-          </a>
-        </div>
+        ))}
       </div>
     </div>
   );

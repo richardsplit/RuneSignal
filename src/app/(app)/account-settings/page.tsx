@@ -103,49 +103,41 @@ export default function AccountSettingsPage() {
   ];
 
   return (
-    <div style={{ padding: '0 2rem' }}>
+    <div style={{ maxWidth: '1100px' }}>
       <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
-          <h1 className="gradient-text" style={{ fontSize: '2rem', marginBottom: '0.25rem' }}>Account & Workspace</h1>
-          <p style={{ color: 'var(--color-text-muted)' }}>Manage your personal profile, security preferences, and integration settings.</p>
+          <h1 className="page-title">Account &amp; Workspace</h1>
+          <p className="page-description">Manage your personal profile, security preferences, and integration settings.</p>
         </div>
         {showToast && (
-          <div className="animate-fade-in" style={{ 
-            background: 'var(--color-primary-emerald)', 
-            color: 'white', 
-            padding: '0.75rem 1.5rem', 
-            borderRadius: 'var(--radius-md)',
-            fontSize: '0.875rem',
-            fontWeight: 600,
-            boxShadow: '0 4px 15px rgba(16, 185, 129, 0.3)'
-          }}>
+          <div className="callout callout-success animate-fade-in" style={{ padding: '0.625rem 1.25rem' }}>
             {toastMessage}
           </div>
         )}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(250px, 1fr) 3fr', gap: '2rem', alignItems: 'start' }}>
-        <div className="glass-panel" style={{ padding: '1rem', position: 'sticky', top: '2rem' }}>
-          <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(220px, 1fr) 3fr', gap: '1.5rem', alignItems: 'start' }}>
+        <div className="surface" style={{ padding: '0.75rem', position: 'sticky', top: '2rem' }}>
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.125rem' }}>
             {tabs.map(tab => (
               <li key={tab.id}>
-                <button 
+                <button
                   onClick={() => setActiveTab(tab.id)}
-                  style={{ 
+                  style={{
                     width: '100%',
                     textAlign: 'left',
-                    padding: '0.75rem 1rem',
+                    padding: '0.625rem 0.875rem',
                     borderRadius: 'var(--radius-sm)',
-                    color: activeTab === tab.id ? 'var(--color-primary-emerald)' : 'var(--color-text-muted)', 
-                    background: activeTab === tab.id ? 'rgba(16, 185, 129, 0.08)' : 'transparent',
+                    color: activeTab === tab.id ? 'var(--accent)' : 'var(--text-secondary)',
+                    background: activeTab === tab.id ? 'var(--accent-dim)' : 'transparent',
                     border: 'none',
-                    fontSize: '0.9rem',
+                    borderLeft: `2px solid ${activeTab === tab.id ? 'var(--accent)' : 'transparent'}`,
+                    fontSize: '0.875rem',
                     fontWeight: activeTab === tab.id ? 600 : 400,
                     cursor: 'pointer',
-                    transition: 'all 0.2s',
-                    borderLeft: `2px solid ${activeTab === tab.id ? 'var(--color-primary-emerald)' : 'transparent'}`
+                    transition: 'all var(--t-fast)',
+                    fontFamily: 'inherit',
                   }}
-                  className={activeTab !== tab.id ? "hover-highlight" : ""}
                 >
                   {tab.label}
                 </button>
@@ -154,7 +146,7 @@ export default function AccountSettingsPage() {
           </ul>
         </div>
 
-        <div className="glass-panel" style={{ padding: '2.5rem', minHeight: '400px' }}>
+        <div className="surface" style={{ padding: '2.5rem', minHeight: '400px' }}>
           {activeTab === 'profile' && (
             <ProfileTab 
               profile={profile} 
