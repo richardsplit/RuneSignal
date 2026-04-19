@@ -29,7 +29,7 @@ This document is the authoritative step-by-step build plan for RuneSignal. It is
 | Phase 2 | HITL Approval Gateway API | ✅ Complete | ~100% |
 | Phase 3 | AI Incident Response & Article 73 | ✅ Complete | ~100% |
 | Phase 4 | Continuous Control Monitoring | ✅ Complete | ~100% |
-| Phase 5 | Agent Identity + Behavior Linkage | ✅ Complete | ~95% |
+| Phase 5 | Agent Identity + Behavior Linkage | ✅ Complete | ~100% |
 | Cross-cutting | RBAC, SDK, idempotency | ⚠️ Partial | ~80% |
 
 ---
@@ -866,7 +866,7 @@ All crons are secured with `CRON_SECRET` env var (Bearer token).
 | M4.5 | Default controls auto-seeded on tenant creation | 4 | ✅ Done — `ControlService.seedDefaults()` idempotent; `POST /api/v1/controls/seed` |
 | M5.1 | Agent detail page with merged behavior timeline | 5 | ✅ Done |
 | M5.2 | EU AI Act risk tier visible in agent list + classifiable | 5 | ✅ Done — colour-coded Tier column in identity list |
-| M5.3 | Veza-format agent export endpoint | 5 | ❌ Pending |
+| M5.3 | Veza-format agent export endpoint | 5 | ✅ Done — `?format=veza` on `GET /api/v1/agents/export` |
 | CT-1 | Review queue badge shows live count from API | Cross | ✅ Done — 60 s polling in Sidebar |
 | CT-2 | Role-based access control for compliance routes | Cross | ❌ Pending (Migration D deferred to CT-2 phase) |
 | CT-3 | Idempotency keys on incident + approval request creation | Cross | ✅ Done |
