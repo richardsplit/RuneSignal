@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 
 interface AnomalyEvent {
   id: string;
@@ -166,13 +167,24 @@ export default function AnomalyDashboard() {
                         {new Date(anomaly.created_at).toLocaleString()}
                       </td>
                       <td>
-                        <button
-                          className="btn btn-ghost"
-                          onClick={() => handleResolve(anomaly.id)}
-                          style={{ fontSize: '0.75rem', padding: '0.2rem 0.6rem' }}
-                        >
-                          Resolve
-                        </button>
+                        <div style={{ display: 'flex', gap: '0.375rem', alignItems: 'center' }}>
+                          {(anomaly.severity === 'critical' || anomaly.severity === 'high') && !anomaly.resolved && (
+                            <Link
+                              href={`/incidents?prefill_anomaly=${anomaly.id}&prefill_agent=${anomaly.agent_id}&prefill_type=${anomaly.anomaly_type}`}
+                              className="btn btn-danger"
+                              style={{ fontSize: '0.7rem', padding: '0.2rem 0.5rem', textDecoration: 'none' }}
+                            >
+                              Open Incident
+                            </Link>
+                          )}
+                          <button
+                            className="btn btn-ghost"
+                            onClick={() => handleResolve(anomaly.id)}
+                            style={{ fontSize: '0.75rem', padding: '0.2rem 0.6rem' }}
+                          >
+                            Resolve
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
