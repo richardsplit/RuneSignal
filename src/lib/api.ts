@@ -32,6 +32,9 @@ export interface AgentCredential {
   created_by?: string;
   created_at: string;
   last_seen_at?: string;
+  eu_ai_act_category?: 'prohibited' | 'high_risk' | 'limited_risk' | 'minimal_risk' | 'unclassified';
+  classification_confidence?: string;
+  classified_at?: string;
 }
 
 export interface ExceptionTicket {

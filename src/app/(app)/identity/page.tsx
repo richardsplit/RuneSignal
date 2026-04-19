@@ -34,6 +34,14 @@ const STATUS_MAP: Record<AgentCredential['status'], { label: string; cls: string
   revoked:   { label: 'Revoked',   cls: 'badge badge-neutral' },
 };
 
+const RISK_TIER_MAP: Record<string, { label: string; cls: string }> = {
+  prohibited:    { label: 'Prohibited',    cls: 'badge badge-danger'   },
+  high_risk:     { label: 'High Risk',     cls: 'badge badge-warning'  },
+  limited_risk:  { label: 'Limited Risk',  cls: 'badge badge-info'     },
+  minimal_risk:  { label: 'Minimal Risk',  cls: 'badge badge-success'  },
+  unclassified:  { label: 'Unclassified',  cls: 'badge badge-neutral'  },
+};
+
 /* ─── Page ───────────────────────────────────────────────────────────── */
 export default function IdentityPage() {
   const { showToast } = useToast();
@@ -136,6 +144,7 @@ export default function IdentityPage() {
               <th>Agent</th>
               <th>Framework</th>
               <th>Status</th>
+              <th>EU AI Act Tier</th>
               <th>Last Seen</th>
               <th>Registered</th>
               <th style={{ textAlign: 'right' }}>Actions</th>
@@ -143,10 +152,10 @@ export default function IdentityPage() {
           </thead>
           <tbody>
             {loading ? (
-              <SkeletonTable rows={5} cols={['40%', '15%', '12%', '15%', '15%', '10%']} />
+              <SkeletonTable rows={5} cols={['35%', '12%', '10%', '13%', '13%', '12%', '10%']} />
             ) : filtered.length === 0 ? (
               <tr>
-                <td colSpan={6} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
+                <td colSpan={7} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
                   No agents match the current filter.
                 </td>
               </tr>
@@ -165,6 +174,16 @@ export default function IdentityPage() {
                     </span>
                   </td>
                   <td><span className={cls}>{label}</span></td>
+                  <td>
+                    {agent.eu_ai_act_category ? (
+                      <span className={RISK_TIER_MAP[agent.eu_ai_act_category]?.cls || 'badge badge-neutral'}
+                        style={{ fontSize: '0.65rem', textTransform: 'none', letterSpacing: 0 }}>
+                        {RISK_TIER_MAP[agent.eu_ai_act_category]?.label || agent.eu_ai_act_category}
+                      </span>
+                    ) : (
+                      <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>—</span>
+                    )}
+                  </td>
                   <td style={{ color: 'var(--text-secondary)', fontSize: '0.8125rem' }}>{relativeTime(agent.last_seen_at)}</td>
                   <td style={{ color: 'var(--text-muted)', fontSize: '0.8125rem' }}>{registered}</td>
                   <td style={{ textAlign: 'right' }}>

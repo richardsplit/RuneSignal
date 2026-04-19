@@ -367,7 +367,7 @@ const NAV_SECTIONS: NavSection[] = [
       { label: 'Provenance', href: '/provenance', icon: <IconProvenance /> },
       { label: 'Conflict Arbiter', href: '/conflict', icon: <IconConflict /> },
       { label: 'Incidents', href: '/incidents', icon: <IconIncidents /> },
-      { label: 'Review Queue', href: '/exceptions', icon: <IconExceptions />, badge: 3 },
+      { label: 'Review Queue', href: '/exceptions', icon: <IconExceptions /> },
       { label: 'Audit Trail', href: '/audit', icon: <IconAudit /> },
     ],
   },
@@ -559,6 +559,25 @@ export default function Sidebar() {
   const [searchHovered, setSearchHovered] = useState(false);
   const [toggleHovered, setToggleHovered] = useState(false);
   const [avatarHovered, setAvatarHovered] = useState(false);
+  const [reviewQueueCount, setReviewQueueCount] = useState<number | null>(null);
+
+  // Live review queue badge
+  useEffect(() => {
+    async function fetchQueueCount() {
+      try {
+        const res = await fetch('/api/v1/exceptions');
+        if (!res.ok) return;
+        const data = await res.json();
+        const open = Array.isArray(data) ? data.filter((t: any) => t.status === 'open').length : 0;
+        setReviewQueueCount(open);
+      } catch {
+        // silently keep null
+      }
+    }
+    fetchQueueCount();
+    const iv = setInterval(fetchQueueCount, 60_000);
+    return () => clearInterval(iv);
+  }, []);
 
   // ⌘K handler
   useEffect(() => {
@@ -718,14 +737,20 @@ export default function Sidebar() {
             )}
 
             {/* Items */}
-            {section.items.map((item) => (
-              <NavItemRow
-                key={item.href}
-                item={item}
-                isActive={isActive(item.href)}
-                collapsed={collapsed}
-              />
-            ))}
+            {section.items.map((item) => {
+              const dynamicItem =
+                item.href === '/exceptions' && reviewQueueCount !== null
+                  ? { ...item, badge: reviewQueueCount > 99 ? '99+' : reviewQueueCount }
+                  : item;
+              return (
+                <NavItemRow
+                  key={item.href}
+                  item={dynamicItem}
+                  isActive={isActive(item.href)}
+                  collapsed={collapsed}
+                />
+              );
+            })}
           </div>
         ))}
       </nav>
