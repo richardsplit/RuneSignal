@@ -91,10 +91,20 @@ export function requiredRoleForApiPath(path: string): Role | null {
 // ---------------------------------------------------------------------------
 
 /**
- * Resolves the role for a user within a tenant.
- * Gracefully returns 'owner' if:
- *  - tenant_memberships table does not yet have a role column (Migration D pending)
- *  - user has no membership record
+ * Maps legacy role values from tenant_members to the RuneSignal Role type.
+ * tenant_members.role may be: 'owner' | 'admin' | 'member'
+ * Migration 053 will add fine-grained values: 'compliance_officer' | 'engineer' | 'auditor'
+ */
+function normaliseLegacyRole(raw: string): Role {
+  if (ROLE_RANK[raw as Role] !== undefined) return raw as Role;
+  if (raw === 'admin')  return 'compliance_officer';
+  if (raw === 'member') return 'engineer';
+  return 'owner';
+}
+
+/**
+ * Resolves the role for a user within a tenant from tenant_members.
+ * Falls back to 'owner' if no membership record exists.
  */
 export async function resolveUserRole(
   userId: string,
@@ -103,18 +113,14 @@ export async function resolveUserRole(
   try {
     const supabase = createAdminClient();
     const { data, error } = await supabase
-      .from('tenant_memberships')
+      .from('tenant_members')
       .select('role')
       .eq('user_id', userId)
       .eq('tenant_id', tenantId)
       .maybeSingle();
 
     if (error || !data) return 'owner';
-
-    const role = data.role as Role | null;
-    if (!role || !ROLE_RANK[role]) return 'owner';
-
-    return role;
+    return normaliseLegacyRole(String(data.role ?? ''));
   } catch {
     return 'owner';
   }
