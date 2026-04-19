@@ -383,9 +383,9 @@ File: `lib/services/incident-auto-detector.ts` — dedup within 24h window, from
 | Scheduled evaluation cron (15-min sweep) | ✅ Done | `src/app/api/cron/control-monitor/route.ts` |
 | Breach notifications via IntegrationDispatcher | ✅ Done | `src/app/api/cron/control-monitor/route.ts` |
 | Dashboard Controls KPI card (failing count, pass rate) | ✅ Done | `src/app/(app)/dashboard/page.tsx` |
-| Real-time evaluation wiring (event hooks) | ❌ Not started | — |
-| Controls in evidence exports | ❌ Not started | — |
-| Auto-seed controls on tenant creation | ❌ Not started | — |
+| Real-time evaluation wiring (event hooks) | ❌ Out of scope (Session 3) | — |
+| Controls in evidence exports | ✅ Done | `EvidenceService.generate()` → `control_status` snapshot |
+| Auto-seed controls on tenant creation | ✅ Done | `ControlService.seedDefaults()` + `POST /api/v1/controls/seed` |
 
 ---
 
@@ -531,10 +531,10 @@ Handled inside `src/app/api/cron/control-monitor/route.ts` via `IntegrationDispa
 | "View →" link from identity list → detail | ✅ Done | `src/app/(app)/identity/page.tsx` |
 | Classify + Suspend actions on agent detail | ✅ Done | `src/app/(app)/identity/[id]/page.tsx` |
 | Evidence contributions panel on agent detail | ✅ Done | `src/app/(app)/identity/[id]/page.tsx` |
-| EU AI Act risk tier column in identity list | ❌ Not started | `src/app/(app)/identity/page.tsx` |
-| "Agents by tool" query surface | ❌ Not started | — |
-| IAM integration export (Veza/Okta format) | ❌ Not started | `src/app/api/v1/agents/export/route.ts` |
-| Incident/evidence filter by agent | ❌ Not started | `src/app/(app)/incidents/page.tsx` |
+| EU AI Act risk tier column in identity list | ✅ Done | `src/app/(app)/identity/page.tsx` — colour-coded badge |
+| "Agents by tool" query surface | ❌ Out of scope (Session 3) | — |
+| IAM integration export (Veza/Okta format) | ✅ Done | `GET /api/v1/agents/export?format=veza` |
+| Incident/evidence filter by agent | ❌ Out of scope (Session 3) | — |
 
 ---
 
@@ -646,7 +646,7 @@ File: `src/app/(app)/identity/[id]/page.tsx` — two-column layout, fan-out time
 
 ## Cross-cutting Technical Workstreams
 
-### CT-1 — Live Review Queue Badge Count ❌ NOT STARTED
+### CT-1 — Live Review Queue Badge Count ✅ COMPLETE (April 19, 2026)
 **Files to edit:**
 - `src/components/Sidebar.tsx`
 
@@ -677,7 +677,7 @@ File: `src/app/(app)/identity/[id]/page.tsx` — two-column layout, fan-out time
 
 ---
 
-### CT-3 — Idempotency Keys on Critical Paths ❌ NOT STARTED
+### CT-3 — Idempotency Keys on Critical Paths ✅ COMPLETE (April 19, 2026)
 **Files to edit:**
 - `src/app/api/v1/incidents/route.ts`
 - `src/app/api/v1/approval-requests/route.ts`
@@ -690,7 +690,7 @@ File: `src/app/(app)/identity/[id]/page.tsx` — two-column layout, fan-out time
 
 ---
 
-### CT-4 — SDK README and Developer Reference ❌ NOT STARTED
+### CT-4 — SDK Approval Gateway Example ✅ COMPLETE (April 19, 2026)
 **Files to create/edit:**
 - `lib/sdk/README.md`
 - `lib/sdk/index.ts` — ensure all endpoints are exported
