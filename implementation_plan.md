@@ -142,7 +142,7 @@ This document is the authoritative step-by-step build plan for RuneSignal. It is
 | SLA timer enforcement (auto-escalate/deny) | ✅ Done | `src/app/api/cron/sla-check/route.ts` + `HitlService.checkSlas()` |
 | Auto-approve policy rule | ✅ Done | `ENABLE_AUTO_APPROVE` env var in `src/app/api/v1/approval-requests/route.ts` |
 | Signed receipts in evidence bundles | ✅ Done | `EvidenceService.generate()` → `hitl_receipts` field |
-| Approval metrics endpoint | ⚠️ Partial | `src/app/api/v1/metrics/` |
+| Approval metrics endpoint | ✅ Done | `src/app/api/v1/metrics/route.ts` — approvals, incidents, controls, health_status |
 | TypeScript SDK approval gateway example | ✅ Done | `examples/approval-gateway.ts` |
 
 ---
