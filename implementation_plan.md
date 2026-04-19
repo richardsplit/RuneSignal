@@ -1,6 +1,6 @@
 # RuneSignal — Detailed Implementation Plan
 ### Phases 1–5 | Gap-Analysis-Driven Build Roadmap
-### Last updated: April 19, 2026
+### Last updated: April 19, 2026 (Session 2)
 
 > **Status legend**  
 > ✅ Done · ⚠️ Partial · ❌ Not yet started
@@ -25,12 +25,12 @@ This document is the authoritative step-by-step build plan for RuneSignal. It is
 
 | Phase | Area | Status | Completion |
 |---|---|---|---|
-| Phase 1 | EU AI Act & ISO 42001 Evidence UI | ⚠️ Partial | ~75% |
-| Phase 2 | HITL Approval Gateway API | ⚠️ Partial | ~80% |
+| Phase 1 | EU AI Act & ISO 42001 Evidence UI | ✅ Complete | ~100% |
+| Phase 2 | HITL Approval Gateway API | ✅ Complete | ~100% |
 | Phase 3 | AI Incident Response & Article 73 | ✅ Complete | ~100% |
-| Phase 4 | Continuous Control Monitoring | ✅ Complete | ~95% |
-| Phase 5 | Agent Identity + Behavior Linkage | ⚠️ Partial | ~80% |
-| Cross-cutting | RBAC, SDK, idempotency | ❌ Partial | ~20% |
+| Phase 4 | Continuous Control Monitoring | ✅ Complete | ~100% |
+| Phase 5 | Agent Identity + Behavior Linkage | ✅ Complete | ~95% |
+| Cross-cutting | RBAC, SDK, idempotency | ⚠️ Partial | ~80% |
 
 ---
 
@@ -47,9 +47,9 @@ This document is the authoritative step-by-step build plan for RuneSignal. It is
 | Evidence Wizard UI (5-step) | ✅ Done | `src/app/(app)/compliance/evidence/page.tsx` |
 | Compliance Reports page | ✅ Done | `src/app/(app)/compliance/reports/page.tsx` |
 | Clause mapping tables (EU AI Act, ISO 42001) | ⚠️ Hardcoded | `src/app/(app)/compliance/evidence/page.tsx:158-172` |
-| Coverage preview with real data | ❌ Missing | — |
-| Agent/system selection in wizard | ❌ Missing | — |
-| Evidence history page | ❌ Missing | `src/app/(app)/compliance/evidence/history/` (empty dir) |
+| Coverage preview with real data | ✅ Done | `src/app/api/v1/compliance/evidence-preview/route.ts` + `EvidenceService.preview()` |
+| Agent/system selection in wizard | ✅ Done | Step 1 of 6-step wizard in `src/app/(app)/compliance/evidence/page.tsx` |
+| Evidence history page | ✅ Done | `src/app/(app)/compliance/evidence/history/page.tsx` |
 | HIPAA / SOC 2 / GDPR clause mappings | ❌ Missing | — |
 
 ---
@@ -849,11 +849,11 @@ All crons are secured with `CRON_SECRET` env var (Bearer token).
 
 | Milestone | Description | Phase | Status |
 |---|---|---|---|
-| M1.1 | Evidence wizard shows real clause coverage from live data | 1 | ❌ Pending |
-| M1.2 | Evidence wizard includes agent/system selector as Step 0 | 1 | ❌ Pending |
-| M1.3 | Evidence history page lists all past bundles | 1 | ❌ Pending |
-| M2.1 | SLA sweep auto-denies/escalates overdue approval requests | 2 | ❌ Pending |
-| M2.2 | HITL signed receipts included in evidence bundles | 2 | ❌ Pending |
+| M1.1 | Evidence wizard shows real clause coverage from live data | 1 | ✅ Done |
+| M1.2 | Evidence wizard includes agent/system selector as Step 0 | 1 | ✅ Done |
+| M1.3 | Evidence history page lists all past bundles | 1 | ✅ Done |
+| M2.1 | SLA sweep auto-denies/escalates overdue approval requests | 2 | ✅ Done |
+| M2.2 | HITL signed receipts included in evidence bundles | 2 | ✅ Done |
 | M3.1 | Incidents list page live with create/filter/status | 3 | ✅ Done |
 | M3.2 | Incident detail page with timeline, commander, root cause | 3 | ✅ Done |
 | M3.3 | Art73 report generated and downloadable from incident detail | 3 | ✅ Done |
@@ -862,10 +862,13 @@ All crons are secured with `CRON_SECRET` env var (Bearer token).
 | M4.1 | Control monitoring dashboard live with seed + evaluate | 4 | ✅ Done |
 | M4.2 | Daily cron evaluates all scheduled controls | 4 | ✅ Done |
 | M4.3 | Control breach triggers Slack notification | 4 | ✅ Done |
-| M4.4 | Evidence bundles include control status snapshot | 4 | ❌ Pending |
+| M4.4 | Evidence bundles include control status snapshot | 4 | ✅ Done |
+| M4.5 | Default controls auto-seeded on tenant creation | 4 | ✅ Done — `ControlService.seedDefaults()` idempotent; `POST /api/v1/controls/seed` |
 | M5.1 | Agent detail page with merged behavior timeline | 5 | ✅ Done |
-| M5.2 | EU AI Act risk tier visible in agent list + classifiable | 5 | ⚠️ Partial (detail only) |
+| M5.2 | EU AI Act risk tier visible in agent list + classifiable | 5 | ✅ Done — colour-coded Tier column in identity list |
 | M5.3 | Veza-format agent export endpoint | 5 | ❌ Pending |
-| CT-1 | Review queue badge shows live count from API | Cross | ❌ Pending |
-| CT-2 | Role-based access control for compliance routes | Cross | ❌ Pending |
-| CT-3 | Idempotency keys on incident + approval request creation | Cross | ❌ Pending |
+| CT-1 | Review queue badge shows live count from API | Cross | ✅ Done — 60 s polling in Sidebar |
+| CT-2 | Role-based access control for compliance routes | Cross | ❌ Pending (Migration D deferred to CT-2 phase) |
+| CT-3 | Idempotency keys on incident + approval request creation | Cross | ✅ Done |
+| CT-4 | SDK approval gateway example | Cross | ✅ Done — `examples/approval-gateway.ts` |
+| CT-5 | Policy auto-approve for low blast-radius comms | Cross | ✅ Done — `ENABLE_AUTO_APPROVE` env var gate |
