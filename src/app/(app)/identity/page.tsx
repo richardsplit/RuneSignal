@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useToast } from '@/components/ToastProvider';
 import { agents as agentsApi, AgentCredential, ApiError } from '@/lib/api';
 import { ApiErrorBanner, SkeletonTable } from '@/components/Skeleton';
@@ -168,6 +169,13 @@ export default function IdentityPage() {
                   <td style={{ color: 'var(--text-muted)', fontSize: '0.8125rem' }}>{registered}</td>
                   <td style={{ textAlign: 'right' }}>
                     <div style={{ display: 'flex', gap: '0.375rem', justifyContent: 'flex-end' }}>
+                      <Link
+                        href={`/identity/${agent.id}`}
+                        className="btn btn-ghost"
+                        style={{ fontSize: '0.75rem', padding: '0.3rem 0.625rem', textDecoration: 'none', display: 'inline-block' }}
+                      >
+                        View →
+                      </Link>
                       <button
                         className="btn btn-ghost"
                         style={{ fontSize: '0.75rem', padding: '0.3rem 0.625rem' }}

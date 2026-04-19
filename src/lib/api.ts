@@ -277,6 +277,47 @@ export const incidents = {
     apiFetch<{ id: string }>(`/incidents/${id}/corrective-actions`, { method: 'POST', body: JSON.stringify(body) }),
 };
 
+export interface AgentTimelineEvent {
+  source: 'audit' | 'firewall' | 'hitl' | 'anomaly' | 'incident';
+  event: Record<string, unknown>;
+  timestamp: string;
+}
+
+export interface AgentBehaviorSummary {
+  total_actions: number;
+  blocked_actions: number;
+  hitl_escalations: number;
+  anomalies: number;
+  incidents: number;
+}
+
+export interface AgentBehaviorResult {
+  agent: Record<string, unknown>;
+  events: AgentTimelineEvent[];
+  summary: AgentBehaviorSummary;
+}
+
+/* extend agents namespace */
+export const agentBehavior = {
+  getTimeline: (agentId: string, params?: { start?: string; end?: string; limit?: number }) => {
+    const q = new URLSearchParams();
+    if (params?.start)  q.set('start', params.start);
+    if (params?.end)    q.set('end', params.end);
+    if (params?.limit)  q.set('limit', String(params.limit));
+    const qs = q.toString();
+    return apiFetch<AgentBehaviorResult>(`/agents/${agentId}/behavior${qs ? '?' + qs : ''}`);
+  },
+
+  getEvidence: (agentId: string) =>
+    apiFetch<{ contributions: Array<{ report_id: string; report_type: string; generated_at: string; regulation: string }> }>(`/agents/${agentId}/evidence`),
+
+  classify: (agentId: string) =>
+    apiFetch<{ eu_ai_act_category: string; confidence: string; reasoning: string }>(`/agents/${agentId}/classification`, { method: 'POST' }),
+
+  suspend: (agentId: string, reason?: string) =>
+    apiFetch<{ success: boolean }>(`/agents/${agentId}/suspend`, { method: 'POST', body: JSON.stringify({ reason }) }),
+};
+
 /* ─── Controls ───────────────────────────────────────────────────────── */
 export type ControlStatus   = 'passing' | 'failing' | 'warning' | 'not_evaluated';
 export type ControlSeverity = 'low' | 'medium' | 'high' | 'critical';
