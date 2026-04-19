@@ -3,19 +3,21 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { createBrowserClient } from '@lib/db/supabase';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
 const BOOK_DEMO_URL = 'https://runesignal.com/demo';
 
 export default function LoginPage() {
-  const searchParams = useSearchParams();
-  const isAdmin = searchParams.get('admin') === '1';
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    if (!isAdmin) {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('admin') === '1') {
+      setIsAdmin(true);
+    } else {
       window.location.replace(BOOK_DEMO_URL);
     }
-  }, [isAdmin]);
+  }, []);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
