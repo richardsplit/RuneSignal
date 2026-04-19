@@ -84,6 +84,31 @@ export async function POST(req: NextRequest) {
       ? body.regulation_refs
       : ACTION_REGULATION_MAP[body.action.category as ActionCategory] || [];
 
+    // 4a. Idempotency — return existing ticket if same key seen within 24h
+    const idempotencyKey = req.headers.get('idempotency-key');
+    if (idempotencyKey) {
+      const supabase = createAdminClient();
+      const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      const { data: existing } = await supabase
+        .from('hitl_exceptions')
+        .select('id, status, sla_deadline, context_data, created_at')
+        .eq('tenant_id', tenantId)
+        .gte('created_at', dayAgo)
+        .filter('context_data->>idempotency_key', 'eq', idempotencyKey)
+        .limit(1)
+        .maybeSingle();
+      if (existing) {
+        return NextResponse.json({
+          id: existing.id,
+          status: existing.status === 'open' ? 'pending' : existing.status,
+          blast_radius: existing.context_data?.blast_radius || null,
+          sla: { deadline: existing.sla_deadline, auto_action: existing.context_data?.sla_auto_action || 'escalate' },
+          regulation_refs: existing.context_data?.regulation_refs || [],
+          channels_notified: [],
+        }, { status: 200, headers: { 'Idempotent-Replayed': 'true' } });
+      }
+    }
+
     // 4b. Policy-based auto-approve (ENABLE_AUTO_APPROVE=true + low blast-radius comms)
     const autoApproveEnabled = process.env.ENABLE_AUTO_APPROVE === 'true';
     if (autoApproveEnabled && blastRadius.level === 'low' && body.action.category === 'comms') {
@@ -99,6 +124,7 @@ export async function POST(req: NextRequest) {
           regulation_refs: regulationRefs,
           blast_radius: blastRadius,
           sla_auto_action: 'approve',
+          ...(idempotencyKey ? { idempotency_key: idempotencyKey } : {}),
         },
       });
       await HitlService.resolveException(tenantId, ticket.id, {
@@ -137,6 +163,7 @@ export async function POST(req: NextRequest) {
         blast_radius: blastRadius,
         sla_auto_action: body.sla?.auto_action || 'escalate',
         routing_channels: body.routing?.channels,
+        ...(idempotencyKey ? { idempotency_key: idempotencyKey } : {}),
       },
     });
 

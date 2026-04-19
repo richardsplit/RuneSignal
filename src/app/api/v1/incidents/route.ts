@@ -77,6 +77,29 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Idempotency — deduplicate within a 5-minute window by title+category+reported_by
+    const idempotencyKey = req.headers.get('idempotency-key');
+    if (idempotencyKey) {
+      const supabase = createAdminClient();
+      const windowStart = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+      const { data: existing } = await supabase
+        .from('incidents')
+        .select('*')
+        .eq('tenant_id', tenantId)
+        .eq('title', body.title)
+        .eq('category', body.category)
+        .eq('reported_by', body.reported_by)
+        .gte('created_at', windowStart)
+        .limit(1)
+        .maybeSingle();
+      if (existing) {
+        return NextResponse.json(existing, {
+          status: 200,
+          headers: { 'Idempotent-Replayed': 'true' },
+        });
+      }
+    }
+
     const incident = await IncidentService.create({
       tenant_id: tenantId,
       title: body.title,
