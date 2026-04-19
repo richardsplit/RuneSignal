@@ -1,11 +1,22 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { createBrowserClient } from '@lib/db/supabase';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+
+const BOOK_DEMO_URL = 'https://runesignal.com/demo';
 
 export default function LoginPage() {
+  const searchParams = useSearchParams();
+  const isAdmin = searchParams.get('admin') === '1';
+
+  useEffect(() => {
+    if (!isAdmin) {
+      window.location.replace(BOOK_DEMO_URL);
+    }
+  }, [isAdmin]);
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -13,6 +24,8 @@ export default function LoginPage() {
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const router = useRouter();
   const supabase = createBrowserClient();
+
+  if (!isAdmin) return null;
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();

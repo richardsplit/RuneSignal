@@ -54,6 +54,18 @@ export async function middleware(request: NextRequest) {
   // 2. Auth Check (Supabase SSR)
   const { data: { user } } = await supabase.auth.getUser();
 
+  // 2a. ALLOWLIST GATE — only whitelisted emails can access the app.
+  //     Everyone else is redirected to the book-a-demo page.
+  //     Bypassed for: public routes (already returned above), API key routes, /demo itself.
+  if (user && !url.startsWith('/api')) {
+    const demoUrl = process.env.BOOK_DEMO_URL ?? 'https://runesignal.com/demo';
+    const allowed = (process.env.ALLOWED_EMAILS ?? '')
+      .split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+    if (allowed.length > 0 && !allowed.includes((user.email ?? '').toLowerCase())) {
+      return NextResponse.redirect(new URL(demoUrl, request.url));
+    }
+  }
+
   // Root / is the public landing page — but redirect already-authenticated users to dashboard
   if (isRoot) {
     if (user) {
