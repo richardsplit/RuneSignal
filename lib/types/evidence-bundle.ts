@@ -25,6 +25,22 @@ export interface BundleAttestation {
   signed_at: string;
 }
 
+export interface HitlReceiptSummary {
+  id: string;
+  agent_id: string;
+  decision: 'approved' | 'rejected' | 'auto_approved';
+  decided_by: string;
+  decided_at: string;
+  blast_radius_level?: string;
+}
+
+export interface HitlReceiptSnapshot {
+  total_resolved: number;
+  approved: number;
+  rejected: number;
+  receipts: HitlReceiptSummary[];
+}
+
 export interface ControlStatusSnapshot {
   total_controls: number;
   passing: number;
@@ -48,6 +64,8 @@ export interface EvidenceBundle {
   coverage: BundleCoverage;
 
   control_status?: ControlStatusSnapshot;
+
+  hitl_receipts?: HitlReceiptSnapshot;
 
   attestation: BundleAttestation;
 

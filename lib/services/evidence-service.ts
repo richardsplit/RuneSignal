@@ -27,6 +27,7 @@ import type {
   BundleAttestation,
   CoverageGap,
   ControlStatusSnapshot,
+  HitlReceiptSnapshot,
 } from '@lib/types/evidence-bundle';
 
 // ---------------------------------------------------------------------------
@@ -253,6 +254,36 @@ export class EvidenceService {
       }
     }
 
+    // 2b. Build HITL receipt snapshot (resolved tickets within the evidence period)
+    let hitlReceipts: HitlReceiptSnapshot | undefined;
+    {
+      const { data: resolvedTickets } = await supabase
+        .from('hitl_exceptions')
+        .select('id, agent_id, status, resolved_by, resolved_at, context_data')
+        .eq('tenant_id', params.tenant_id)
+        .in('status', ['approved', 'rejected'])
+        .gte('resolved_at', params.period.start)
+        .lte('resolved_at', params.period.end);
+
+      if (resolvedTickets && resolvedTickets.length > 0) {
+        const approved = resolvedTickets.filter((t: any) => t.status === 'approved').length;
+        const rejected = resolvedTickets.filter((t: any) => t.status === 'rejected').length;
+        hitlReceipts = {
+          total_resolved: resolvedTickets.length,
+          approved,
+          rejected,
+          receipts: resolvedTickets.map((t: any) => ({
+            id: t.id,
+            agent_id: t.agent_id,
+            decision: t.status as 'approved' | 'rejected',
+            decided_by: t.resolved_by || 'unknown',
+            decided_at: t.resolved_at || '',
+            blast_radius_level: t.context_data?.blast_radius?.level,
+          })),
+        };
+      }
+    }
+
     // 3. Compute Ed25519 attestation (includes control_status so it's covered by signature)
     const attestation = computeAttestation(manifest, controlStatus);
 
@@ -318,6 +349,7 @@ export class EvidenceService {
       manifest,
       coverage,
       control_status: controlStatus,
+      hitl_receipts: hitlReceipts,
       attestation,
       generated_at: reportRecord.generated_at,
       generated_by: params.generated_by,

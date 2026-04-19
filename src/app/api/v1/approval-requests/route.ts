@@ -12,6 +12,7 @@ import { HitlService } from '@lib/modules/s7-hitl/service';
 import { IntegrationDispatcher } from '@lib/integrations/dispatcher';
 import { computeBlastRadius, BlastRadiusInput } from '@lib/hitl/blastRadiusScorer';
 import { ActionCategory, ACTION_REGULATION_MAP } from '@lib/types/approval';
+import { AuditLedgerService } from '@lib/ledger/service';
 import type { IntegrationProvider } from '@lib/integrations/types';
 import crypto from 'crypto';
 
@@ -82,6 +83,45 @@ export async function POST(req: NextRequest) {
     const regulationRefs: string[] = body.regulation_refs?.length
       ? body.regulation_refs
       : ACTION_REGULATION_MAP[body.action.category as ActionCategory] || [];
+
+    // 4b. Policy-based auto-approve (ENABLE_AUTO_APPROVE=true + low blast-radius comms)
+    const autoApproveEnabled = process.env.ENABLE_AUTO_APPROVE === 'true';
+    if (autoApproveEnabled && blastRadius.level === 'low' && body.action.category === 'comms') {
+      const ticket = await HitlService.createException(tenantId, body.agent_id, {
+        title: `[${body.action.category.toUpperCase()}] ${body.action.description}`,
+        description: body.action.description,
+        priority: 'low',
+        context_data: {
+          ...body.context_data,
+          action_category: body.action.category,
+          tool_name: body.action.tool_name,
+          resource: body.action.resource,
+          regulation_refs: regulationRefs,
+          blast_radius: blastRadius,
+          sla_auto_action: 'approve',
+        },
+      });
+      await HitlService.resolveException(tenantId, ticket.id, {
+        action: 'approve',
+        reason: 'Auto-approved: low blast-radius comms action (policy engine)',
+        reviewer_id: 'system:auto_approve',
+      });
+      AuditLedgerService.appendEvent({
+        event_type: 'hitl_auto_approved',
+        module: 's7',
+        tenant_id: tenantId,
+        agent_id: body.agent_id,
+        payload: { approval_id: ticket.id, blast_radius: blastRadius, category: body.action.category },
+      }).catch(() => {});
+      return NextResponse.json({
+        id: ticket.id,
+        status: 'auto_approved',
+        blast_radius: blastRadius,
+        sla: { deadline: null, auto_action: 'approve' },
+        regulation_refs: regulationRefs,
+        channels_notified: [],
+      }, { status: 201 });
+    }
 
     // 5. Delegate to HitlService.createException()
     const ticket = await HitlService.createException(tenantId, body.agent_id, {
