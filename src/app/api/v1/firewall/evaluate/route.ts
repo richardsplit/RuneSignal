@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { FirewallService } from '../../../../../../lib/modules/firewall/service';
 import { FirewallRequest } from '../../../../../../lib/modules/firewall/types';
+import { IncidentAutoDetector } from '../../../../../../lib/services/incident-auto-detector';
 
 /**
  * POST /api/v1/firewall/evaluate
@@ -59,6 +60,21 @@ export async function POST(request: NextRequest) {
       metadata,
       risk_threshold,
     });
+
+    // Auto-create incident for high-risk blocks (fire-and-forget)
+    if (result.verdict === 'block' && result.risk_score >= 90) {
+      const isMoralViolation = result.checks.some(c => c.check === 's8_moral' && !c.passed);
+      IncidentAutoDetector.fromFirewallBlock({
+        tenant_id: tenantId,
+        agent_id: agentId,
+        firewall_eval_id: result.evaluation_id,
+        action: action as string,
+        resource: resource as string,
+        risk_score: result.risk_score / 100,
+        block_reason: result.reasons[0],
+        is_moral_violation: isMoralViolation,
+      }).catch(err => console.error('[Firewall] IncidentAutoDetector error:', err));
+    }
 
     // Return 200 for allow/escalate, 403 for block so SDKs can check status code
     const status = result.verdict === 'block' ? 403 : 200;

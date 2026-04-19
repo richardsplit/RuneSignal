@@ -1,6 +1,7 @@
 import { createAdminClient } from '../../db/supabase';
 import { AuditLedgerService } from '../../ledger/service';
 import { HitlService } from '../s7-hitl/service';
+import { IncidentAutoDetector } from '../../services/incident-auto-detector';
 
 const ANOMALY_THRESHOLDS = {
   cost_spike: { zScore: 2.5, severity: 'high' },
@@ -86,6 +87,20 @@ export class AnomalyDetectorService {
           severity: threshold.severity
         }
       });
+
+      // Auto-create incident for critical/high anomalies (fire-and-forget)
+      if (anomaly?.id && (threshold.severity === 'critical' || threshold.severity === 'high')) {
+        IncidentAutoDetector.fromAnomaly({
+          tenant_id: tenantId,
+          agent_id: agentId,
+          anomaly_id: anomaly.id,
+          anomaly_type: metricName,
+          severity: threshold.severity,
+          z_score: zScore,
+          observed_value: value,
+          baseline_mean: updated.mean,
+        }).catch(err => console.error('[S14] IncidentAutoDetector error:', err));
+      }
 
       // Auto-respond to critical anomalies
       if (threshold.severity === 'critical') {
