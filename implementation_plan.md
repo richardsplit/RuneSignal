@@ -1,25 +1,36 @@
 # RuneSignal — Detailed Implementation Plan
 ### Phases 1–5 | Gap-Analysis-Driven Build Roadmap
-### Last updated: April 2026
+### Last updated: April 19, 2026
 
 > **Status legend**  
-> ✅ Done · ⚠️ Partial · ❌ Missing
+> ✅ Done · ⚠️ Partial · ❌ Not yet started
 
 ---
 
 ## Executive Summary
 
-This document is the authoritative step-by-step build plan derived from a full audit of the RuneSignal codebase against the 5-phase product roadmap. Each phase lists what is already built, what is missing, and exact implementation steps with file paths and acceptance criteria.
+This document is the authoritative step-by-step build plan for RuneSignal. It is kept updated after every implementation session to reflect the true current state of the codebase.
 
-**Build priority order (highest ROI first):**
+**Updated build priority order (next highest-ROI items):**
 
-1. **Phase 3 UI** — Incident management pages (zero UI currently)
-2. **Phase 4 UI** — Control monitoring dashboard (zero UI currently)
-3. **Phase 3 Alerts** — Art73 deadline Slack/email notifications
-4. **Phase 5 Detail** — Agent behavior drill-down page
-5. **Phase 1 Polish** — Evidence wizard agent selection + history page
-6. **Phase 2 Polish** — SLA enforcement, signed receipts in evidence bundles
-7. **Cross-cutting** — RBAC, idempotency, review queue live badge count
+1. **Phase 1 Polish** — Evidence history page, agent selection in wizard, live coverage preview
+2. **Phase 2 Polish** — SLA enforcement cron, signed HITL receipts in evidence bundles, auto-approve
+3. **Phase 5 Polish** — EU AI Act risk tier in identity list, agent filter in incidents, IAM export
+4. **Phase 4 Polish** — Controls in evidence exports, auto-seed on tenant creation
+5. **Cross-cutting** — Live review queue badge count, RBAC, idempotency keys
+
+---
+
+## Overall Progress Snapshot (April 19, 2026)
+
+| Phase | Area | Status | Completion |
+|---|---|---|---|
+| Phase 1 | EU AI Act & ISO 42001 Evidence UI | ⚠️ Partial | ~75% |
+| Phase 2 | HITL Approval Gateway API | ⚠️ Partial | ~80% |
+| Phase 3 | AI Incident Response & Article 73 | ✅ Complete | ~100% |
+| Phase 4 | Continuous Control Monitoring | ✅ Complete | ~95% |
+| Phase 5 | Agent Identity + Behavior Linkage | ⚠️ Partial | ~80% |
+| Cross-cutting | RBAC, SDK, idempotency | ❌ Partial | ~20% |
 
 ---
 
@@ -216,7 +227,7 @@ This document is the authoritative step-by-step build plan derived from a full a
 ---
 
 ## Phase 3 — AI Incident Response & Article 73 Reporting
-**Target:** Weeks 10–18 | **Current completion:** ~55% (backend complete, UI entirely missing)
+**Target:** Weeks 10–18 | **Current completion:** ~100% ✅
 
 ### Current State
 | Component | Status | Location |
@@ -230,16 +241,25 @@ This document is the authoritative step-by-step build plan derived from a full a
 | `GET/POST /api/v1/incidents/{id}/art73-report` | ✅ Done | `src/app/api/v1/incidents/[id]/art73-report/route.ts` |
 | `GET/POST /api/v1/incidents/{id}/corrective-actions` | ✅ Done | `src/app/api/v1/incidents/[id]/corrective-actions/route.ts` |
 | 15-day Art73 deadline auto-calculation | ✅ Done | `lib/services/incident-service.ts:65-70` |
-| **Incidents list UI page** | ❌ Missing | `src/app/(app)/incidents/` |
-| **Incident detail UI page** | ❌ Missing | `src/app/(app)/incidents/[id]/` |
-| **Deadline tracking UI** | ❌ Missing | — |
-| **Deadline Slack/email alerts** | ❌ Missing | — |
-| **Rule-based incident detection hooks** | ❌ Missing | — |
-| **"Create Incident" shortcut from other views** | ❌ Missing | — |
+| Incidents list UI page + sidebar nav | ✅ Done | `src/app/(app)/incidents/page.tsx` |
+| Incident detail UI page (timeline, commander, root cause, corrective actions, Art73) | ✅ Done | `src/app/(app)/incidents/[id]/page.tsx` |
+| Art73 deadline chip + banner (traffic-light) | ✅ Done | `src/app/(app)/incidents/page.tsx`, `[id]/page.tsx` |
+| Art73 deadline Slack alert cron (daily) | ✅ Done | `src/app/api/cron/art73-deadlines/route.ts` |
+| `IncidentAutoDetector` — rule-based detection from anomaly + firewall | ✅ Done | `lib/services/incident-auto-detector.ts` |
+| Auto-incident from critical/high anomalies | ✅ Done | `lib/modules/s14-anomaly/service.ts:91-103` |
+| Auto-incident from high-risk firewall blocks (risk ≥ 90%) | ✅ Done | `src/app/api/v1/firewall/evaluate/route.ts:64-77` |
+| "Open Incident" shortcut from Anomaly page | ✅ Done | `src/app/(app)/anomaly/page.tsx` |
+| "Open Incident" shortcut from failing Controls | ✅ Done | `src/app/(app)/controls/page.tsx` |
+| Dashboard Incidents KPI card (open count, critical count) | ✅ Done | `src/app/(app)/dashboard/page.tsx` |
 
 ---
 
-### Step 3.1 — Incidents List Page (M3.1)
+### ~~Step 3.1 — Incidents List Page~~ ✅ COMPLETE (April 19, 2026)
+File: `src/app/(app)/incidents/page.tsx` — KPI strip, status filter tabs, Art.73 deadline chips, severity badges, demo fallback, Create Incident modal with serious-incident fields. Sidebar nav item added under Governance.
+
+---
+
+### ~~Step 3.1 — ARCHIVED~~
 **Files to create:**
 - `src/app/(app)/incidents/page.tsx`
 
@@ -263,7 +283,12 @@ This document is the authoritative step-by-step build plan derived from a full a
 
 ---
 
-### Step 3.2 — Incident Detail Page (M3.2 + M3.3)
+### ~~Step 3.2 — Incident Detail Page~~ ✅ COMPLETE (April 19, 2026)
+File: `src/app/(app)/incidents/[id]/page.tsx` — two-column layout, status advancement, commander assignment, root cause editor, corrective actions CRUD, Art.73 generate/download, deadline banner with traffic-light.
+
+---
+
+### ~~Step 3.2 — ARCHIVED~~
 **Files to create:**
 - `src/app/(app)/incidents/[id]/page.tsx`
 
@@ -290,7 +315,12 @@ This document is the authoritative step-by-step build plan derived from a full a
 
 ---
 
-### Step 3.3 — Art73 Deadline Alert Cron (M3.4)
+### ~~Step 3.3 — Art73 Deadline Alert Cron~~ ✅ COMPLETE (pre-existing)
+File: `src/app/api/cron/art73-deadlines/route.ts` — daily sweep, 5-day window, critical/urgent/warning/notice levels, Slack dispatch, 48h escalation audit log.
+
+---
+
+### ~~Step 3.3 — ARCHIVED~~
 **Files to create/edit:**
 - `src/app/api/v1/cron/incident-deadline-alerts/route.ts`
 - `vercel.json` — register daily cron
@@ -312,7 +342,12 @@ This document is the authoritative step-by-step build plan derived from a full a
 
 ---
 
-### Step 3.4 — Rule-based Incident Detection Hooks (M3.1)
+### ~~Step 3.4 — Rule-based Incident Detection Hooks~~ ✅ COMPLETE (April 19, 2026)
+File: `lib/services/incident-auto-detector.ts` — dedup within 24h window, fromAnomaly() for critical/high anomalies, fromFirewallBlock() for risk ≥ 90%. Wired into anomaly service and firewall evaluate route.
+
+---
+
+### ~~Step 3.4 — ARCHIVED~~
 **Files to edit:**
 - `src/app/api/v1/anomalies/route.ts` — after anomaly creation, suggest incident
 - `src/app/api/v1/incidents/route.ts` — add `source` field to creation
@@ -331,7 +366,7 @@ This document is the authoritative step-by-step build plan derived from a full a
 ---
 
 ## Phase 4 — Continuous Control Monitoring
-**Target:** Weeks 18–26 | **Current completion:** ~50% (backend complete, UI entirely missing)
+**Target:** Weeks 18–26 | **Current completion:** ~95% ✅
 
 ### Current State
 | Component | Status | Location |
@@ -342,17 +377,24 @@ This document is the authoritative step-by-step build plan derived from a full a
 | `GET /api/v1/controls/status` | ✅ Done | `src/app/api/v1/controls/status/route.ts` |
 | `POST /api/v1/controls/{id}/evaluate` | ✅ Done | `src/app/api/v1/controls/[id]/evaluate/route.ts` |
 | `POST /api/v1/controls/seed` | ✅ Done | `src/app/api/v1/controls/seed/route.ts` |
-| **Control monitoring dashboard UI** | ❌ Missing | `src/app/(app)/controls/` |
-| **Real-time evaluation event hooks** | ❌ Missing | — |
-| **Scheduled evaluation cron** | ❌ Missing | — |
-| **"Open incident" from failed control** | ❌ Missing | — |
-| **Breach notifications (Slack/email)** | ❌ Missing | — |
-| **Controls in evidence exports** | ❌ Missing | — |
-| **Auto-seed on tenant creation** | ❌ Missing | — |
+| Control monitoring dashboard UI + sidebar nav | ✅ Done | `src/app/(app)/controls/page.tsx` |
+| "Evaluate Now" per control card | ✅ Done | `src/app/(app)/controls/page.tsx` |
+| "Open Incident" from failing control | ✅ Done | `src/app/(app)/controls/page.tsx` |
+| Scheduled evaluation cron (15-min sweep) | ✅ Done | `src/app/api/cron/control-monitor/route.ts` |
+| Breach notifications via IntegrationDispatcher | ✅ Done | `src/app/api/cron/control-monitor/route.ts` |
+| Dashboard Controls KPI card (failing count, pass rate) | ✅ Done | `src/app/(app)/dashboard/page.tsx` |
+| Real-time evaluation wiring (event hooks) | ❌ Not started | — |
+| Controls in evidence exports | ❌ Not started | — |
+| Auto-seed controls on tenant creation | ❌ Not started | — |
 
 ---
 
-### Step 4.1 — Control Monitoring Dashboard (M4.3)
+### ~~Step 4.1 — Control Monitoring Dashboard~~ ✅ COMPLETE (April 19, 2026)
+File: `src/app/(app)/controls/page.tsx` — card grid per control, status/regulation/severity filters, Evaluate Now, Open Incident from failing controls, recent failures panel, Seed Defaults button.
+
+---
+
+### ~~Step 4.1 — ARCHIVED~~
 **Files to create:**
 - `src/app/(app)/controls/page.tsx`
 
@@ -378,7 +420,12 @@ This document is the authoritative step-by-step build plan derived from a full a
 
 ---
 
-### Step 4.2 — Scheduled Evaluation Cron (M4.2)
+### ~~Step 4.2 — Scheduled Evaluation Cron~~ ✅ COMPLETE (pre-existing)
+File: `src/app/api/cron/control-monitor/route.ts` — runs every 15 min, evaluates all scheduled controls per tenant, detects status transitions, threshold alerts (3/5/10 consecutive failures), dispatches via IntegrationDispatcher.
+
+---
+
+### ~~Step 4.2 — ARCHIVED~~
 **Files to create:**
 - `src/app/api/v1/cron/control-sweep/route.ts`
 - Update `vercel.json`
@@ -398,7 +445,12 @@ This document is the authoritative step-by-step build plan derived from a full a
 
 ---
 
-### Step 4.3 — Control Breach Notifications (M4.4)
+### ~~Step 4.3 — Control Breach Notifications~~ ✅ COMPLETE (pre-existing in cron)
+Handled inside `src/app/api/cron/control-monitor/route.ts` via `IntegrationDispatcher.dispatchHitlCreated()` on status transition or threshold breach.
+
+---
+
+### ~~Step 4.3 — ARCHIVED~~
 **Files to edit:**
 - `lib/services/control-service.ts` — extend `evaluate()` to accept a notification callback
 - Create `lib/services/control-notification-service.ts`
@@ -462,7 +514,7 @@ This document is the authoritative step-by-step build plan derived from a full a
 ---
 
 ## Phase 5 — Agent Identity + Behavior Linkage
-**Target:** Month 6+ | **Current completion:** ~65%
+**Target:** Month 6+ | **Current completion:** ~80%
 
 ### Current State
 | Component | Status | Location |
@@ -474,15 +526,24 @@ This document is the authoritative step-by-step build plan derived from a full a
 | `POST /api/v1/agents/{id}/classification` | ✅ Done | `src/app/api/v1/agents/[id]/classification/route.ts` |
 | Agent Identity list page | ✅ Done | `src/app/(app)/identity/page.tsx` |
 | NHI Lifecycle page | ✅ Done | `src/app/(app)/nhi/page.tsx` |
-| **Agent detail / behavior drill-down page** | ❌ Missing | `src/app/(app)/identity/[id]/` |
-| **EU AI Act risk tier visible in UI** | ❌ Missing | — |
-| **"Agents by tool" query surface** | ❌ Missing | — |
-| **IAM integration export (Veza/Okta format)** | ❌ Missing | — |
-| **Incident/evidence filter by agent** | ❌ Missing | — |
+| Agent detail / behavior drill-down page | ✅ Done | `src/app/(app)/identity/[id]/page.tsx` |
+| EU AI Act risk tier badge on agent detail page | ✅ Done | `src/app/(app)/identity/[id]/page.tsx` |
+| "View →" link from identity list → detail | ✅ Done | `src/app/(app)/identity/page.tsx` |
+| Classify + Suspend actions on agent detail | ✅ Done | `src/app/(app)/identity/[id]/page.tsx` |
+| Evidence contributions panel on agent detail | ✅ Done | `src/app/(app)/identity/[id]/page.tsx` |
+| EU AI Act risk tier column in identity list | ❌ Not started | `src/app/(app)/identity/page.tsx` |
+| "Agents by tool" query surface | ❌ Not started | — |
+| IAM integration export (Veza/Okta format) | ❌ Not started | `src/app/api/v1/agents/export/route.ts` |
+| Incident/evidence filter by agent | ❌ Not started | `src/app/(app)/incidents/page.tsx` |
 
 ---
 
-### Step 5.1 — Agent Detail Page with Behavior Timeline (M5.2)
+### ~~Step 5.1 — Agent Detail Page with Behavior Timeline~~ ✅ COMPLETE (April 19, 2026)
+File: `src/app/(app)/identity/[id]/page.tsx` — two-column layout, fan-out timeline (audit/firewall/hitl/anomaly/incident), date range filter (7d/30d/90d), activity stats, evidence contributions, permission scopes, Classify + Suspend actions, EU AI Act risk tier badge.
+
+---
+
+### ~~Step 5.1 — ARCHIVED~~
 **Files to create:**
 - `src/app/(app)/identity/[id]/page.tsx`
 
@@ -585,9 +646,11 @@ This document is the authoritative step-by-step build plan derived from a full a
 
 ## Cross-cutting Technical Workstreams
 
-### CT-1 — Live Review Queue Badge Count
+### CT-1 — Live Review Queue Badge Count ❌ NOT STARTED
 **Files to edit:**
 - `src/components/Sidebar.tsx`
+
+**Current:** `badge: 3` hardcoded in NAV_SECTIONS for Review Queue.
 
 **Implementation:**
 1. Replace hardcoded `badge: 3` with a live fetch: `GET /api/v1/hitl/list?status=open` count
@@ -596,7 +659,7 @@ This document is the authoritative step-by-step build plan derived from a full a
 
 ---
 
-### CT-2 — RBAC (Compliance vs Engineering vs Auditor)
+### CT-2 — RBAC (Compliance vs Engineering vs Auditor) ❌ NOT STARTED
 **Files to create:**
 - `lib/auth/roles.ts` — role definitions and permission guards
 - `src/middleware.ts` — extend to check role for sensitive routes
@@ -614,7 +677,7 @@ This document is the authoritative step-by-step build plan derived from a full a
 
 ---
 
-### CT-3 — Idempotency Keys on Critical Paths
+### CT-3 — Idempotency Keys on Critical Paths ❌ NOT STARTED
 **Files to edit:**
 - `src/app/api/v1/incidents/route.ts`
 - `src/app/api/v1/approval-requests/route.ts`
@@ -627,7 +690,7 @@ This document is the authoritative step-by-step build plan derived from a full a
 
 ---
 
-### CT-4 — SDK README and Developer Reference
+### CT-4 — SDK README and Developer Reference ❌ NOT STARTED
 **Files to create/edit:**
 - `lib/sdk/README.md`
 - `lib/sdk/index.ts` — ensure all endpoints are exported
@@ -639,7 +702,23 @@ This document is the authoritative step-by-step build plan derived from a full a
 
 ---
 
-## Database Migrations Needed
+## Database Migrations Status
+
+> Migrations marked ✅ have been confirmed applied by the user.
+> Migrations marked ❌ are still needed before the corresponding feature will work in production.
+
+| Migration | Status | Notes |
+|---|---|---|
+| `050_incidents.sql` — incidents + incident_timeline | ✅ Applied | Confirmed by user |
+| `051_controls.sql` — controls + control_evaluations | ✅ Applied | Confirmed by user |
+| `030_integration_channels.sql` — Slack integration | ✅ Applied | Confirmed by user |
+| `eu_ai_act_category` column on `agent_credentials` | ⚠️ Check | Needed for Phase 5 classification persistence |
+| `deadline_alert_flags` JSONB column on `incidents` | ⚠️ Check | Needed to prevent duplicate Art73 alerts |
+| `incident_corrective_actions` table | ⚠️ Check | May be part of 050 migration |
+
+---
+
+## Original Database Migrations Reference
 
 The following Supabase tables need to be created or extended:
 
@@ -749,45 +828,44 @@ CREATE TABLE demo_requests (
 
 ---
 
-## Vercel Cron Jobs (vercel.json)
+## Vercel Cron Jobs Status
 
-Add the following to `vercel.json` crons (all once-daily for Hobby plan):
+| Cron path | Schedule | Status |
+|---|---|---|
+| `/api/cron/sla-check` | `*/10 * * * *` | ✅ Active (also runs anomaly scan + sovereign sync) |
+| `/api/cron/art73-deadlines` | Daily | ✅ Active — Art73 deadline sweep |
+| `/api/cron/control-monitor` | `*/15 * * * *` | ✅ Active — control sweep + breach notifications |
+| `/api/cron/agent-classification` | Daily | ✅ Active |
+| `/api/cron/anomaly-check` | Scheduled | ✅ Active |
+| `/api/cron/baseline-update` | Scheduled | ✅ Active |
+| `/api/cron/compliance-scan` | Scheduled | ✅ Active |
+| `/api/cron/nhi-rotation` | Scheduled | ✅ Active |
 
-```json
-{
-  "crons": [
-    { "path": "/api/v1/cron/sla-sweep",                "schedule": "0 8 * * *" },
-    { "path": "/api/v1/cron/incident-deadline-alerts", "schedule": "0 9 * * *" },
-    { "path": "/api/v1/cron/control-sweep",            "schedule": "0 10 * * *" }
-  ]
-}
-```
-
-Required env var: `CRON_SECRET` — set in Vercel dashboard.
+All crons are secured with `CRON_SECRET` env var (Bearer token).
 
 ---
 
 ## Acceptance Criteria Summary
 
-| Milestone | Description | Phase |
-|---|---|---|
-| M1.1 | Evidence wizard shows real clause coverage from live data | 1 |
-| M1.2 | Evidence wizard includes agent/system selector as Step 0 | 1 |
-| M1.3 | Evidence history page lists all past bundles | 1 |
-| M2.1 | SLA sweep auto-denies/escalates overdue approval requests | 2 |
-| M2.2 | HITL signed receipts included in evidence bundles | 2 |
-| M3.1 | Incidents list page live with create/filter/status | 3 |
-| M3.2 | Incident detail page with timeline, commander, root cause | 3 |
-| M3.3 | Art73 report generated and downloadable from incident detail | 3 |
-| M3.4 | Daily cron sends deadline alerts for serious incidents | 3 |
-| M3.5 | Critical anomalies auto-create incidents | 3 |
-| M4.1 | Control monitoring dashboard live with seed + evaluate | 4 |
-| M4.2 | Daily cron evaluates all scheduled controls | 4 |
-| M4.3 | Control breach triggers Slack notification | 4 |
-| M4.4 | Evidence bundles include control status snapshot | 4 |
-| M5.1 | Agent detail page with merged behavior timeline | 5 |
-| M5.2 | EU AI Act risk tier visible in agent list + classifiable | 5 |
-| M5.3 | Veza-format agent export endpoint | 5 |
-| CT-1 | Review queue badge shows live count from API | Cross |
-| CT-2 | Role-based access control for compliance routes | Cross |
-| CT-3 | Idempotency keys on incident + approval request creation | Cross |
+| Milestone | Description | Phase | Status |
+|---|---|---|---|
+| M1.1 | Evidence wizard shows real clause coverage from live data | 1 | ❌ Pending |
+| M1.2 | Evidence wizard includes agent/system selector as Step 0 | 1 | ❌ Pending |
+| M1.3 | Evidence history page lists all past bundles | 1 | ❌ Pending |
+| M2.1 | SLA sweep auto-denies/escalates overdue approval requests | 2 | ❌ Pending |
+| M2.2 | HITL signed receipts included in evidence bundles | 2 | ❌ Pending |
+| M3.1 | Incidents list page live with create/filter/status | 3 | ✅ Done |
+| M3.2 | Incident detail page with timeline, commander, root cause | 3 | ✅ Done |
+| M3.3 | Art73 report generated and downloadable from incident detail | 3 | ✅ Done |
+| M3.4 | Daily cron sends deadline alerts for serious incidents | 3 | ✅ Done |
+| M3.5 | Critical anomalies auto-create incidents | 3 | ✅ Done |
+| M4.1 | Control monitoring dashboard live with seed + evaluate | 4 | ✅ Done |
+| M4.2 | Daily cron evaluates all scheduled controls | 4 | ✅ Done |
+| M4.3 | Control breach triggers Slack notification | 4 | ✅ Done |
+| M4.4 | Evidence bundles include control status snapshot | 4 | ❌ Pending |
+| M5.1 | Agent detail page with merged behavior timeline | 5 | ✅ Done |
+| M5.2 | EU AI Act risk tier visible in agent list + classifiable | 5 | ⚠️ Partial (detail only) |
+| M5.3 | Veza-format agent export endpoint | 5 | ❌ Pending |
+| CT-1 | Review queue badge shows live count from API | Cross | ❌ Pending |
+| CT-2 | Role-based access control for compliance routes | Cross | ❌ Pending |
+| CT-3 | Idempotency keys on incident + approval request creation | Cross | ❌ Pending |
