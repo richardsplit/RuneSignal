@@ -16,15 +16,17 @@ import crypto from 'crypto';
 async function resolveTenantId(req: NextRequest): Promise<string | null> {
   const apiKey = req.headers.get('authorization')?.replace('Bearer ', '') || '';
   if (apiKey) {
-    const supabase = createAdminClient();
-    const { data: keyData } = await supabase
-      .from('api_keys')
-      .select('tenant_id')
-      .eq('key_hash', crypto.createHash('sha256').update(apiKey).digest('hex'))
-      .single()
-      .catch(() => ({ data: null }));
-
-    if (keyData?.tenant_id) return keyData.tenant_id;
+    try {
+      const supabase = createAdminClient();
+      const { data: keyData } = await supabase
+        .from('api_keys')
+        .select('tenant_id')
+        .eq('key_hash', crypto.createHash('sha256').update(apiKey).digest('hex'))
+        .single();
+      if (keyData?.tenant_id) return keyData.tenant_id;
+    } catch {
+      // invalid key — fall through
+    }
   }
 
   const headerTenantId = req.headers.get('x-tenant-id');
