@@ -477,15 +477,44 @@ export class ControlService {
   }
 
   /**
-   * Seed default control templates for a tenant.
+   * Idempotently seeds the built-in DEFAULT_CONTROLS for a tenant.
+   * Skips any control whose name already exists for that tenant.
+   * Returns { seeded, skipped } counts.
    */
-  static async seedDefaults(tenant_id: string): Promise<Control[]> {
-    const controls: Control[] = [];
+  static async seedDefaults(tenant_id: string): Promise<{ seeded: number; skipped: number }> {
+    const supabase = createAdminClient();
+
+    const { data: existing } = await supabase
+      .from('controls')
+      .select('name')
+      .eq('tenant_id', tenant_id);
+
+    const existingNames = new Set((existing || []).map((c: { name: string }) => c.name));
+
+    let seeded = 0;
+    let skipped = 0;
+
     for (const template of DEFAULT_CONTROLS) {
-      const control = await ControlService.create(tenant_id, template);
-      controls.push(control);
+      if (existingNames.has(template.name)) {
+        skipped++;
+        continue;
+      }
+      try {
+        await ControlService.create(tenant_id, template);
+        seeded++;
+      } catch (err) {
+        console.error(`[ControlService.seedDefaults] Failed to seed "${template.name}":`, err);
+      }
     }
-    return controls;
+
+    await AuditLedgerService.appendEvent({
+      event_type: 'controls.seeded',
+      module: 'system',
+      tenant_id,
+      payload: { seeded, skipped, total: DEFAULT_CONTROLS.length },
+    });
+
+    return { seeded, skipped };
   }
 
   // ---------------------------------------------------------------------------
@@ -561,4 +590,5 @@ export class ControlService {
 
     if (error) throw new Error(`Failed to update control status: ${error.message}`);
   }
+
 }

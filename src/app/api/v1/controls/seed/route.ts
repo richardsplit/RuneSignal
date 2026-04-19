@@ -43,9 +43,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const controls = await ControlService.seedDefaults(tenantId);
+    const { seeded, skipped } = await ControlService.seedDefaults(tenantId);
 
-    return NextResponse.json({ controls }, { status: 201 });
+    return NextResponse.json({ seeded, skipped, total: seeded + skipped }, { status: 201 });
   } catch (err) {
     console.error('[controls/seed POST] error:', err);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
