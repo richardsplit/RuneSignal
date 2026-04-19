@@ -174,7 +174,7 @@ export async function middleware(request: NextRequest) {
     // For Phase 1 implementation, we fetch from tenant_members.
     const { data: membership } = await supabase
       .from('tenant_members')
-      .select('tenant_id')
+      .select('tenant_id, role')
       .eq('user_id', user.id)
       .limit(1)
       .single();
@@ -188,6 +188,36 @@ export async function middleware(request: NextRequest) {
 
     if (tenantId) {
       response.headers.set('X-Tenant-Id', tenantId);
+
+      // 3.2 RBAC route guard (activated by ENABLE_RBAC=true env var)
+      if (process.env.ENABLE_RBAC === 'true' && !url.startsWith('/api/v1/auth/me')) {
+        const RANK: Record<string, number> = { owner: 4, compliance_officer: 3, engineer: 2, auditor: 1 };
+        const ROUTE_MIN: Array<[string, string]> = [
+          ['/controls',            'compliance_officer'],
+          ['/incidents',           'compliance_officer'],
+          ['/compliance/evidence', 'auditor'],
+          ['/compliance/reports',  'auditor'],
+          ['/compliance',          'auditor'],
+          ['/audit',               'auditor'],
+          ['/identity',            'engineer'],
+          ['/anomaly',             'engineer'],
+          ['/firewall',            'engineer'],
+        ];
+        const required = ROUTE_MIN.find(([prefix]) => url.startsWith(prefix))?.[1];
+        if (required) {
+          const rawRole = String(membership?.role ?? '');
+          const actual =
+            rawRole === 'admin'  ? 'compliance_officer' :
+            rawRole === 'member' ? 'engineer'           :
+            (RANK[rawRole] !== undefined ? rawRole : 'owner');
+          if ((RANK[actual] ?? 0) < (RANK[required] ?? 0)) {
+            if (url.startsWith('/api')) {
+              return NextResponse.json({ error: 'Forbidden', message: `Requires role: ${required}` }, { status: 403 });
+            }
+            return NextResponse.redirect(new URL('/dashboard', request.url));
+          }
+        }
+      }
 
       // 4. Rate Limiting (Upstash Redis) based on Tenant
       const rl = getRatelimit();
