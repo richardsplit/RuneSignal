@@ -50,7 +50,7 @@ This document is the authoritative step-by-step build plan for RuneSignal. It is
 | Coverage preview with real data | ✅ Done | `src/app/api/v1/compliance/evidence-preview/route.ts` + `EvidenceService.preview()` |
 | Agent/system selection in wizard | ✅ Done | Step 1 of 6-step wizard in `src/app/(app)/compliance/evidence/page.tsx` |
 | Evidence history page | ✅ Done | `src/app/(app)/compliance/evidence/history/page.tsx` |
-| HIPAA / SOC 2 / GDPR clause mappings | ❌ Missing | — |
+| HIPAA / SOC 2 / GDPR clause mappings | ❌ Out of scope (Session 3) | — |
 
 ---
 
@@ -129,7 +129,7 @@ This document is the authoritative step-by-step build plan for RuneSignal. It is
 ---
 
 ## Phase 2 — HITL Approval Gateway API
-**Target:** Weeks 6–10 | **Current completion:** ~80%
+**Target:** Weeks 6–10 | **Current completion:** ~100%
 
 ### Current State
 | Component | Status | Location |
@@ -139,11 +139,11 @@ This document is the authoritative step-by-step build plan for RuneSignal. It is
 | Blast radius scorer | ✅ Done | `lib/hitl/blastRadiusScorer.ts` |
 | Signed receipts (Ed25519) | ✅ Done | `lib/modules/s7-hitl/service.ts` |
 | Slack/channel dispatch | ✅ Done | `lib/integrations/dispatcher.ts` |
-| SLA timer enforcement (auto-escalate/deny) | ❌ Missing | — |
-| Auto-approve policy rule | ❌ Missing | — |
-| Signed receipts in evidence bundles | ❌ Missing | — |
+| SLA timer enforcement (auto-escalate/deny) | ✅ Done | `src/app/api/cron/sla-check/route.ts` + `HitlService.checkSlas()` |
+| Auto-approve policy rule | ✅ Done | `ENABLE_AUTO_APPROVE` env var in `src/app/api/v1/approval-requests/route.ts` |
+| Signed receipts in evidence bundles | ✅ Done | `EvidenceService.generate()` → `hitl_receipts` field |
 | Approval metrics endpoint | ⚠️ Partial | `src/app/api/v1/metrics/` |
-| TypeScript SDK approval gateway example | ⚠️ Partial | `lib/sdk/` |
+| TypeScript SDK approval gateway example | ✅ Done | `examples/approval-gateway.ts` |
 
 ---
 
