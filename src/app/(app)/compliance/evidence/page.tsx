@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useTenant } from '@lib/contexts/TenantContext';
 
@@ -42,6 +42,13 @@ interface ExportResult {
   coverage?: BundleCoverage;
 }
 
+interface AgentOption {
+  id: string;
+  agent_name: string;
+  agent_type: string;
+  status: string;
+}
+
 /* ─── Constants ──────────────────────────────────────────────────────── */
 
 const REGULATIONS: Array<{
@@ -73,7 +80,7 @@ const PRESETS = [
 /* ─── Step indicator ─────────────────────────────────────────────────── */
 
 function StepIndicator({ current, total }: { current: number; total: number }) {
-  const steps = ['Regulation', 'Date Range', 'Preview', 'Generate', 'Results'];
+  const steps = ['Agents', 'Regulation', 'Date Range', 'Preview', 'Results'];
   return (
     <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '2rem' }}>
       {steps.slice(0, total).map((label, i) => {
@@ -129,6 +136,14 @@ function StepIndicator({ current, total }: { current: number; total: number }) {
 export default function EvidenceWizardPage() {
   const { tenantId } = useTenant();
   const [step, setStep] = useState(1);
+
+  // Step 1: agent selection
+  const [agents, setAgents] = useState<AgentOption[]>([]);
+  const [agentsLoading, setAgentsLoading] = useState(false);
+  const [selectedAgentIds, setSelectedAgentIds] = useState<Set<string>>(new Set());
+  const [agentScope, setAgentScope] = useState<'all' | 'selected'>('all');
+
+  // Steps 2–6
   const [selectedRegulation, setSelectedRegulation] = useState<Regulation | null>(null);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -141,11 +156,37 @@ export default function EvidenceWizardPage() {
 
   const selectedReg = REGULATIONS.find(r => r.id === selectedRegulation);
 
+  /* ── Fetch agents on mount ── */
+  useEffect(() => {
+    async function loadAgents() {
+      setAgentsLoading(true);
+      try {
+        const headers: Record<string, string> = {};
+        if (tenantId) headers['X-Tenant-Id'] = tenantId;
+        const res = await fetch('/api/v1/agents', { headers });
+        if (res.ok) {
+          const data = await res.json();
+          setAgents((data.agents || []).filter((a: AgentOption) => a.status === 'active'));
+        }
+      } catch { /* silently fallback to empty */ }
+      finally { setAgentsLoading(false); }
+    }
+    loadAgents();
+  }, [tenantId]);
+
   /* ── Handlers ── */
+
+  const toggleAgent = (id: string) => {
+    setSelectedAgentIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
 
   const selectRegulation = (reg: Regulation) => {
     setSelectedRegulation(reg);
-    setStep(2);
+    setStep(3);
   };
 
   const applyPreset = (days: number) => {
@@ -154,6 +195,10 @@ export default function EvidenceWizardPage() {
     setStartDate(start.toISOString().slice(0, 10));
     setEndDate(end.toISOString().slice(0, 10));
   };
+
+  const resolvedAgentIds = agentScope === 'all'
+    ? agents.map(a => a.id)
+    : Array.from(selectedAgentIds);
 
   const MOCK_CLAUSES: Record<Regulation, RegulationClause[]> = {
     eu_ai_act: [
@@ -185,10 +230,10 @@ export default function EvidenceWizardPage() {
         (r: RegulationInfo) => r.regulation === selectedRegulation,
       );
       setClauses(regInfo?.clauses ?? MOCK_CLAUSES[selectedRegulation]);
-      setStep(3);
+      setStep(4);
     } catch {
       setClauses(MOCK_CLAUSES[selectedRegulation]);
-      setStep(3);
+      setStep(4);
     } finally {
       setPreviewLoading(false);
     }
@@ -198,7 +243,7 @@ export default function EvidenceWizardPage() {
     if (!selectedRegulation || !startDate || !endDate) return;
     setGenerating(true);
     setGenerateError(null);
-    setStep(4);
+    setStep(5);
     try {
       const headers: Record<string, string> = { 'Content-Type': 'application/json' };
       if (tenantId) headers['X-Tenant-Id'] = tenantId;
@@ -208,6 +253,7 @@ export default function EvidenceWizardPage() {
         body: JSON.stringify({
           regulation: selectedRegulation,
           date_range: { start: startDate, end: endDate },
+          agent_ids: agentScope === 'selected' ? Array.from(selectedAgentIds) : undefined,
         }),
       });
       if (!res.ok) {
@@ -216,7 +262,7 @@ export default function EvidenceWizardPage() {
       }
       const data = await res.json();
       setResult(data);
-      setStep(5);
+      setStep(6);
     } catch (err: any) {
       setGenerateError(err.message);
     } finally {
@@ -249,6 +295,8 @@ export default function EvidenceWizardPage() {
     setResult(null);
     setGenerateError(null);
     setPreviewError(null);
+    setAgentScope('all');
+    setSelectedAgentIds(new Set());
   };
 
   /* ── Coverage score color ── */
@@ -274,10 +322,101 @@ export default function EvidenceWizardPage() {
         </Link>
       </div>
 
-      <StepIndicator current={step} total={5} />
+      <StepIndicator current={Math.min(step, 5)} total={5} />
 
-      {/* ── Step 1: Select Regulation ─────────────────────────────── */}
+      {/* ── Step 1: Select Agents ─────────────────────────────────── */}
       {step === 1 && (
+        <div>
+          <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '1.25rem' }}>
+            Choose which agents to include in the evidence scope:
+          </p>
+
+          {/* Scope toggle */}
+          <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem' }}>
+            <button
+              className={`btn ${agentScope === 'all' ? 'btn-primary' : 'btn-outline'}`}
+              onClick={() => setAgentScope('all')}
+              style={{ fontSize: '0.8125rem' }}
+            >
+              All Active Agents
+            </button>
+            <button
+              className={`btn ${agentScope === 'selected' ? 'btn-primary' : 'btn-outline'}`}
+              onClick={() => setAgentScope('selected')}
+              style={{ fontSize: '0.8125rem' }}
+            >
+              Select Specific Agents
+            </button>
+          </div>
+
+          {agentScope === 'selected' && (
+            <div className="surface" style={{ overflow: 'hidden', marginBottom: '1.25rem' }}>
+              <div className="panel-header">
+                <span className="panel-title">Active Agents</span>
+                {selectedAgentIds.size > 0 && (
+                  <span className="badge badge-accent">{selectedAgentIds.size} selected</span>
+                )}
+              </div>
+              {agentsLoading ? (
+                <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.8125rem' }}>Loading agents…</div>
+              ) : agents.length === 0 ? (
+                <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.8125rem' }}>No active agents found. Evidence will include all tenant data.</div>
+              ) : (
+                <table className="data-table" style={{ width: '100%' }}>
+                  <thead>
+                    <tr>
+                      <th style={{ width: 40 }}></th>
+                      <th>Agent</th>
+                      <th>Type</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {agents.map(a => (
+                      <tr
+                        key={a.id}
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => toggleAgent(a.id)}
+                      >
+                        <td>
+                          <input
+                            type="checkbox"
+                            checked={selectedAgentIds.has(a.id)}
+                            onChange={() => toggleAgent(a.id)}
+                            style={{ cursor: 'pointer', accentColor: 'var(--accent)' }}
+                          />
+                        </td>
+                        <td>
+                          <div style={{ fontWeight: 600, fontSize: '0.875rem' }}>{a.agent_name}</div>
+                          <div className="mono" style={{ fontSize: '0.6875rem', color: 'var(--text-muted)' }}>{a.id}</div>
+                        </td>
+                        <td><span className="badge badge-neutral" style={{ fontSize: '0.7rem' }}>{a.agent_type}</span></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          )}
+
+          {agentScope === 'all' && (
+            <div style={{ padding: '1rem 1.25rem', background: 'var(--surface-1)', border: '1px solid var(--border-default)', borderRadius: 'var(--radius-md)', marginBottom: '1.25rem', fontSize: '0.8125rem', color: 'var(--text-secondary)' }}>
+              Evidence will be collected for <strong style={{ color: 'var(--text-primary)' }}>all {agents.length > 0 ? agents.length : ''} active agents</strong> in your tenant.
+            </div>
+          )}
+
+          <button
+            className="btn btn-primary"
+            onClick={() => setStep(2)}
+            disabled={agentScope === 'selected' && selectedAgentIds.size === 0}
+            style={{ fontSize: '0.8125rem', opacity: agentScope === 'selected' && selectedAgentIds.size === 0 ? 0.5 : 1 }}
+          >
+            Next: Select Regulation →
+          </button>
+        </div>
+      )}
+
+      {/* ── Step 2: Select Regulation ─────────────────────────────── */}
+      {step === 2 && (
         <div>
           <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '1.25rem' }}>
             Select the regulation to generate evidence for:
@@ -287,7 +426,7 @@ export default function EvidenceWizardPage() {
             gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
             gap: '1rem',
           }}>
-            {REGULATIONS.map(reg => (
+            {REGULATIONS.map((reg: { id: Regulation; name: string; description: string; clauses: number }) => (
               <div
                 key={reg.id}
                 className="surface"
@@ -332,11 +471,16 @@ export default function EvidenceWizardPage() {
               </div>
             </div>
           </div>
+          <div style={{ marginTop: '1.5rem' }}>
+            <button className="btn btn-ghost" onClick={() => setStep(1)} style={{ fontSize: '0.8125rem' }}>
+              ← Back to Agents
+            </button>
+          </div>
         </div>
       )}
 
-      {/* ── Step 2: Date Range ────────────────────────────────────── */}
-      {step === 2 && (
+      {/* ── Step 3: Date Range ────────────────────────────────────── */}
+      {step === 3 && (
         <div>
           <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '1.25rem' }}>
             Select the evidence collection period for <strong style={{ color: 'var(--text-primary)' }}>{selectedReg?.name}</strong>:
@@ -379,7 +523,7 @@ export default function EvidenceWizardPage() {
           </div>
 
           <div style={{ display: 'flex', gap: '0.625rem' }}>
-            <button className="btn btn-ghost" onClick={() => setStep(1)} style={{ fontSize: '0.8125rem' }}>
+            <button className="btn btn-ghost" onClick={() => setStep(2)} style={{ fontSize: '0.8125rem' }}>
               Back
             </button>
             <button
@@ -399,8 +543,8 @@ export default function EvidenceWizardPage() {
         </div>
       )}
 
-      {/* ── Step 3: Preview Coverage ─────────────────────────────── */}
-      {step === 3 && (
+      {/* ── Step 4: Preview Coverage ─────────────────────────────── */}
+      {step === 4 && (
         <div>
           <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '1.25rem' }}>
             Coverage preview for <strong style={{ color: 'var(--text-primary)' }}>{selectedReg?.name}</strong> ({startDate} to {endDate}):
@@ -464,7 +608,7 @@ export default function EvidenceWizardPage() {
           )}
 
           <div style={{ display: 'flex', gap: '0.625rem' }}>
-            <button className="btn btn-ghost" onClick={() => setStep(2)} style={{ fontSize: '0.8125rem' }}>
+            <button className="btn btn-ghost" onClick={() => setStep(3)} style={{ fontSize: '0.8125rem' }}>
               Back
             </button>
             <button className="btn btn-primary" onClick={generateBundle} style={{ fontSize: '0.8125rem' }}>
@@ -474,8 +618,8 @@ export default function EvidenceWizardPage() {
         </div>
       )}
 
-      {/* ── Step 4: Generating ───────────────────────────────────── */}
-      {step === 4 && (
+      {/* ── Step 5: Generating ───────────────────────────────────── */}
+      {step === 5 && (
         <div>
           {generating ? (
             <div style={{ textAlign: 'center', padding: '4rem 0' }}>
@@ -502,7 +646,7 @@ export default function EvidenceWizardPage() {
                 {generateError}
               </div>
               <div style={{ display: 'flex', gap: '0.625rem', justifyContent: 'center' }}>
-                <button className="btn btn-ghost" onClick={() => setStep(3)} style={{ fontSize: '0.8125rem' }}>
+                <button className="btn btn-ghost" onClick={() => setStep(4)} style={{ fontSize: '0.8125rem' }}>
                   Back
                 </button>
                 <button className="btn btn-primary" onClick={generateBundle} style={{ fontSize: '0.8125rem' }}>
@@ -514,8 +658,8 @@ export default function EvidenceWizardPage() {
         </div>
       )}
 
-      {/* ── Step 5: Results ──────────────────────────────────────── */}
-      {step === 5 && result && (
+      {/* ── Step 6: Results ──────────────────────────────────────── */}
+      {step === 6 && result && (
         <div>
           {/* Coverage score */}
           {result.coverage && (
