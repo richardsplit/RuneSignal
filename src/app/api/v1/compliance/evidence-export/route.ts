@@ -50,15 +50,18 @@ async function resolveTenantId(
   // 1. Try API key
   const apiKey = req.headers.get('authorization')?.replace('Bearer ', '') || '';
   if (apiKey) {
-    const supabase = createAdminClient();
-    const { data: keyData } = await supabase
-      .from('api_keys')
-      .select('tenant_id')
-      .eq('key_hash', crypto.createHash('sha256').update(apiKey).digest('hex'))
-      .single()
-      .catch(() => ({ data: null }));
-
-    if (keyData?.tenant_id) return keyData.tenant_id;
+    try {
+      const supabase = createAdminClient();
+      const keyHash = crypto.createHash('sha256').update(apiKey).digest('hex');
+      const { data: keyData } = await supabase
+        .from('api_keys')
+        .select('tenant_id')
+        .eq('key_hash', keyHash)
+        .single();
+      if (keyData?.tenant_id) return keyData.tenant_id;
+    } catch {
+      // invalid key — fall through
+    }
   }
 
   // 2. X-Tenant-Id header

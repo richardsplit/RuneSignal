@@ -84,6 +84,7 @@ export class PluginExecutor {
         const exec = result.status === 'fulfilled' ? result.value : {
           plugin_id: plugin.id,
           status: 'error' as const,
+          status_code: undefined as number | undefined,
           latency_ms: 0,
           error_message: result.reason?.message || 'Unknown error',
         };

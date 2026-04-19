@@ -94,7 +94,7 @@ export async function GET(
     const { data: magicLink, error: linkError } = await supabase.auth.admin.generateLink({
       type: 'magiclink',
       email: claims.email,
-      options: { redirect_to: `${process.env.NEXT_PUBLIC_APP_URL}/` },
+      options: { redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/` },
     });
 
     if (linkError || !magicLink.properties?.action_link) {

@@ -17,12 +17,15 @@ export async function POST(req: NextRequest) {
     const supabase = createAdminClient();
 
     // Resolve tenant from API key
-    const { data: keyData } = await supabase
-      .from('api_keys')
-      .select('tenant_id')
-      .eq('key_hash', crypto.createHash('sha256').update(apiKey).digest('hex'))
-      .single()
-      .catch(() => ({ data: null }));
+    let keyData: { tenant_id: string } | null = null;
+    try {
+      const { data } = await supabase
+        .from('api_keys')
+        .select('tenant_id')
+        .eq('key_hash', crypto.createHash('sha256').update(apiKey).digest('hex'))
+        .single();
+      keyData = data;
+    } catch { /* invalid key */ }
 
     // Resolve tenant from API key or header — no hardcoded fallback
     const tenantId = keyData?.tenant_id || req.headers.get('x-tenant-id');
@@ -45,8 +48,7 @@ export async function POST(req: NextRequest) {
         evidence_period_end: period_end,
       })
       .select('id')
-      .single()
-      .catch(() => ({ data: { id: `rpt_${Date.now()}` }, error: null }));
+      .single();
 
     if (insertError) {
       console.error('[compliance/reports/generate] insert error:', insertError);
@@ -79,14 +81,14 @@ export async function POST(req: NextRequest) {
             generated_at: new Date().toISOString(),
           })
           .eq('id', reportId)
-          .catch(e => console.error('[compliance/reports] update failed:', e));
+          .then(({ error: e }) => { if (e) console.error('[compliance/reports] update failed:', e); });
       } catch (err) {
         console.error('[compliance/reports] generation failed:', err);
-        await supabase
+        supabase
           .from('compliance_reports')
           .update({ status: 'failed', error_message: String(err) })
           .eq('id', reportId)
-          .catch(() => {});
+          .then(({ error: e }) => { if (e) console.error('[compliance/reports] fail-update error:', e); });
       }
     });
 

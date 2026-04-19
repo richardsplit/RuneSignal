@@ -191,12 +191,11 @@ export class Iso42001ReportGenerator {
     const policyViolations = policyViolationsResult.status === 'fulfilled' ? policyViolationsResult.value.data ?? [] : [];
 
     // ─── Org name ─────────────────────────────────────────────────────────────
-    const { data: orgData } = await supabase
-      .from('tenants')
-      .select('name')
-      .eq('id', tenantId)
-      .single()
-      .catch(() => ({ data: null }));
+    let orgData: { name: string } | null = null;
+    try {
+      const { data } = await supabase.from('tenants').select('name').eq('id', tenantId).single();
+      orgData = data;
+    } catch { /* tenant not found */ }
     const orgName = (orgData as any)?.name ?? tenantId;
 
     // ─── Clause 1: Risk Management (Clause 6.1 / 8.4) ───────────────────────

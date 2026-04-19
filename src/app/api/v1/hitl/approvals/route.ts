@@ -33,12 +33,15 @@ export async function POST(req: NextRequest) {
     const apiKey = req.headers.get('authorization')?.replace('Bearer ', '') || '';
     const supabase = createAdminClient();
 
-    const { data: keyData } = await supabase
-      .from('api_keys')
-      .select('tenant_id')
-      .eq('key_hash', crypto.createHash('sha256').update(apiKey).digest('hex'))
-      .single()
-      .catch(() => ({ data: null }));
+    let keyData: { tenant_id: string } | null = null;
+    try {
+      const { data } = await supabase
+        .from('api_keys')
+        .select('tenant_id')
+        .eq('key_hash', crypto.createHash('sha256').update(apiKey).digest('hex'))
+        .single();
+      keyData = data;
+    } catch { /* invalid key */ }
 
     const tenantId = keyData?.tenant_id || req.headers.get('x-tenant-id');
     if (!tenantId) {
@@ -148,14 +151,17 @@ export async function GET(req: NextRequest) {
     const apiKey = req.headers.get('authorization')?.replace('Bearer ', '') || '';
     const supabase = createAdminClient();
 
-    const { data: keyData } = await supabase
-      .from('api_keys')
-      .select('tenant_id')
-      .eq('key_hash', crypto.createHash('sha256').update(apiKey).digest('hex'))
-      .single()
-      .catch(() => ({ data: null }));
+    let keyData2: { tenant_id: string } | null = null;
+    try {
+      const { data } = await supabase
+        .from('api_keys')
+        .select('tenant_id')
+        .eq('key_hash', crypto.createHash('sha256').update(apiKey).digest('hex'))
+        .single();
+      keyData2 = data;
+    } catch { /* invalid key */ }
 
-    const tenantId = keyData?.tenant_id || req.headers.get('x-tenant-id');
+    const tenantId = keyData2?.tenant_id || req.headers.get('x-tenant-id');
     if (!tenantId) {
       return NextResponse.json({ error: 'Tenant context required' }, { status: 401 });
     }

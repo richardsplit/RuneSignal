@@ -295,8 +295,7 @@ export class EvidenceService {
       .eq('regulation', params.regulation)
       .order('version', { ascending: false })
       .limit(1)
-      .single()
-      .catch(() => ({ data: null }));
+      .single();
 
     const nextVersion = (maxVersionRow?.version ?? 0) + 1;
 

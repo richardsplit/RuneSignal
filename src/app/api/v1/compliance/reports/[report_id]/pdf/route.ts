@@ -2,33 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/db/supabase';
 import { AuditLedgerService } from '@lib/ledger/service';
 import { jsPDF } from 'jspdf';
-import crypto from 'crypto';
-
-/**
- * Resolve tenant ID from (in order):
- *  1. API key in Authorization header
- *  2. X-Tenant-Id header
- */
-async function resolveTenantId(req: NextRequest): Promise<string | null> {
-  const apiKey = req.headers.get('authorization')?.replace('Bearer ', '') || '';
-  if (apiKey) {
-    const supabase = createAdminClient();
-    const keyHash = crypto.createHash('sha256').update(apiKey).digest('hex');
-    const { data: keyData } = await supabase
-      .from('api_keys')
-      .select('tenant_id')
-      .eq('key_hash', keyHash)
-      .single()
-      .catch(() => ({ data: null }));
-
-    if (keyData?.tenant_id) return keyData.tenant_id;
-  }
-
-  const headerTenantId = req.headers.get('x-tenant-id');
-  if (headerTenantId) return headerTenantId;
-
-  return null;
-}
+import { resolveTenantId } from '@lib/api/resolve-tenant';
 
 /* ─── PDF builder helpers ────────────────────────────────────────────── */
 
