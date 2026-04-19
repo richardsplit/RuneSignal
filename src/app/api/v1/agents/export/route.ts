@@ -1,7 +1,7 @@
 /**
  * Agent Registry Export — JSON / CSV download.
  *
- * GET /api/v1/agents/export?format=json|csv
+ * GET /api/v1/agents/export?format=json|csv|veza
  *
  * Merges agent_inventory and agent_credentials for a complete registry.
  * EU AI Act Article 13 — Transparency & Traceability
@@ -34,9 +34,9 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const format = searchParams.get('format') || 'json';
 
-    if (format !== 'json' && format !== 'csv') {
+    if (format !== 'json' && format !== 'csv' && format !== 'veza') {
       return NextResponse.json(
-        { error: 'Invalid format. Must be "json" or "csv".' },
+        { error: 'Invalid format. Must be "json", "csv", or "veza".' },
         { status: 400 },
       );
     }
@@ -132,6 +132,42 @@ export async function GET(req: NextRequest) {
           'Content-Disposition': 'attachment; filename="agent-registry-export.csv"',
         },
       });
+    }
+
+    if (format === 'veza') {
+      const RISK_SCORE: Record<string, number> = {
+        prohibited:   100,
+        high_risk:     75,
+        limited_risk:  40,
+        minimal_risk:  10,
+        unclassified:   0,
+      };
+
+      const vezaNodes = rows.map(row => ({
+        node_type: 'AIAgent',
+        id: row.agent_id,
+        name: row.name,
+        properties: {
+          framework: row.framework,
+          status: row.status,
+          eu_ai_act_category: row.eu_ai_act_category,
+          risk_classification: row.risk_classification,
+          owner: row.owner,
+          registered_at: row.registered_at,
+          last_active: row.last_active,
+        },
+        risk_score: RISK_SCORE[row.eu_ai_act_category] ?? 0,
+        tags: [
+          `status:${row.status}`,
+          `eu_ai_act:${row.eu_ai_act_category}`,
+          `framework:${row.framework}`,
+        ],
+      }));
+
+      return NextResponse.json(
+        { schema_version: '1.0', node_type: 'AIAgent', nodes: vezaNodes, exported_at: new Date().toISOString() },
+        { headers: { 'Content-Disposition': 'attachment; filename="runesignal-agents-veza.json"' } },
+      );
     }
 
     // Default: JSON
