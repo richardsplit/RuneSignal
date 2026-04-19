@@ -5,7 +5,7 @@ import { headers } from 'next/headers';
 async function getDashboardMetrics(tenantId: string) {
   const supabase = await createServerClient();
 
-  const [certResult, agentResult, conflictResult] = await Promise.all([
+  const [certResult, agentResult, conflictResult, incidentResult, controlResult] = await Promise.all([
     supabase
       .from('audit_events')
       .select('id', { count: 'exact', head: true })
@@ -22,6 +22,15 @@ async function getDashboardMetrics(tenantId: string) {
       .eq('tenant_id', tenantId)
       .eq('module', 's1')
       .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()),
+    supabase
+      .from('incidents')
+      .select('id, severity, status', { count: 'exact', head: false })
+      .eq('tenant_id', tenantId)
+      .not('status', 'in', '("closed")'),
+    supabase
+      .from('controls')
+      .select('id, status', { count: 'exact', head: false })
+      .eq('tenant_id', tenantId),
   ]);
 
   const certificates = certResult.count ?? 0;
@@ -30,15 +39,25 @@ async function getDashboardMetrics(tenantId: string) {
   const totalConflicts = conflictResult.count ?? 0;
   const blockedConflicts = conflicts.filter(e => e.event_type === 'conflict.blocked').length;
 
-  return { certificates, activeAgents, totalConflicts, blockedConflicts };
+  const openIncidents = incidentResult.data ?? [];
+  const totalOpenIncidents = openIncidents.length;
+  const criticalIncidents = openIncidents.filter(i => i.severity === 'critical').length;
+
+  const allControls = controlResult.data ?? [];
+  const failingControls = allControls.filter(c => c.status === 'failing').length;
+  const passingControls = allControls.filter(c => c.status === 'passing').length;
+
+  return { certificates, activeAgents, totalConflicts, blockedConflicts, totalOpenIncidents, criticalIncidents, failingControls, passingControls, totalControls: allControls.length };
 }
 
 export default async function Home() {
   const headersList = await headers();
   const tenantId = headersList.get('X-Tenant-Id') || '';
 
-  const { certificates, activeAgents, totalConflicts, blockedConflicts } =
+  const { certificates, activeAgents, totalConflicts, blockedConflicts, totalOpenIncidents, criticalIncidents, failingControls, passingControls, totalControls } =
     await getDashboardMetrics(tenantId);
+
+  const controlPassRate = totalControls > 0 ? Math.round((passingControls / totalControls) * 100) : null;
 
   return (
     <div>
@@ -47,7 +66,7 @@ export default async function Home() {
         <p className="page-description">Real-time visibility into your AI agent fleets.</p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
         {/* S3 Card */}
         <div className="surface" style={{ padding: '1.5rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
@@ -90,6 +109,47 @@ export default async function Home() {
           </div>
           <p className="t-body-sm text-secondary">Conflicts detected past 24h</p>
         </div>
+
+        {/* Incidents Card */}
+        <a href="/incidents" style={{ textDecoration: 'none' }}>
+          <div className="surface" style={{ padding: '1.5rem', cursor: 'pointer', transition: 'border-color 0.15s', borderColor: totalOpenIncidents > 0 ? (criticalIncidents > 0 ? '#ef444430' : '#f59e0b30') : undefined }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+              <h3 className="t-h4">Incidents</h3>
+              {totalOpenIncidents === 0
+                ? <span className="badge badge-success">Clear</span>
+                : <span className="badge badge-danger">{criticalIncidents > 0 ? `${criticalIncidents} Critical` : 'Open'}</span>
+              }
+            </div>
+            <p style={{ fontSize: '2.5rem', fontWeight: 700, color: totalOpenIncidents > 0 ? (criticalIncidents > 0 ? '#ef4444' : '#f59e0b') : 'var(--success)', marginBottom: '0.5rem', lineHeight: 1 }}>
+              {totalOpenIncidents}
+            </p>
+            <p className="t-body-sm text-secondary">Open incidents (excl. closed)</p>
+          </div>
+        </a>
+
+        {/* Controls Card */}
+        <a href="/controls" style={{ textDecoration: 'none' }}>
+          <div className="surface" style={{ padding: '1.5rem', cursor: 'pointer', borderColor: failingControls > 0 ? '#ef444430' : undefined }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+              <h3 className="t-h4">Controls</h3>
+              {failingControls === 0
+                ? <span className="badge badge-success">{controlPassRate !== null ? `${controlPassRate}% Pass` : 'No controls'}</span>
+                : <span className="badge badge-danger">{failingControls} Failing</span>
+              }
+            </div>
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'baseline' }}>
+              <p style={{ fontSize: '2.5rem', fontWeight: 700, color: failingControls > 0 ? '#ef4444' : 'var(--success)', marginBottom: '0.5rem', lineHeight: 1 }}>
+                {failingControls}
+              </p>
+              {totalControls > 0 && (
+                <p style={{ fontSize: '1.125rem', fontWeight: 500, color: 'var(--text-muted)' }}>
+                  / {totalControls}
+                </p>
+              )}
+            </div>
+            <p className="t-body-sm text-secondary">Failing compliance controls</p>
+          </div>
+        </a>
       </div>
 
       {/* Zero-state prompt for new tenants */}
