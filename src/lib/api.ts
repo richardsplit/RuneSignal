@@ -182,6 +182,160 @@ export const intent = {
     apiFetch<{ intents: AgentIntent[] }>(`/intent?limit=${limit}`),
 };
 
+/* ─── Incidents ──────────────────────────────────────────────────────── */
+export type IncidentSeverity = 'low' | 'medium' | 'high' | 'critical';
+export type IncidentCategory = 'operational' | 'safety' | 'rights_violation' | 'security' | 'compliance_gap';
+export type IncidentStatus   = 'detected' | 'investigating' | 'mitigated' | 'reported' | 'closed';
+
+export interface Incident {
+  id: string;
+  tenant_id: string;
+  title: string;
+  description: string | null;
+  severity: IncidentSeverity;
+  category: IncidentCategory;
+  is_serious_incident: boolean;
+  art73_report_deadline: string | null;
+  art73_report_id: string | null;
+  market_surveillance_authority: string | null;
+  status: IncidentStatus;
+  detected_at: string;
+  investigating_since: string | null;
+  mitigated_at: string | null;
+  reported_at: string | null;
+  closed_at: string | null;
+  reported_by: string | null;
+  incident_commander: string | null;
+  related_anomaly_ids: string[];
+  related_hitl_ids: string[];
+  related_agent_ids: string[];
+  related_firewall_ids: string[];
+  root_cause: string | null;
+  corrective_actions: Array<{ description: string; owner: string; deadline: string; status: 'pending' | 'done' }>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface IncidentTimelineEntry {
+  id: string;
+  incident_id: string;
+  event_type: string;
+  actor: string;
+  detail: Record<string, unknown>;
+  audit_event_id: string | null;
+  created_at: string;
+}
+
+export const incidents = {
+  list: (params?: { status?: IncidentStatus; severity?: IncidentSeverity; is_serious_incident?: boolean; limit?: number }) => {
+    const q = new URLSearchParams();
+    if (params?.status)                q.set('status', params.status);
+    if (params?.severity)              q.set('severity', params.severity);
+    if (params?.is_serious_incident !== undefined) q.set('is_serious_incident', String(params.is_serious_incident));
+    if (params?.limit)                 q.set('limit', String(params.limit));
+    const qs = q.toString();
+    return apiFetch<{ incidents: Incident[]; total: number }>(`/incidents${qs ? '?' + qs : ''}`);
+  },
+
+  create: (body: {
+    title: string;
+    description?: string;
+    severity: IncidentSeverity;
+    category: IncidentCategory;
+    is_serious_incident?: boolean;
+    market_surveillance_authority?: string;
+    reported_by: string;
+    related_anomaly_ids?: string[];
+    related_agent_ids?: string[];
+  }) => apiFetch<Incident>('/incidents', { method: 'POST', body: JSON.stringify(body) }),
+
+  getById: (id: string) =>
+    apiFetch<Incident>(`/incidents/${id}`),
+
+  patch: (id: string, body: Partial<Pick<Incident, 'status' | 'incident_commander' | 'root_cause'>>) =>
+    apiFetch<Incident>(`/incidents/${id}`, { method: 'PATCH', body: JSON.stringify(body) }),
+
+  timeline: (id: string) =>
+    apiFetch<{ timeline: IncidentTimelineEntry[] }>(`/incidents/${id}/timeline`),
+
+  addTimeline: (id: string, event_type: string, actor: string, detail?: Record<string, unknown>) =>
+    apiFetch<IncidentTimelineEntry>(`/incidents/${id}/timeline`, {
+      method: 'POST',
+      body: JSON.stringify({ event_type, actor, detail }),
+    }),
+
+  generateArt73: (id: string) =>
+    apiFetch<{ report_id: string; generated_at: string; bundle_hash: string }>(`/incidents/${id}/art73-report`, { method: 'POST' }),
+
+  getArt73: (id: string) =>
+    apiFetch<{ report: Record<string, unknown> }>(`/incidents/${id}/art73-report`),
+
+  correctiveActions: (id: string) =>
+    apiFetch<{ actions: Array<{ id: string; description: string; owner: string; due_date: string; status: string }> }>(`/incidents/${id}/corrective-actions`),
+
+  addCorrectiveAction: (id: string, body: { description: string; owner?: string; due_date?: string }) =>
+    apiFetch<{ id: string }>(`/incidents/${id}/corrective-actions`, { method: 'POST', body: JSON.stringify(body) }),
+};
+
+/* ─── Controls ───────────────────────────────────────────────────────── */
+export type ControlStatus   = 'passing' | 'failing' | 'warning' | 'not_evaluated';
+export type ControlSeverity = 'low' | 'medium' | 'high' | 'critical';
+export type EvaluationType  = 'real_time' | 'scheduled' | 'manual';
+
+export interface Control {
+  id: string;
+  tenant_id: string;
+  name: string;
+  description: string | null;
+  regulation: string | null;
+  clause_ref: string | null;
+  policy_id: string | null;
+  evaluation_type: EvaluationType;
+  evaluation_query: unknown | null;
+  evaluation_schedule: string | null;
+  status: ControlStatus;
+  last_evaluated_at: string | null;
+  consecutive_failures: number;
+  severity: ControlSeverity;
+  owner: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ControlStatusSummary {
+  total: number;
+  passing: number;
+  failing: number;
+  warning: number;
+  not_evaluated: number;
+  by_regulation: Record<string, { passing: number; failing: number; warning: number }>;
+  recent_failures?: Array<{ control_id: string; evaluated_at: string; detail: Record<string, unknown>; control?: Control }>;
+}
+
+export const controls = {
+  list: (params?: { status?: ControlStatus; regulation?: string; severity?: ControlSeverity; limit?: number }) => {
+    const q = new URLSearchParams();
+    if (params?.status)     q.set('status', params.status);
+    if (params?.regulation) q.set('regulation', params.regulation);
+    if (params?.severity)   q.set('severity', params.severity);
+    if (params?.limit)      q.set('limit', String(params.limit));
+    const qs = q.toString();
+    return apiFetch<{ controls: Control[]; total: number }>(`/controls${qs ? '?' + qs : ''}`);
+  },
+
+  status: () =>
+    apiFetch<ControlStatusSummary>('/controls/status'),
+
+  evaluate: (id: string) =>
+    apiFetch<{ result: string; detail: Record<string, unknown> }>(`/controls/${id}/evaluate`, { method: 'POST' }),
+
+  seed: () =>
+    apiFetch<{ seeded: number; controls: Control[] }>('/controls/seed', { method: 'POST' }),
+
+  create: (body: { name: string; description?: string; regulation?: string; clause_ref?: string; evaluation_type?: EvaluationType; severity?: ControlSeverity; owner?: string }) =>
+    apiFetch<Control>('/controls', { method: 'POST', body: JSON.stringify(body) }),
+};
+
 /* ─── Health (outside /v1 prefix — no tenant required) ──────────────── */
 export async function checkHealth() {
   const res = await fetch('/api/health');

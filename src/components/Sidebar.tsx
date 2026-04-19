@@ -233,6 +233,27 @@ function IconFirewall() {
   );
 }
 
+function IconControls() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="1.5" y="1.5" width="12" height="12" rx="1.5" />
+      <line x1="4" y1="7.5" x2="6.5" y2="7.5" />
+      <polyline points="6.5,5.5 9,7.5 6.5,9.5" />
+      <line x1="9" y1="5" x2="9" y2="10" />
+    </svg>
+  );
+}
+
+function IconIncidents() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M7.5 1.5L1.5 12.5h12L7.5 1.5z" />
+      <line x1="7.5" y1="6" x2="7.5" y2="9.5" />
+      <circle cx="7.5" cy="11.25" r="0.6" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
 function IconChevronLeft() {
   return (
     <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round">
@@ -345,6 +366,7 @@ const NAV_SECTIONS: NavSection[] = [
     items: [
       { label: 'Provenance', href: '/provenance', icon: <IconProvenance /> },
       { label: 'Conflict Arbiter', href: '/conflict', icon: <IconConflict /> },
+      { label: 'Incidents', href: '/incidents', icon: <IconIncidents /> },
       { label: 'Review Queue', href: '/exceptions', icon: <IconExceptions />, badge: 3 },
       { label: 'Audit Trail', href: '/audit', icon: <IconAudit /> },
     ],
@@ -356,6 +378,7 @@ const NAV_SECTIONS: NavSection[] = [
       { label: 'Governance Intel', href: '/compliance', icon: <IconGovernanceIntel /> },
       { label: 'Compliance Reports', href: '/compliance/reports', icon: <IconComplianceReports /> },
       { label: 'Evidence Wizard', href: '/compliance/evidence', icon: <IconProvenance /> },
+      { label: 'Controls', href: '/controls', icon: <IconControls /> },
       { label: 'Anomaly Detection', href: '/anomaly', icon: <IconAnomaly /> },
     ],
   },
