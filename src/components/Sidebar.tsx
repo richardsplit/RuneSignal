@@ -560,6 +560,17 @@ export default function Sidebar() {
   const [toggleHovered, setToggleHovered] = useState(false);
   const [avatarHovered, setAvatarHovered] = useState(false);
   const [reviewQueueCount, setReviewQueueCount] = useState<number | null>(null);
+  const [userRole, setUserRole] = useState<{ label: string; color: string; email: string | null } | null>(null);
+
+  // Role resolution
+  useEffect(() => {
+    fetch('/api/v1/auth/me')
+      .then(r => r.ok ? r.json() : null)
+      .then(d => {
+        if (d) setUserRole({ label: d.role_label, color: d.role_color, email: d.email });
+      })
+      .catch(() => {});
+  }, []);
 
   // Live review queue badge
   useEffect(() => {
@@ -802,7 +813,7 @@ export default function Sidebar() {
               letterSpacing: '0.02em',
             }}
           >
-            RS
+            {userRole?.email ? userRole.email.slice(0, 2).toUpperCase() : 'RS'}
           </div>
           {!collapsed && (
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -816,8 +827,20 @@ export default function Sidebar() {
                   textOverflow: 'ellipsis',
                 }}
               >
-                Account
+                {userRole?.email ?? 'Account'}
               </div>
+              {userRole && (
+                <div style={{
+                  fontSize: '0.6rem',
+                  fontWeight: 600,
+                  color: userRole.color,
+                  letterSpacing: '0.06em',
+                  textTransform: 'uppercase',
+                  marginTop: '0.0625rem',
+                }}>
+                  {userRole.label}
+                </div>
+              )}
             </div>
           )}
         </Link>
