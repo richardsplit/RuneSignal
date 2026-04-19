@@ -359,6 +359,58 @@ export class EvidenceService {
   }
 
   /**
+   * Dry-run coverage preview — generates report and computes coverage
+   * WITHOUT storing to compliance_reports. No attestation, no audit event.
+   * Used by the Evidence Wizard Step 4 live preview panel.
+   */
+  static async preview(params: {
+    tenant_id: string;
+    regulation: Regulation;
+    period: { start: string; end: string };
+  }): Promise<{ coverage: BundleCoverage; hitl_count: number; control_count: number }> {
+    let manifest: EuAiActReport | Iso42001Report;
+    let coverage: BundleCoverage;
+
+    if (params.regulation === 'eu_ai_act') {
+      manifest = await EuAiActReportGenerator.generate(params.tenant_id, {
+        period_start: params.period.start,
+        period_end: params.period.end,
+        framework: 'EU_AI_ACT_2024',
+      });
+      coverage = computeEuAiActCoverage(manifest as EuAiActReport);
+    } else {
+      manifest = await Iso42001ReportGenerator.generate(params.tenant_id, {
+        period_start: params.period.start,
+        period_end: params.period.end,
+      });
+      coverage = computeIso42001Coverage(manifest as Iso42001Report);
+    }
+
+    const supabase = createAdminClient();
+
+    const [{ count: hitlCount }, { count: controlCount }] = await Promise.all([
+      supabase
+        .from('hitl_exceptions')
+        .select('id', { count: 'exact', head: true })
+        .eq('tenant_id', params.tenant_id)
+        .in('status', ['approved', 'rejected'])
+        .gte('resolved_at', params.period.start)
+        .lte('resolved_at', params.period.end),
+      supabase
+        .from('controls')
+        .select('id', { count: 'exact', head: true })
+        .eq('tenant_id', params.tenant_id)
+        .eq('status', 'passing'),
+    ]);
+
+    return {
+      coverage,
+      hitl_count: hitlCount ?? 0,
+      control_count: controlCount ?? 0,
+    };
+  }
+
+  /**
    * Retrieve an existing bundle by ID.
    * Returns null if not found or wrong tenant (tenant isolation).
    */

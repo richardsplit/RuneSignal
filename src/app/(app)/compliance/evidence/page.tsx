@@ -153,6 +153,8 @@ export default function EvidenceWizardPage() {
   const [generating, setGenerating] = useState(false);
   const [generateError, setGenerateError] = useState<string | null>(null);
   const [result, setResult] = useState<ExportResult | null>(null);
+  const [livePreview, setLivePreview] = useState<{ overall_score: number; clauses_covered: number; clauses_total: number; gaps: Array<{ clause_ref: string; status: string; remediation_hint: string }>; hitl_count: number; control_count: number } | null>(null);
+  const [livePreviewLoading, setLivePreviewLoading] = useState(false);
 
   const selectedReg = REGULATIONS.find(r => r.id === selectedRegulation);
 
@@ -217,20 +219,35 @@ export default function EvidenceWizardPage() {
   };
 
   const fetchPreview = async () => {
-    if (!selectedRegulation) return;
+    if (!selectedRegulation || !startDate || !endDate) return;
     setPreviewLoading(true);
     setPreviewError(null);
+    setLivePreview(null);
     try {
       const headers: Record<string, string> = {};
       if (tenantId) headers['X-Tenant-Id'] = tenantId;
-      const res = await fetch(`/api/v1/compliance/regulations?regulation=${selectedRegulation}`, { headers });
-      if (!res.ok) throw new Error('api_error');
-      const data = await res.json();
+      const [regRes] = await Promise.all([
+        fetch(`/api/v1/compliance/regulations?regulation=${selectedRegulation}`, { headers }),
+      ]);
+      if (!regRes.ok) throw new Error('api_error');
+      const data = await regRes.json();
       const regInfo: RegulationInfo | undefined = data.regulations?.find(
         (r: RegulationInfo) => r.regulation === selectedRegulation,
       );
       setClauses(regInfo?.clauses ?? MOCK_CLAUSES[selectedRegulation]);
       setStep(4);
+      // Fire live coverage preview async (non-blocking)
+      if (tenantId) {
+        setLivePreviewLoading(true);
+        fetch(
+          `/api/v1/compliance/evidence-preview?regulation=${selectedRegulation}&start=${startDate}&end=${endDate}`,
+          { headers: { 'X-Tenant-Id': tenantId } },
+        )
+          .then(r => r.ok ? r.json() : null)
+          .then(d => { if (d) setLivePreview({ ...d.coverage, hitl_count: d.hitl_count, control_count: d.control_count }); })
+          .catch(() => {})
+          .finally(() => setLivePreviewLoading(false));
+      }
     } catch {
       setClauses(MOCK_CLAUSES[selectedRegulation]);
       setStep(4);
@@ -297,6 +314,7 @@ export default function EvidenceWizardPage() {
     setPreviewError(null);
     setAgentScope('all');
     setSelectedAgentIds(new Set());
+    setLivePreview(null);
   };
 
   /* ── Coverage score color ── */
@@ -549,6 +567,59 @@ export default function EvidenceWizardPage() {
           <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '1.25rem' }}>
             Coverage preview for <strong style={{ color: 'var(--text-primary)' }}>{selectedReg?.name}</strong> ({startDate} to {endDate}):
           </p>
+
+          {/* ── Live coverage score card ── */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '1.5rem',
+            padding: '1rem 1.25rem',
+            background: 'var(--surface-1)',
+            border: '1px solid var(--border-default)',
+            borderRadius: 'var(--radius-lg)',
+            marginBottom: '1.25rem',
+          }}>
+            {livePreviewLoading ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', color: 'var(--text-muted)', fontSize: '0.8125rem' }}>
+                <div style={{ width: 16, height: 16, border: '2px solid var(--border-default)', borderTopColor: 'var(--accent)', borderRadius: '50%', animation: 'spin 0.8s linear infinite', flexShrink: 0 }} />
+                Computing live coverage…
+              </div>
+            ) : livePreview ? (
+              <>
+                <div style={{ textAlign: 'center', flexShrink: 0 }}>
+                  <div style={{ fontSize: '2rem', fontWeight: 700, color: scoreColor(livePreview.overall_score), lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
+                    {livePreview.overall_score}%
+                  </div>
+                  <div style={{ fontSize: '0.6rem', fontWeight: 600, color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase', marginTop: '0.25rem' }}>
+                    Live Score
+                  </div>
+                </div>
+                <div style={{ borderLeft: '1px solid var(--border-subtle)', height: 40, flexShrink: 0 }} />
+                <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap', fontSize: '0.8125rem' }}>
+                  <div>
+                    <div style={{ color: 'var(--text-muted)', fontSize: '0.6875rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Clauses</div>
+                    <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{livePreview.clauses_covered} / {livePreview.clauses_total}</div>
+                  </div>
+                  <div>
+                    <div style={{ color: 'var(--text-muted)', fontSize: '0.6875rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Gaps</div>
+                    <div style={{ fontWeight: 600, color: livePreview.gaps.length > 0 ? 'var(--warning)' : 'var(--success)' }}>{livePreview.gaps.length}</div>
+                  </div>
+                  <div>
+                    <div style={{ color: 'var(--text-muted)', fontSize: '0.6875rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>HITL Receipts</div>
+                    <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{livePreview.hitl_count}</div>
+                  </div>
+                  <div>
+                    <div style={{ color: 'var(--text-muted)', fontSize: '0.6875rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Passing Controls</div>
+                    <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{livePreview.control_count}</div>
+                  </div>
+                </div>
+                <div style={{ flex: 1 }} />
+                <span className="badge badge-accent" style={{ fontSize: '0.65rem' }}>Dry-run · not saved</span>
+              </>
+            ) : (
+              <span style={{ color: 'var(--text-muted)', fontSize: '0.8125rem' }}>Live score unavailable — connect tenant to compute.</span>
+            )}
+          </div>
 
           {clauses.length > 0 ? (
             <div className="surface" style={{ overflow: 'hidden', marginBottom: '1.5rem' }}>
