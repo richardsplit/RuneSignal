@@ -30,7 +30,7 @@ This document is the authoritative step-by-step build plan for RuneSignal. It is
 | Phase 3 | AI Incident Response & Article 73 | ✅ Complete | ~100% |
 | Phase 4 | Continuous Control Monitoring | ✅ Complete | ~100% |
 | Phase 5 | Agent Identity + Behavior Linkage | ✅ Complete | ~100% |
-| Cross-cutting | RBAC, SDK, idempotency | ⚠️ Partial | ~80% |
+| Cross-cutting | RBAC, SDK, idempotency | ⚠️ Partial | ~90% |
 
 ---
 
@@ -659,7 +659,7 @@ File: `src/app/(app)/identity/[id]/page.tsx` — two-column layout, fan-out time
 
 ---
 
-### CT-2 — RBAC (Compliance vs Engineering vs Auditor) ❌ NOT STARTED
+### CT-2 — RBAC (Compliance vs Engineering vs Auditor) ⚠️ PARTIAL (April 19, 2026)
 **Files to create:**
 - `lib/auth/roles.ts` — role definitions and permission guards
 - `src/middleware.ts` — extend to check role for sensitive routes
@@ -868,7 +868,7 @@ All crons are secured with `CRON_SECRET` env var (Bearer token).
 | M5.2 | EU AI Act risk tier visible in agent list + classifiable | 5 | ✅ Done — colour-coded Tier column in identity list |
 | M5.3 | Veza-format agent export endpoint | 5 | ✅ Done — `?format=veza` on `GET /api/v1/agents/export` |
 | CT-1 | Review queue badge shows live count from API | Cross | ✅ Done — 60 s polling in Sidebar |
-| CT-2 | Role-based access control for compliance routes | Cross | ❌ Pending (Migration D deferred to CT-2 phase) |
+| CT-2 | Role-based access control for compliance routes | Cross | ⚠️ Partial — `lib/auth/roles.ts` + `GET /api/v1/auth/me` + Sidebar role badge done; route guards pending Migration D |
 | CT-3 | Idempotency keys on incident + approval request creation | Cross | ✅ Done |
 | CT-4 | SDK approval gateway example | Cross | ✅ Done — `examples/approval-gateway.ts` |
 | CT-5 | Policy auto-approve for low blast-radius comms | Cross | ✅ Done — `ENABLE_AUTO_APPROVE` env var gate |
