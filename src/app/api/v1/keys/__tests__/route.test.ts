@@ -52,7 +52,7 @@ function makeRequest(
   if (body) {
     opts.body = JSON.stringify(body);
   }
-  return new NextRequest(url, opts);
+  return new NextRequest(url, opts as any);
 }
 
 describe('GET /api/v1/keys - Sentry integration', () => {

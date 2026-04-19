@@ -5,7 +5,7 @@
  * High-risk tool calls are blocked until a human approves them.
  */
 
-import type { TrustLayer, BlastRadius } from '@trustlayer/sdk';
+import type { TrustLayer, BlastRadius } from '@runesignal/sdk';
 
 export interface TrustLayerToolOptions {
   blastRadius?: BlastRadius;

@@ -11,7 +11,7 @@
  *   });
  */
 
-import type { TrustLayer } from '@trustlayer/sdk';
+import type { TrustLayer } from '@runesignal/sdk';
 
 // Minimal interface to avoid requiring langchain as a hard dep at type-check time
 interface BaseCallbackHandlerInput {
