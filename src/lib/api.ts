@@ -460,6 +460,12 @@ export const decisionLedger = {
 
   replay: (decisionId: string) =>
     apiFetch<{ replay: Record<string, unknown> }>(`/ledger/replay/${decisionId}`, { method: 'POST', body: '{}' }),
+
+  reverse: (decisionId: string, body: { reversal_type: string; reason?: string; initiated_by?: string; actions?: Array<{ type: string; target: string; payload?: Record<string, unknown> }> }) =>
+    apiFetch<{ reversal: Record<string, unknown> }>(`/ledger/reverse/${decisionId}`, { method: 'POST', body: JSON.stringify(body) }),
+
+  getReversals: (decisionId: string) =>
+    apiFetch<{ reversals: Record<string, unknown>[]; total: number }>(`/ledger/reverse/${decisionId}`),
 };
 
 /* ─── Agent Passport Registry ────────────────────────────────────────── */
@@ -512,6 +518,9 @@ export const registry = {
 
   revoke: (id: string, reason?: string) =>
     apiFetch<{ passport: AgentPassport }>(`/registry/passports/${id}/revoke`, { method: 'POST', body: JSON.stringify({ reason }) }),
+
+  reputation: (id: string) =>
+    apiFetch<{ scorecard: Record<string, unknown> }>(`/registry/passports/${id}/reputation`),
 };
 
 /* ─── Health (outside /v1 prefix — no tenant required) ──────────────── */
