@@ -1,34 +1,48 @@
+'use client';
+
 import * as React from 'react';
+import { useTheme } from '@/components/providers/ThemeProvider';
 
 /**
- * RuneSignal wordmark — a minimal rune glyph + typeset name.
- * Uses currentColor / accent so it works across both themes.
+ * RuneSignal wordmark — actual brand logo mark + typeset name.
+ * Switches between white-on-dark and blue-on-white SVGs based on resolved theme.
  */
-export function Wordmark({ size = 22 }: { size?: number }) {
+export function Wordmark({ size = 40 }: { size?: number }) {
+  const { resolvedTheme } = useTheme();
   return (
     <span className="wordmark">
-      <RuneGlyph size={size} />
+      <LogoMark size={size} resolvedTheme={resolvedTheme} />
       <span className="wordmark-text">RuneSignal</span>
     </span>
   );
 }
 
-export function RuneGlyph({ size = 22 }: { size?: number }) {
+export function LogoMark({
+  size = 28,
+  resolvedTheme,
+}: {
+  size?: number;
+  resolvedTheme?: 'dark' | 'light';
+}) {
+  const src =
+    resolvedTheme === 'light'
+      ? '/runesignal_sourcelogo_v2_blue_whitebackgrnd.svg'
+      : '/runesignal_sourcelogo_v2_white_darkbackgrnd.svg';
+
   return (
-    <svg
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={src}
+      alt="RuneSignal logo mark"
       width={size}
       height={size}
-      viewBox="0 0 28 28"
-      fill="none"
-      aria-hidden="true"
-      className="rune-glyph"
-    >
-      <line x1="14" y1="3" x2="14" y2="25" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
-      <line x1="14" y1="9" x2="6" y2="4" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
-      <line x1="14" y1="9" x2="22" y2="4" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
-      <line x1="14" y1="17" x2="6" y2="23" stroke="var(--accent, currentColor)" strokeWidth="2.2" strokeLinecap="round" />
-      <line x1="14" y1="17" x2="22" y2="23" stroke="var(--accent, currentColor)" strokeWidth="2.2" strokeLinecap="round" />
-    </svg>
+      style={{
+        borderRadius: 6,
+        flexShrink: 0,
+        display: 'block',
+        objectFit: 'contain',
+      }}
+    />
   );
 }
 

@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSidebar } from '@/components/SidebarContext';
+import { useTheme } from '@/components/providers/ThemeProvider';
 
 // ─── Icon components ──────────────────────────────────────────────────────────
 
@@ -282,44 +283,35 @@ function IconSearch() {
 // ─── RuneSignal Logomark ──────────────────────────────────────────────────────
 
 function RuneSignalLogo({ collapsed }: { collapsed: boolean }) {
+  const { resolvedTheme } = useTheme();
+  const logoSrc =
+    resolvedTheme === 'light'
+      ? '/runesignal_sourcelogo_v2_blue_whitebackgrnd.svg'
+      : '/runesignal_sourcelogo_v2_white_darkbackgrnd.svg';
+
   return (
     <div
       style={{
         display: 'flex',
         alignItems: 'center',
         gap: '0.625rem',
-        padding: collapsed ? '0 0 0 0' : '0',
         justifyContent: collapsed ? 'center' : 'flex-start',
         width: '100%',
       }}
     >
-      {/* Logomark: dark tile + teal accent border + rune pillar */}
-      <div
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={logoSrc}
+        alt="RuneSignal"
+        width={36}
+        height={36}
         style={{
-          width: 28,
-          height: 28,
           borderRadius: 6,
-          background: '#0c0d11',
-          border: '1.5px solid var(--accent-border)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
           flexShrink: 0,
-          position: 'relative',
-          overflow: 'hidden',
+          display: 'block',
+          objectFit: 'contain',
         }}
-      >
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-          {/* Rune pillar — central vertical bar */}
-          <rect x="7" y="2" width="2" height="12" rx="0.5" fill="var(--accent)" opacity="0.9" />
-          {/* Top horizontal crossbar */}
-          <rect x="4" y="2.5" width="8" height="1.5" rx="0.5" fill="var(--accent)" opacity="0.6" />
-          {/* Mid crossbar */}
-          <rect x="5" y="7.25" width="6" height="1.5" rx="0.5" fill="var(--accent)" opacity="0.4" />
-          {/* Bottom crossbar */}
-          <rect x="4" y="12" width="8" height="1.5" rx="0.5" fill="var(--accent)" opacity="0.6" />
-        </svg>
-      </div>
+      />
 
       {!collapsed && (
         <span

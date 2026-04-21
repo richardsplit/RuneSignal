@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Image from 'next/image';
+import { Wordmark } from '@/components/marketing/Wordmark';
 import { createBrowserClient } from '@lib/db/supabase';
 import { useRouter } from 'next/navigation';
 
@@ -100,13 +100,9 @@ export default function LoginPage() {
         textAlign: 'center'
       }}>
         <div style={{ marginBottom: '2.5rem' }}>
-          <Image 
-            src="/runesignal-logo.svg" 
-            alt="RuneSignal" 
-            width={180} 
-            height={45} 
-            style={{ margin: '0 auto' }}
-          />
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '0.75rem' }}>
+            <Wordmark size={48} />
+          </div>
           <p style={{ color: 'var(--color-text-muted)', marginTop: '0.75rem', fontSize: '0.9rem' }}>
             Enterprise Agent Governance Platform
           </p>

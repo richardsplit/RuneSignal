@@ -3,6 +3,7 @@
 import React, { Suspense, useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { Wordmark } from '@/components/marketing/Wordmark';
 
 /* ── Checkmark icon ────────────────────────────────────────────────────── */
 const CheckCircle = () => (
@@ -10,15 +11,6 @@ const CheckCircle = () => (
     <circle cx="32" cy="32" r="32" fill="var(--success-bg)" />
     <circle cx="32" cy="32" r="24" stroke="var(--success)" strokeWidth="2" fill="none" />
     <path d="M21 32l8 8 14-14" stroke="var(--success)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
-
-const RuneGlyph = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-    <line x1="12" y1="3" x2="12" y2="21" stroke="var(--success)" strokeWidth="2" strokeLinecap="round" />
-    <line x1="12" y1="8" x2="7"  y2="13" stroke="var(--success)" strokeWidth="2" strokeLinecap="round" />
-    <line x1="12" y1="8" x2="17" y2="13" stroke="var(--success)" strokeWidth="2" strokeLinecap="round" />
-    <circle cx="12" cy="5" r="1.5" fill="var(--info)" />
   </svg>
 );
 
@@ -48,9 +40,8 @@ function BillingSuccessContent() {
     }}>
 
       {/* Logo */}
-      <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '3rem' }}>
-        <RuneGlyph />
-        <span style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>RuneSignal</span>
+      <Link href="/" style={{ textDecoration: 'none', display: 'inline-flex', marginBottom: '3rem' }}>
+        <Wordmark size={40} />
       </Link>
 
       {/* Card */}

@@ -1264,18 +1264,17 @@ button { font-family: inherit; }
 .wordmark {
   display: inline-flex;
   align-items: center;
-  gap: 0.55rem;
+  gap: 0.7rem;
   color: var(--text-primary);
   text-decoration: none;
   font-weight: 600;
   letter-spacing: -0.01em;
 }
 .wordmark-text {
-  font-size: 1rem;
+  font-size: 1.125rem;
   font-weight: 600;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.02em;
 }
-.rune-glyph { color: var(--text-primary); }
 
 /* Header ──────────────────────────────────────────────────────────── */
 .marketing-header {

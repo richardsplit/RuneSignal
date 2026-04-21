@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Image from 'next/image';
+import { Wordmark } from '@/components/marketing/Wordmark';
 import { createBrowserClient } from '@lib/db/supabase';
 import { useRouter } from 'next/navigation';
 
@@ -69,14 +69,8 @@ export default function OnboardingPage() {
         padding: '3rem 2.5rem',
         textAlign: 'center'
       }}>
-        <div style={{ marginBottom: '2.5rem' }}>
-          <Image 
-            src="/runesignal-logo.svg" 
-            alt="RuneSignal" 
-            width={180} 
-            height={45} 
-            style={{ margin: '0 auto' }}
-          />
+        <div style={{ marginBottom: '2.5rem', display: 'flex', justifyContent: 'center' }}>
+          <Wordmark size={48} />
         </div>
 
         <h1 className="gradient-text" style={{ fontSize: '1.75rem', marginBottom: '1rem', fontWeight: 700 }}>
