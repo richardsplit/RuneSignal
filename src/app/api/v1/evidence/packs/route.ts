@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@lib/db/supabase';
 import { resolveTenantId } from '@lib/api/resolve-tenant';
+import { recordUsage } from '@lib/billing/metered';
 import crypto from 'crypto';
 
 /**
@@ -161,5 +162,9 @@ export async function POST(request: NextRequest) {
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  // Metered billing — fire and forget
+  recordUsage({ tenantId, event: 'evidence_pack_signed', resourceId: pack!.id, resourceType: 'evidence_pack', metadata: { regulation: body.regulation, pack_type: body.pack_type ?? 'regulator' } });
+
   return NextResponse.json({ pack }, { status: 201 });
 }

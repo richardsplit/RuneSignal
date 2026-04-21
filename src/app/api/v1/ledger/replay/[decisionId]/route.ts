@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@lib/db/supabase';
 import { resolveTenantId } from '@lib/api/resolve-tenant';
+import { recordUsage } from '@lib/billing/metered';
 
 /**
  * POST /api/v1/ledger/replay/:decisionId
@@ -60,6 +61,8 @@ export async function POST(
   if (!auditEvent && !explanation && !hitlApproval) {
     return NextResponse.json({ error: 'Decision not found' }, { status: 404 });
   }
+
+  recordUsage({ tenantId, event: 'ledger_replay', resourceId: decisionId, resourceType: 'decision' });
 
   const replay = {
     decision_id:   decisionId,

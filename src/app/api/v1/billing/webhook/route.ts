@@ -81,6 +81,19 @@ export async function POST(request: NextRequest) {
         break;
       }
 
+      case 'invoice.paid': {
+        // On successful invoice payment, record the settled metered usage in our DB
+        const invoice = event.data.object as Stripe.Invoice;
+        const subscriptionIdPaid = (invoice as any).subscription as string | null;
+        if (subscriptionIdPaid) {
+          await supabase
+            .from('tenants')
+            .update({ billing_cycle_start: new Date((invoice as any).period_start * 1000).toISOString(), billing_cycle_end: new Date((invoice as any).period_end * 1000).toISOString() })
+            .eq('stripe_subscription_id', subscriptionIdPaid);
+        }
+        break;
+      }
+
       case 'invoice.payment_failed': {
         const invoice = event.data.object as Stripe.Invoice;
         const subscriptionIdStr = (invoice as any).subscription as string;
@@ -101,6 +114,18 @@ export async function POST(request: NextRequest) {
               { customer: invoice.customer, amount: invoice.amount_due }
             );
           }
+        }
+        break;
+      }
+
+      case 'customer.subscription.updated': {
+        const sub = event.data.object as Stripe.Subscription;
+        const updatedPriceId = sub.items.data[0]?.price?.id;
+        if (updatedPriceId) {
+          const updatedTier = updatedPriceId === process.env.STRIPE_PRO_PRICE_ID ? 'pro'
+            : updatedPriceId === process.env.STRIPE_ENTERPRISE_PRICE_ID ? 'enterprise'
+            : 'free';
+          await supabase.from('tenants').update({ plan_tier: updatedTier }).eq('stripe_subscription_id', sub.id);
         }
         break;
       }

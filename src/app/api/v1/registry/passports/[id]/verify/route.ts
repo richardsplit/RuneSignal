@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@lib/db/supabase';
 import { resolveTenantId } from '@lib/api/resolve-tenant';
+import { recordUsage } from '@lib/billing/metered';
 
 /**
  * POST /api/v1/registry/passports/:id/verify
@@ -36,6 +37,8 @@ export async function POST(
     result,
     metadata: { verified_fields: ['status', 'valid_to', 'signature'] },
   });
+
+  recordUsage({ tenantId, event: 'registry_verification', resourceId: id, resourceType: 'passport', metadata: { result } });
 
   return NextResponse.json({
     verification: {
