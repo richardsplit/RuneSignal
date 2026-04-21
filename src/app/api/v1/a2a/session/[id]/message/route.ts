@@ -11,8 +11,9 @@ import crypto from 'crypto';
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id: sessionId } = await params;
   const tenantId = request.headers.get('X-Tenant-Id');
   if (!tenantId) return NextResponse.json({ error: 'Missing X-Tenant-Id' }, { status: 401 });
 
@@ -39,7 +40,7 @@ export async function POST(
   const { data: session } = await supabase
     .from('a2a_sessions')
     .select('*')
-    .eq('id', params.id)
+    .eq('id', sessionId)
     .eq('tenant_id', tenantId)
     .single();
 
@@ -49,17 +50,17 @@ export async function POST(
   }
 
   const signer = getLedgerSigner();
-  const id = uuidv4();
+  const msgId = uuidv4();
   const createdAt = new Date().toISOString();
   const contentHash = crypto.createHash('sha256').update(content).digest('hex');
-  const dataToSign = `${id}|${params.id}|${contentHash}|${createdAt}`;
+  const dataToSign = `${msgId}|${sessionId}|${contentHash}|${createdAt}`;
   const signature = signer.sign(Buffer.from(dataToSign, 'utf-8'));
 
   const { data: msg, error } = await supabase
     .from('a2a_messages')
     .insert({
-      id,
-      session_id: params.id,
+      id: msgId,
+      session_id: sessionId,
       tenant_id: tenantId,
       from_agent_id,
       to_agent_id,
@@ -74,7 +75,7 @@ export async function POST(
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   // Increment session message count
-  await supabase.from('a2a_sessions').update({ message_count: session.message_count + 1 }).eq('id', params.id);
+  await supabase.from('a2a_sessions').update({ message_count: session.message_count + 1 }).eq('id', sessionId);
 
   return NextResponse.json({ message: msg }, { status: 201 });
 }

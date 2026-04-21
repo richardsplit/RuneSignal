@@ -7,8 +7,9 @@ import { createAdminClient } from '@lib/db/supabase';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const tenantId = request.headers.get('X-Tenant-Id');
   if (!tenantId) return NextResponse.json({ error: 'Missing X-Tenant-Id' }, { status: 401 });
 
@@ -18,13 +19,13 @@ export async function GET(
     supabase
       .from('red_team_campaigns')
       .select('*')
-      .eq('id', params.id)
+      .eq('id', id)
       .eq('tenant_id', tenantId)
       .single(),
     supabase
       .from('red_team_attacks')
       .select('*')
-      .eq('campaign_id', params.id)
+      .eq('campaign_id', id)
       .order('severity', { ascending: false }),
   ]);
 

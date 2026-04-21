@@ -9,8 +9,9 @@ import { AuditLedgerService } from '../../../../../../../lib/ledger/service';
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { agent_id: string } }
+  { params }: { params: Promise<{ agent_id: string }> }
 ) {
+  const { agent_id } = await params;
   const tenantId = request.headers.get('X-Tenant-Id');
   if (!tenantId) return NextResponse.json({ error: 'Missing X-Tenant-Id' }, { status: 401 });
 
@@ -23,7 +24,7 @@ export async function POST(
   const { data, error } = await supabase
     .from('physical_agents')
     .update({ status: 'emergency_stopped' })
-    .eq('id', params.agent_id)
+    .eq('id', agent_id)
     .eq('tenant_id', tenantId)
     .select()
     .single();
@@ -35,7 +36,7 @@ export async function POST(
     event_type: 'physical.emergency_stop',
     module: 's15',
     tenant_id: tenantId,
-    payload: { physical_agent_id: params.agent_id, reason: body.reason || 'Manual E-STOP' },
+    payload: { physical_agent_id: agent_id, reason: body.reason || 'Manual E-STOP' },
   });
 
   return NextResponse.json({ status: 'emergency_stopped', agent: data });

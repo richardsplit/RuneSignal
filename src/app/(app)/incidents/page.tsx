@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useToast } from '@/components/ToastProvider';
-import { incidents as incidentsApi, Incident, IncidentStatus, IncidentSeverity, IncidentCategory, ApiError } from '@/lib/api';
+import { incidents as incidentsApi, Incident, IncidentStatus, IncidentSeverity, ApiError } from '@/lib/api';
 import { ApiErrorBanner, SkeletonTable } from '@/components/Skeleton';
 import { CreateIncidentModal, CATEGORY_LABELS } from '@/components/features/incidents/CreateIncidentModal';
 

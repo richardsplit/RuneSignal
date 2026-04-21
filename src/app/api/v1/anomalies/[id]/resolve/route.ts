@@ -8,8 +8,9 @@ import { createAdminClient } from '@lib/db/supabase';
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const tenantId = request.headers.get('X-Tenant-Id');
   if (!tenantId) return NextResponse.json({ error: 'Missing X-Tenant-Id' }, { status: 401 });
 
@@ -28,7 +29,7 @@ export async function POST(
       resolved_by: body.resolved_by || 'unknown',
       resolution_note: body.resolution_note || '',
     })
-    .eq('id', params.id)
+    .eq('id', id)
     .eq('tenant_id', tenantId)
     .select()
     .single();

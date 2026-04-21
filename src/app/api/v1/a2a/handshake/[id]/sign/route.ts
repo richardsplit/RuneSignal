@@ -9,8 +9,9 @@ import { A2AGatewayService } from '../../../../../../../../lib/modules/s16-a2a/s
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const tenantId = request.headers.get('X-Tenant-Id');
   if (!tenantId) return NextResponse.json({ error: 'Missing X-Tenant-Id' }, { status: 401 });
 
@@ -27,7 +28,7 @@ export async function POST(
   }
 
   try {
-    const result = await A2AGatewayService.signHandshake(tenantId, params.id, agent_id, signature);
+    const result = await A2AGatewayService.signHandshake(tenantId, id, agent_id, signature);
     return NextResponse.json(result);
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });

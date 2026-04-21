@@ -8,14 +8,15 @@ import { createAdminClient } from '@lib/db/supabase';
  */
 export async function GET(
   _request: NextRequest,
-  { params }: { params: { certificate_id: string } }
+  { params }: { params: Promise<{ certificate_id: string }> }
 ) {
+  const { certificate_id } = await params;
   const supabase = createAdminClient();
 
   const { data: explanation, error } = await supabase
     .from('certificate_explanations')
     .select('id, certificate_id, decision_summary, key_factors, counterfactual, confidence_score, regulatory_refs, status, created_at, completed_at')
-    .eq('certificate_id', params.certificate_id)
+    .eq('certificate_id', certificate_id)
     .eq('status', 'complete')
     .single();
 

@@ -281,7 +281,7 @@ export default function ControlsPage() {
       <OpenIncidentModal
         control={incidentControl}
         onClose={() => setIncidentControl(null)}
-        onCreated={() => { setIncidentControl(null); showToast('Incident opened', 'success'); }}
+        onCreated={() => setIncidentControl(null)}
       />
     </div>
   );
