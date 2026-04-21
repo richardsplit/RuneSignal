@@ -49,7 +49,7 @@ const TEMPLATES: Template[] = [
   { id: 'eu_ai_act_annex_iv', name: 'EU AI Act — Annex IV', description: 'Mandatory for high-risk AI systems. Deadline: 2 August 2026.', regulation: 'eu_ai_act', pack_type: 'regulator', notified_body: 'TÜV', framework_clauses: ['Art.13', 'Art.14', 'Art.17', 'Art.29'] },
   { id: 'iso_42001_full',     name: 'ISO 42001 — AI Management System', description: 'ISO/IEC 42001:2023 full evidence pack.', regulation: 'iso_42001', pack_type: 'regulator', notified_body: null, framework_clauses: ['6.1', '7.5', '8.4', '9.1', '10.2'] },
   { id: 'nist_ai_rmf_1',     name: 'NIST AI RMF 1.0', description: 'US NIST AI Risk Management Framework. All 4 core functions.', regulation: 'nist_ai_rmf', pack_type: 'regulator', notified_body: null, framework_clauses: ['GOVERN', 'MAP', 'MEASURE', 'MANAGE'] },
-  { id: 'munich_re_insurance', name: 'Munich Re — AI Liability Pack', description: 'Carrier-ready. Loss-event sampling + anomaly rates.', regulation: 'insurance', pack_type: 'insurance', notified_body: null, framework_clauses: ['Loss Sampling', 'Anomaly Rate', 'HITL Coverage'] },
+  { id: 'carrier_insurance_pack', name: 'Insurance Carrier — AI Liability Pack', description: 'Carrier-ready. Loss-event sampling + anomaly rates.', regulation: 'insurance', pack_type: 'insurance', notified_body: null, framework_clauses: ['Loss Sampling', 'Anomaly Rate', 'HITL Coverage'] },
 ];
 
 /* ─── Helpers ───────────────────────────────────────────────────────── */

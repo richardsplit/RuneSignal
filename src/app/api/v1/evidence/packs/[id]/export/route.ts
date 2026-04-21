@@ -69,7 +69,7 @@ export async function POST(
     const m = manifest as any;
     exportPayload = {
       ...baseExport,
-      _format: 'Insurance Carrier Evidence Pack (Munich Re template)',
+      _format: 'Insurance Carrier Evidence Pack (template)',
       _carrier_note: 'Suitable for AI-liability policy underwriting',
       loss_event_sampling: {
         total_decisions:   m?.audit_events?.count ?? 0,
