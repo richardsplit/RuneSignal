@@ -24,6 +24,8 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [mode, setMode] = useState<'login' | 'signup'>('login');
+  const [ssoMode, setSsoMode] = useState(false);
+  const [ssoDomain, setSsoDomain] = useState('');
   const router = useRouter();
   const supabase = createBrowserClient();
 
@@ -51,9 +53,6 @@ export default function LoginPage() {
       setLoading(false);
     }
   };
-
-  const [ssoMode, setSsoMode] = useState(false);
-  const [ssoDomain, setSsoDomain] = useState('');
 
   const handleSocialLogin = async (provider: 'github' | 'google') => {
     setError(null);
