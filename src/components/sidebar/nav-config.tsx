@@ -8,6 +8,7 @@ import {
   IconIdentity, IconNHI, IconFinOps, IconDataResidency,
   IconA2A,
   IconIntegrations, IconBilling, IconSettings,
+  IconEvidencePack, IconLedger, IconRegistry, IconInsurance,
 } from './icons';
 
 export interface NavItem {
@@ -37,6 +38,15 @@ export const NAV_SECTIONS: NavSection[] = [
       { label: 'Incidents', href: '/incidents', icon: <IconIncidents /> },
       { label: 'Review Queue', href: '/exceptions', icon: <IconExceptions /> },
       { label: 'Audit Trail', href: '/audit', icon: <IconAudit /> },
+    ],
+  },
+  {
+    label: 'Evidence Plane',
+    items: [
+      { label: 'Evidence Packs', href: '/evidence', icon: <IconEvidencePack /> },
+      { label: 'Decision Ledger', href: '/ledger', icon: <IconLedger /> },
+      { label: 'Agent Registry', href: '/registry', icon: <IconRegistry /> },
+      { label: 'Insurance Export', href: '/insurance', icon: <IconInsurance /> },
     ],
   },
   {

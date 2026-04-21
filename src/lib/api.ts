@@ -380,6 +380,140 @@ export const controls = {
     apiFetch<Control>('/controls', { method: 'POST', body: JSON.stringify(body) }),
 };
 
+/* ─── Evidence Packs ─────────────────────────────────────────────────── */
+export interface EvidencePack {
+  id: string;
+  tenant_id: string;
+  pack_name: string;
+  regulation: string;
+  pack_type: string;
+  status: 'generating' | 'ready' | 'failed';
+  coverage_score: number;
+  clauses_covered: number;
+  clauses_total: number;
+  agent_ids: string[];
+  date_from: string;
+  date_to: string;
+  manifest_hash: string;
+  signature: string;
+  signed_at: string;
+  signer_key_id: string;
+  evidence_manifest: Record<string, unknown>;
+  gaps: Array<{ hint: string }>;
+  template_id: string | null;
+  notified_body: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export const evidencePacks = {
+  list: (params?: { regulation?: string; pack_type?: string; status?: string; limit?: number }) => {
+    const q = new URLSearchParams();
+    if (params?.regulation) q.set('regulation', params.regulation);
+    if (params?.pack_type)  q.set('pack_type', params.pack_type);
+    if (params?.status)     q.set('status', params.status);
+    if (params?.limit)      q.set('limit', String(params.limit));
+    const qs = q.toString();
+    return apiFetch<{ packs: EvidencePack[]; total: number }>(`/evidence/packs${qs ? '?' + qs : ''}`);
+  },
+
+  generate: (body: { regulation: string; pack_type?: string; template_id?: string; agent_ids?: string[]; date_from?: string; date_to?: string; pack_name?: string; created_by?: string }) =>
+    apiFetch<{ pack: EvidencePack }>('/evidence/packs', { method: 'POST', body: JSON.stringify(body) }),
+
+  getById: (id: string) =>
+    apiFetch<{ pack: EvidencePack }>(`/evidence/packs/${id}`),
+
+  export: (id: string, format: string) =>
+    apiFetch<{ export: Record<string, unknown>; format: string }>(`/evidence/packs/${id}/export`, { method: 'POST', body: JSON.stringify({ format }) }),
+};
+
+/* ─── Decision Ledger / Outcomes ─────────────────────────────────────── */
+export interface DecisionOutcome {
+  id: string;
+  tenant_id: string;
+  decision_id: string;
+  decision_type: string | null;
+  outcome_status: 'accepted' | 'rejected' | 'reversed' | 'litigated' | 'settled' | 'pending';
+  outcome_source: string | null;
+  source_ref: string | null;
+  source_url: string | null;
+  label_notes: string | null;
+  labeled_by: string | null;
+  labeled_at: string;
+  metadata: Record<string, unknown>;
+  created_at: string;
+}
+
+export const decisionLedger = {
+  listOutcomes: (params?: { decision_id?: string; outcome_status?: string; limit?: number }) => {
+    const q = new URLSearchParams();
+    if (params?.decision_id)    q.set('decision_id', params.decision_id);
+    if (params?.outcome_status) q.set('outcome_status', params.outcome_status);
+    if (params?.limit)          q.set('limit', String(params.limit));
+    const qs = q.toString();
+    return apiFetch<{ outcomes: DecisionOutcome[]; total: number }>(`/ledger/outcomes${qs ? '?' + qs : ''}`);
+  },
+
+  labelOutcome: (body: { decision_id: string; outcome_status: string; outcome_source?: string; source_ref?: string; source_url?: string; label_notes?: string; labeled_by?: string; metadata?: Record<string, unknown> }) =>
+    apiFetch<{ outcome: DecisionOutcome }>('/ledger/outcomes', { method: 'POST', body: JSON.stringify(body) }),
+
+  replay: (decisionId: string) =>
+    apiFetch<{ replay: Record<string, unknown> }>(`/ledger/replay/${decisionId}`, { method: 'POST', body: '{}' }),
+};
+
+/* ─── Agent Passport Registry ────────────────────────────────────────── */
+export interface AgentPassport {
+  id: string;
+  tenant_id: string;
+  agent_id: string;
+  passport_number: string;
+  status: 'active' | 'suspended' | 'revoked';
+  agent_name: string;
+  agent_type: string | null;
+  framework: string;
+  capabilities: string[];
+  risk_tier: string;
+  eu_ai_act_category: string | null;
+  reputation_score: number;
+  incident_count: number;
+  anomaly_count: number;
+  signature: string;
+  signed_at: string;
+  valid_from: string;
+  valid_to: string | null;
+  revoked_at: string | null;
+  revocation_reason: string | null;
+  public: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export const registry = {
+  list: (params?: { status?: string; limit?: number }) => {
+    const q = new URLSearchParams();
+    if (params?.status) q.set('status', params.status);
+    if (params?.limit)  q.set('limit', String(params.limit));
+    const qs = q.toString();
+    return apiFetch<{ passports: AgentPassport[]; total: number }>(`/registry/passports${qs ? '?' + qs : ''}`);
+  },
+
+  browse: () =>
+    apiFetch<{ passports: AgentPassport[]; total: number }>('/registry/passports?browse=true'),
+
+  issue: (body: { agent_id: string; agent_name: string; agent_type?: string; framework?: string; capabilities?: string[]; risk_tier?: string; eu_ai_act_category?: string; valid_days?: number; public?: boolean }) =>
+    apiFetch<{ passport: AgentPassport }>('/registry/passports', { method: 'POST', body: JSON.stringify(body) }),
+
+  getById: (id: string) =>
+    apiFetch<{ passport: AgentPassport }>(`/registry/passports/${id}`),
+
+  verify: (id: string) =>
+    apiFetch<{ verification: { passport_id: string; passport_number: string; agent_name: string; result: string; valid: boolean; risk_tier: string; reputation_score: number; verified_at: string } }>(`/registry/passports/${id}/verify`, { method: 'POST', body: '{}' }),
+
+  revoke: (id: string, reason?: string) =>
+    apiFetch<{ passport: AgentPassport }>(`/registry/passports/${id}/revoke`, { method: 'POST', body: JSON.stringify({ reason }) }),
+};
+
 /* ─── Health (outside /v1 prefix — no tenant required) ──────────────── */
 export async function checkHealth() {
   const res = await fetch('/api/health');

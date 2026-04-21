@@ -69,3 +69,15 @@ export function IconChevronRight() {
 export function IconSearch() {
   return <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"><circle cx="6.5" cy="6.5" r="4" /><line x1="9.5" y1="9.5" x2="13" y2="13" /></svg>;
 }
+export function IconEvidencePack() {
+  return <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"><path d="M7.5 1.5L2 4v4c0 3 2.5 5 5.5 5.5C10.5 13 13 11 13 8V4L7.5 1.5z" /><path d="M5 7.5l1.75 1.75L10.5 5.5" /></svg>;
+}
+export function IconLedger() {
+  return <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="11" height="11" rx="1" /><line x1="2" y1="5.5" x2="13" y2="5.5" /><line x1="2" y1="9" x2="13" y2="9" /><line x1="5.5" y1="5.5" x2="5.5" y2="13" /></svg>;
+}
+export function IconRegistry() {
+  return <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"><circle cx="7.5" cy="5.5" r="2.5" /><path d="M2.5 13c0-2.76 2.24-5 5-5s5 2.24 5 5" /><circle cx="11.5" cy="4.5" r="1.5" /><line x1="12.5" y1="7.5" x2="14" y2="9" /></svg>;
+}
+export function IconInsurance() {
+  return <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="5" width="11" height="8" rx="1" /><path d="M5 5V3.5a2.5 2.5 0 0 1 5 0V5" /><line x1="7.5" y1="8" x2="7.5" y2="10" /><circle cx="7.5" cy="8" r="0.5" fill="currentColor" stroke="none" /></svg>;
+}
