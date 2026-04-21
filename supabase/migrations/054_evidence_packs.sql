@@ -73,9 +73,9 @@ INSERT INTO evidence_pack_templates (id, name, description, regulation, pack_typ
   '["GOVERN","MAP","MEASURE","MANAGE"]'
 ),
 (
-  'munich_re_insurance',
-  'Munich Re — AI Liability Evidence Pack',
-  'Insurance carrier-ready evidence pack for AI-liability policy underwriting. Includes loss-event vs no-loss-event sampling per Munich Re template.',
+  'carrier_insurance_pack',
+  'AI Liability Evidence Pack — Insurance Carrier',
+  'Insurance carrier-ready evidence pack for AI-liability policy underwriting. Includes loss-event vs no-loss-event sampling, anomaly rates, HITL coverage, and reversal history.',
   'insurance', 'insurance', null,
   '["Incident Sampling","Decision Coverage","Anomaly Rate","HITL Coverage","Reversal History"]'
 );

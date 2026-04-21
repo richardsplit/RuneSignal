@@ -1,42 +1,57 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTenant } from '@lib/contexts/TenantContext';
 import { useToast } from '@/components/ToastProvider';
 import { createBrowserClient } from '@lib/db/supabase';
 
 const PLANS = [
   {
-    id: 'starter',
-    name: 'Starter',
-    price: '$0',
-    description: 'Perfect for small teams and prototyping.',
-    features: ['Up to 3 Agentic Workers', 'Standard Audit Logging (7 days)', 'Basic SLA Monitoring', 'Community Support'],
+    id: 'free',
+    name: 'Developer',
+    tier: 'T0',
+    price: '€0',
+    period: '',
+    description: '1 tenant · 10K actions/month · 30-day retention.',
+    features: ['1 tenant', '10,000 agent actions / month', '30-day audit log retention', 'Community support'],
     priceId: null,
     buttonText: 'Current Plan',
-    highlight: false
+    highlight: false,
+    accentColor: '#64748b',
   },
   {
     id: 'pro',
-    name: 'Pro',
-    price: '$299',
+    name: 'Core',
+    tier: 'T1',
+    price: '€1,500',
     period: '/mo',
-    description: 'Advanced governance for production agent fleets.',
-    features: ['Unlimited agents', 'HITL Approval API + blast radius scoring', 'Shadow AI discovery', 'Slack / ServiceNow / Jira adapters', 'SDK + LangChain plugin', 'EU AI Act evidence reports', 'Priority support'],
+    description: 'Full runtime for production agent fleets.',
+    features: ['Up to 2M agent actions / month', 'Ed25519 signing on every action', 'HITL Approval API + Slack/Jira', 'Anomaly detection + NHI lifecycle', 'Shadow AI + blast radius scoring', 'SDK + LangChain / CrewAI plugins', 'Priority support'],
     priceId: process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID,
-    buttonText: 'Upgrade to Pro',
-    highlight: true
+    buttonText: 'Upgrade to Core',
+    highlight: true,
+    accentColor: '#10b981',
   },
   {
     id: 'enterprise',
-    name: 'Enterprise',
+    name: 'Enterprise Sovereign',
+    tier: 'TE',
     price: 'Custom',
-    description: 'Hardened compliance for global operations.',
-    features: ['Dedicated High-Availability Node', 'On-Premise GRC Integration', 'SOC2/HIPAA Readiness Pack', '24/7 Phone Support', 'White-Label Dashboards'],
+    period: '',
+    description: 'Dedicated infra, BYO-HSM, PQC signatures, EU-only residency.',
+    features: ['Everything in Core', 'Dedicated HA tenant', 'BYO-HSM + PQC (ML-DSA-65)', 'EU-only data residency', 'Co-signed Annex IV templates', 'SOC 2 Type II + GDPR DPA', 'Dedicated CSM'],
     priceId: process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID,
     buttonText: 'Contact Sales',
-    highlight: false
-  }
+    highlight: false,
+    accentColor: '#7c3aed',
+  },
+];
+
+const METERED_EVENTS = [
+  { event: 'evidence_pack_signed',  label: 'Evidence Packs signed',      unit: 'pack',         color: '#f59e0b', tier: 'T2' },
+  { event: 'ledger_replay',         label: 'Decision Ledger replays',     unit: 'query',        color: '#3b82f6', tier: 'T3' },
+  { event: 'registry_verification', label: 'Passport verifications',      unit: 'verification', color: '#8b5cf6', tier: 'T4' },
+  { event: 'passport_issued',       label: 'Agent Passports issued',      unit: 'passport',     color: '#ec4899', tier: 'T4' },
 ];
 
 export default function BillingPage() {
@@ -47,39 +62,47 @@ export default function BillingPage() {
   const [usage, setUsage] = useState({ monthly: 0, limit: 1000, percentage: 0 });
   const supabase = createBrowserClient();
 
-  useEffect(() => {
-    const fetchBillingStatus = async () => {
-      if (!tenantId) return;
-      try {
-        const { data, error } = await supabase
-          .from('tenants')
-          .select('plan_tier, api_requests_monthly')
-          .eq('id', tenantId)
-          .single();
-        
-        if (data) {
-          setCurrentTier(data.plan_tier);
-          const limit = data.plan_tier === 'pro' ? 100000 : data.plan_tier === 'enterprise' ? 10000000 : 1000;
-          const monthly = data.api_requests_monthly || 0;
-          setUsage({
-            monthly,
-            limit,
-            percentage: Math.min((monthly / limit) * 100, 100)
-          });
-        }
-      } catch (err) {
-        console.error('Failed to fetch billing status');
+  const [meteredUsage, setMeteredUsage] = useState<Record<string, number>>({});
+  const [meteredLoading, setMeteredLoading] = useState(false);
+
+  const fetchBillingStatus = useCallback(async () => {
+    if (!tenantId) return;
+    try {
+      const { data } = await supabase
+        .from('tenants')
+        .select('plan_tier, api_requests_monthly')
+        .eq('id', tenantId)
+        .single();
+      if (data) {
+        setCurrentTier(data.plan_tier);
+        const limit = data.plan_tier === 'pro' ? 2000000 : data.plan_tier === 'enterprise' ? -1 : 10000;
+        const monthly = data.api_requests_monthly || 0;
+        setUsage({ monthly, limit, percentage: limit > 0 ? Math.min((monthly / limit) * 100, 100) : 0 });
       }
-    };
-    fetchBillingStatus();
+    } catch { /* ignore */ }
   }, [tenantId, supabase]);
 
+  const fetchMeteredUsage = useCallback(async () => {
+    if (!tenantId) return;
+    setMeteredLoading(true);
+    try {
+      const res = await fetch('/api/v1/billing/usage?days=30', { headers: { 'X-Tenant-Id': tenantId } });
+      if (res.ok) {
+        const d = await res.json();
+        const map: Record<string, number> = {};
+        for (const e of d.events ?? []) map[e.event] = e.count;
+        setMeteredUsage(map);
+      }
+    } catch { /* ignore */ } finally { setMeteredLoading(false); }
+  }, [tenantId]);
+
+  useEffect(() => { fetchBillingStatus(); fetchMeteredUsage(); }, [fetchBillingStatus, fetchMeteredUsage]);
+
   const handleUpgrade = async (priceId: string | null, planId: string) => {
-    if (planId === 'starter' || (planId === 'free' && currentTier === 'free')) return;
+    if (planId === 'free' && currentTier === 'free') return;
     if (planId === currentTier) return;
-    
     if (!priceId && planId === 'enterprise') {
-       window.location.href = 'mailto:sales@runesignal.dev';
+       window.location.href = 'mailto:sales@runesignal.io';
        return;
     }
 
@@ -112,113 +135,103 @@ export default function BillingPage() {
 
   return (
     <div style={{ maxWidth: '1100px' }}>
-      <div style={{ marginBottom: '2.5rem', textAlign: 'center' }}>
-        <h1 className="page-title" style={{ fontSize: '2rem' }}>Subscription &amp; Usage</h1>
-        <p className="page-description">Manage your plan and monitor your real-time API consumption.</p>
+      <div style={{ marginBottom: '2.5rem' }}>
+        <h1 className="page-title">Subscription &amp; Usage</h1>
+        <p className="page-description">Manage your plan, monitor agent action consumption, and track Evidence Plane metered usage.</p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem', maxWidth: '1200px', margin: '0 auto', marginBottom: '4rem' }}>
-        {PLANS.map((plan) => (
-          <div
-            key={plan.id}
-            className="surface"
-            style={{
-              padding: '2.5rem',
-              display: 'flex',
-              flexDirection: 'column',
-              position: 'relative',
-              border: `${plan.highlight ? '2px' : '1px'} solid ${plan.highlight ? 'var(--accent-border)' : 'var(--border-default)'}`,
-            }}
-          >
-            {plan.highlight && (
-              <div style={{
-                position: 'absolute',
-                top: '-0.75rem',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                background: 'var(--accent)',
-                color: 'var(--text-inverse)',
-                padding: '0.25rem 1rem',
-                borderRadius: '1rem',
-                fontSize: '0.75rem',
-                fontWeight: 700,
-                textTransform: 'uppercase',
-                whiteSpace: 'nowrap',
-              }}>
-                Most Popular
+      {/* Plan cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem', marginBottom: '3rem' }}>
+        {PLANS.map((plan) => {
+          const isActive = plan.id === currentTier || (plan.id === 'free' && (currentTier === 'free' || currentTier === 'starter'));
+          return (
+            <div key={plan.id} className="surface" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', border: `1px solid ${isActive ? plan.accentColor : 'var(--border-default)'}`, borderRadius: 12, position: 'relative' }}>
+              {isActive && (
+                <div style={{ position: 'absolute', top: '-0.625rem', left: '1.25rem', background: plan.accentColor, color: '#fff', padding: '0.15rem 0.75rem', borderRadius: '1rem', fontSize: '0.65rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Active</div>
+              )}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.375rem' }}>
+                <span style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', background: plan.accentColor + '22', color: plan.accentColor, border: `1px solid ${plan.accentColor}44`, borderRadius: 12, padding: '0.15rem 0.5rem' }}>{plan.tier}</span>
+                <span style={{ fontWeight: 700, fontSize: '1rem' }}>{plan.name}</span>
               </div>
-            )}
-            
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 600, marginBottom: '0.5rem' }}>{plan.name}</h2>
-            <div style={{ marginBottom: '1.5rem' }}>
-              <span style={{ fontSize: '2.5rem', fontWeight: 700 }}>{plan.price}</span>
-              {plan.period && <span className="text-tertiary">{plan.period}</span>}
+              <div style={{ marginBottom: '0.75rem' }}>
+                <span style={{ fontSize: '2rem', fontWeight: 800, color: plan.accentColor }}>{plan.price}</span>
+                {plan.period && <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>{plan.period}</span>}
+              </div>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1.25rem', lineHeight: 1.5 }}>{plan.description}</p>
+              <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 1.5rem', flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                {plan.features.map(f => (
+                  <li key={f} style={{ display: 'flex', gap: '0.5rem', fontSize: '0.825rem', color: 'var(--text-secondary)' }}>
+                    <span style={{ color: plan.accentColor, flexShrink: 0 }}>✓</span>{f}
+                  </li>
+                ))}
+              </ul>
+              <button
+                className={`btn ${plan.highlight ? 'btn-primary' : 'btn-outline'}`}
+                style={{ width: '100%' }}
+                disabled={loading || isActive}
+                onClick={() => handleUpgrade(plan.priceId || null, plan.id)}
+              >
+                {loading ? 'Processing…' : isActive ? 'Active Plan' : plan.buttonText}
+              </button>
             </div>
-            <p className="text-secondary" style={{ fontSize: '0.9rem', marginBottom: '2rem', lineHeight: '1.6', minHeight: '3.2rem' }}>
-              {plan.description}
-            </p>
-
-            <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 2.5rem 0', flex: 1 }}>
-              {plan.features.map(f => (
-                <li key={f} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem', fontSize: '0.9rem' }}>
-                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="var(--success)" strokeWidth="3">
-                    <path d="M5 10l3 3 7-7" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                  {f}
-                </li>
-              ))}
-            </ul>
-
-            <button 
-              className={`btn ${plan.highlight ? 'btn-primary' : 'btn-outline'}`}
-              style={{ width: '100%', padding: '0.75rem' }}
-              disabled={loading || (plan.id === 'starter' && currentTier === 'free') || plan.id === currentTier}
-              onClick={() => handleUpgrade(plan.priceId || null, plan.id)}
-            >
-              {loading ? 'Processing...' : (plan.id === currentTier || (plan.id === 'starter' && currentTier === 'free') ? 'Active Plan' : plan.buttonText)}
-            </button>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
-      {/* Usage Metering Section */}
-      <div className="surface" style={{ maxWidth: '800px', margin: '0 auto', padding: '2rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '1.5rem' }}>
+      {/* Agent action quota */}
+      <div className="surface" style={{ padding: '1.5rem', marginBottom: '2rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
           <div>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.25rem' }}>Monthly Consumption</h2>
-            <p className="page-description" style={{ marginBottom: 0 }}>API Governance requests for the current billing period.</p>
+            <div style={{ fontWeight: 700, marginBottom: '0.125rem' }}>Agent Action Quota</div>
+            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Governance events processed this billing period</div>
           </div>
           <div style={{ textAlign: 'right' }}>
-            <span style={{ fontSize: '1.5rem', fontWeight: 700 }}>{usage.monthly.toLocaleString()}</span>
-            <span className="text-tertiary" style={{ fontSize: '0.9rem' }}> / {currentTier === 'enterprise' ? '∞' : usage.limit.toLocaleString()} calls</span>
+            <span style={{ fontSize: '1.25rem', fontWeight: 700 }}>{usage.monthly.toLocaleString()}</span>
+            <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}> / {currentTier === 'enterprise' ? '∞' : usage.limit.toLocaleString()}</span>
           </div>
         </div>
-
-        <div style={{
-          height: '12px',
-          background: 'var(--surface-3)',
-          borderRadius: '6px',
-          overflow: 'hidden',
-          marginBottom: '1rem',
-          border: '1px solid var(--border-subtle)',
-        }}>
-          <div style={{
-            width: `${usage.percentage}%`,
-            height: '100%',
-            background: usage.percentage > 90 ? 'var(--danger)' : 'var(--success)',
-            transition: 'width 1s ease-out',
-          }} />
+        <div style={{ height: 8, background: 'var(--surface-3)', borderRadius: 4, overflow: 'hidden', marginBottom: '0.5rem' }}>
+          <div style={{ width: `${usage.percentage}%`, height: '100%', background: usage.percentage > 90 ? 'var(--danger)' : 'var(--success)', borderRadius: 4, transition: 'width 0.8s ease' }} />
         </div>
-
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <span className="t-caption">Utilization: {usage.percentage.toFixed(1)}%</span>
-          <span className="t-caption">Cycle resets in 14 days</span>
+          <span className="t-caption">{usage.percentage.toFixed(1)}% utilised</span>
+          <span className="t-caption">Resets each billing cycle</span>
         </div>
       </div>
 
-      <div className="text-tertiary" style={{ textAlign: 'center', marginTop: '4rem', fontSize: '0.85rem' }}>
-        <p>All prices are in USD. Subscription is billed monthly and can be cancelled any time.</p>
-        <p style={{ marginTop: '0.5rem' }}>Automated fine-tuning and compliance reports included in Pro/Enterprise.</p>
+      {/* Evidence Plane metered usage */}
+      <div className="surface" style={{ padding: '1.5rem', marginBottom: '2rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+          <div>
+            <div style={{ fontWeight: 700, marginBottom: '0.125rem' }}>Evidence Plane — Metered Usage (last 30 days)</div>
+            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Pay-per-use add-ons: T2 Evidence Packs · T3 Decision Ledger · T4 Agent Registry</div>
+          </div>
+          <button className="btn btn-ghost" style={{ fontSize: '0.75rem' }} onClick={fetchMeteredUsage} disabled={meteredLoading}>
+            {meteredLoading ? 'Loading…' : 'Refresh'}
+          </button>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.875rem' }}>
+          {METERED_EVENTS.map(me => {
+            const count = meteredUsage[me.event] ?? 0;
+            return (
+              <div key={me.event} style={{ padding: '0.875rem 1rem', background: 'var(--bg-surface-2, var(--surface-2))', borderRadius: 8, border: `1px solid ${me.color}33` }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.25rem' }}>
+                  <span style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: me.color, background: me.color + '1a', borderRadius: 4, padding: '0.1rem 0.375rem' }}>{me.tier}</span>
+                </div>
+                <div style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 800, fontSize: '1.5rem', color: me.color, lineHeight: 1.1, marginBottom: '0.125rem' }}>{count.toLocaleString()}</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{me.label}</div>
+              </div>
+            );
+          })}
+        </div>
+        <div style={{ marginTop: '0.875rem', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+          All prices in EUR. Evidence Packs: €0.05–€0.50/pack · Replays: €0.10–€1.00/query · Verifications: €0.02–€0.20/check · Passports: €1.00–€5.00 each.
+        </div>
+      </div>
+
+      <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+        All prices in EUR. Core plans billed monthly, cancel any time. Metered add-ons billed at end of billing period.
+        Annual plans available at 20% discount — <a href="mailto:sales@runesignal.io" style={{ color: 'var(--accent)' }}>contact sales</a>.
       </div>
     </div>
   );

@@ -5,7 +5,7 @@ import crypto from 'crypto';
 
 /**
  * POST /api/v1/insurance/claim-pack
- * Generate a carrier-ready insurance evidence pack (Munich Re / Lloyd's template).
+ * Generate a carrier-ready insurance evidence pack.
  * Different from regulator pack: focuses on loss-event sampling, reversal history, and anomaly rates.
  */
 export async function POST(request: NextRequest) {
@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
       signer_key_id:     'runesignal-ed25519-v1',
       evidence_manifest: manifest,
       gaps:              [],
-      template_id:       'munich_re_insurance',
+      template_id:       'carrier_insurance_pack',
       created_by:        body.created_by ?? null,
     })
     .select()

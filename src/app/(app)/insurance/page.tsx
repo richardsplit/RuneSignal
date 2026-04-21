@@ -312,11 +312,11 @@ export default function InsurancePage() {
         <div className="surface" style={{ padding: '1.5rem' }}>
           <div style={{ marginBottom: '1.25rem' }}>
             <h2 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '0.375rem' }}>Insurance Carrier Evidence Pack</h2>
-            <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>Generate a Munich Re / Lloyd's-style evidence pack from your live audit trail. Includes loss-event sampling, anomaly rates, HITL coverage, and reversal history. One-click export for AI-liability policy underwriting.</p>
+            <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>Generate a carrier-ready evidence pack from your live audit trail. Includes loss-event sampling, anomaly rates, HITL coverage, and reversal history. One-click export for AI-liability policy underwriting.</p>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.875rem', marginBottom: '1.25rem' }}>
             {[
-              { icon: '📊', label: 'Loss-Event Sampling', desc: 'Anomaly + incident sampling per Munich Re template' },
+              { icon: '📊', label: 'Loss-Event Sampling', desc: 'Anomaly + incident sampling per standard carrier template' },
               { icon: '✅', label: 'HITL Coverage Rate', desc: 'Human oversight % across all decisions' },
               { icon: '↩️', label: 'Reversal History', desc: 'All reversed decisions with orchestration log' },
               { icon: '🔏', label: 'Cryptographic Signature', desc: 'Ed25519-signed, append-only, tamper-evident' },
@@ -345,7 +345,7 @@ export default function InsurancePage() {
             if (!tenantId) return;
             setGeneratingPack(true);
             try {
-              const res = await fetch('/api/v1/insurance/claim-pack', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Tenant-Id': tenantId }, body: JSON.stringify({ carrier: 'Munich Re', created_by: 'dashboard' }) });
+              const res = await fetch('/api/v1/insurance/claim-pack', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Tenant-Id': tenantId }, body: JSON.stringify({ carrier: 'General', created_by: 'dashboard' }) });
               const d = await res.json();
               if (!res.ok) { showToast(d.error ?? 'Generation failed', 'error'); return; }
               setLastPack(d.pack);
