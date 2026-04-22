@@ -527,6 +527,150 @@ export default function BillingPage() {
         </p>
       </div>
 
+      {/* ── Metered Add-On Products ── */}
+      <div style={{ maxWidth: '1200px', margin: '0 auto 3rem' }}>
+        <div style={{ marginBottom: '1.5rem' }}>
+          <p style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#6366f1', marginBottom: '0.5rem' }}>
+            Metered Add-Ons — Evidence Plane
+          </p>
+          <h2 style={{ fontSize: '1.4rem', fontWeight: 700, marginBottom: '0.25rem' }}>
+            Three products. Three buyers. Three budgets.
+          </h2>
+          <p className="page-description" style={{ marginBottom: 0 }}>
+            Add-ons layer on top of Core. Prices on request — contact sales to activate.
+          </p>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1.25rem' }}>
+
+          {/* T2 — Evidence Pack Add-On */}
+          <div className="surface" style={{ padding: '1.75rem', display: 'flex', flexDirection: 'column', borderTop: '3px solid #6366f1' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+              <span style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', background: 'rgba(99,102,241,0.15)', color: '#818cf8', border: '1px solid rgba(99,102,241,0.3)', borderRadius: '20px', padding: '0.2rem 0.55rem' }}>T2</span>
+              <span style={{ fontSize: '0.95rem', fontWeight: 700 }}>Evidence Pack Add-On</span>
+            </div>
+            <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-tertiary)', fontStyle: 'italic', marginBottom: '0.2rem' }}>Pricing on request</div>
+            <div style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)', marginBottom: '0.5rem' }}>per signed Pack · volume-tiered</div>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginBottom: '0.25rem' }}>👤 General Counsel · CRO · Head of AI Risk</div>
+            <span style={{ fontSize: '0.72rem', fontWeight: 600, background: 'rgba(245,158,11,0.12)', color: '#fbbf24', border: '1px solid rgba(245,158,11,0.25)', borderRadius: '4px', padding: '0.2rem 0.5rem', marginBottom: '0.75rem', display: 'inline-block', width: 'fit-content' }}>
+              EU AI Act Art. 12 deadline: 2 August 2026
+            </span>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.55', marginBottom: '1rem' }}>
+              Metered add-on on top of Core. Volume-tiered. One regulated enterprise at 5M decisions/yr = €50K–€500K ARR.
+            </p>
+            <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 1.25rem', flex: 1, display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+              {['EU AI Act Annex IV technical documentation', 'ISO/IEC 42001 management system pack', 'NIST AI RMF (Govern / Map / Measure / Manage)', 'Insurance Carrier evidence template', 'Cryptographically signed + hash-manifest', '10-year cold-storage retention tier', 'Export as JSON / PDF bundle', 'Notified body co-signing (TÜV / DNV / BSI) on Enterprise'].map(f => (
+                <li key={f} style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'flex-start', gap: '0.45rem' }}>
+                  <span style={{ color: 'var(--success)', fontWeight: 700, flexShrink: 0 }}>✓</span>{f}
+                </li>
+              ))}
+            </ul>
+            <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '0.75rem', marginBottom: '1rem', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+              {[['< 100 packs/mo', 'Talk to sales'], ['100–999 packs/mo', 'Talk to sales'], ['1K–9K packs/mo', 'Talk to sales'], ['10K+ packs/mo', 'Talk to sales']].map(([vol, rate]) => (
+                <div key={vol} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem' }}>
+                  <span style={{ color: 'var(--text-tertiary)' }}>{vol}</span>
+                  <span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>{rate}</span>
+                </div>
+              ))}
+            </div>
+            <a href="mailto:sales@runesignal.io" className="btn btn-outline" style={{ textAlign: 'center', textDecoration: 'none', padding: '0.65rem' }}>Talk to sales</a>
+          </div>
+
+          {/* T3 — Decision Ledger & Reversibility */}
+          <div className="surface" style={{ padding: '1.75rem', display: 'flex', flexDirection: 'column', borderTop: '3px solid #8b5cf6' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+              <span style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', background: 'rgba(139,92,246,0.15)', color: '#a78bfa', border: '1px solid rgba(139,92,246,0.3)', borderRadius: '20px', padding: '0.2rem 0.55rem' }}>T3</span>
+              <span style={{ fontSize: '0.95rem', fontWeight: 700 }}>Decision Ledger &amp; Reversibility</span>
+            </div>
+            <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-tertiary)', fontStyle: 'italic', marginBottom: '0.2rem' }}>Pricing on request</div>
+            <div style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)', marginBottom: '0.5rem' }}>ACV + per-query</div>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginBottom: '0.25rem' }}>👤 Head of AI Ops · CRO · General Counsel</div>
+            <span style={{ fontSize: '0.72rem', fontWeight: 600, background: 'rgba(245,158,11,0.12)', color: '#fbbf24', border: '1px solid rgba(245,158,11,0.25)', borderRadius: '4px', padding: '0.2rem 0.5rem', marginBottom: '0.75rem', display: 'inline-block', width: 'fit-content' }}>
+              Triggered by first material incident
+            </span>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.55', marginBottom: '1rem' }}>
+              Forensic replay API, outcome back-labelling, reversal orchestrator. Priced per-query on top of ACV.
+            </p>
+            <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 1.25rem', flex: 1, display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+              {['Forensic replay: full reasoning chain per decision', 'Outcome back-labelling (accepted / rejected / reversed / litigated)', 'Webhook ingest from Jira, ServiceNow, insurance claims', 'Reversal orchestrator (refund / revoke / rollback / retract)', 'Decision outcome → SOUL policy feedback loop', 'Replay API: per-query (volume-tiered)', 'Retention: 7-year decision archive'].map(f => (
+                <li key={f} style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'flex-start', gap: '0.45rem' }}>
+                  <span style={{ color: 'var(--success)', fontWeight: 700, flexShrink: 0 }}>✓</span>{f}
+                </li>
+              ))}
+            </ul>
+            <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '0.75rem', marginBottom: '1rem', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+              {[['< 100 replays/mo', 'Talk to sales'], ['100–999 replays/mo', 'Talk to sales'], ['1K–9K replays/mo', 'Talk to sales'], ['10K+ replays/mo', 'Talk to sales']].map(([vol, rate]) => (
+                <div key={vol} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem' }}>
+                  <span style={{ color: 'var(--text-tertiary)' }}>{vol}</span>
+                  <span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>{rate}</span>
+                </div>
+              ))}
+            </div>
+            <a href="mailto:sales@runesignal.io" className="btn btn-outline" style={{ textAlign: 'center', textDecoration: 'none', padding: '0.65rem' }}>Talk to sales</a>
+          </div>
+
+          {/* T4 — Agent Passport Registry */}
+          <div className="surface" style={{ padding: '1.75rem', display: 'flex', flexDirection: 'column', borderTop: '3px solid #06b6d4' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+              <span style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', background: 'rgba(6,182,212,0.15)', color: '#22d3ee', border: '1px solid rgba(6,182,212,0.3)', borderRadius: '20px', padding: '0.2rem 0.55rem' }}>T4</span>
+              <span style={{ fontSize: '0.95rem', fontWeight: 700 }}>Agent Passport Registry</span>
+            </div>
+            <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-tertiary)', fontStyle: 'italic', marginBottom: '0.2rem' }}>Pricing on request</div>
+            <div style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)', marginBottom: '0.5rem' }}>ACV + per-verification</div>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginBottom: '0.25rem' }}>👤 Platform Eng · CISO · Counterparty trust</div>
+            <span style={{ fontSize: '0.72rem', fontWeight: 600, background: 'rgba(239,68,68,0.1)', color: '#f87171', border: '1px solid rgba(239,68,68,0.25)', borderRadius: '4px', padding: '0.2rem 0.5rem', marginBottom: '0.75rem', display: 'inline-block', width: 'fit-content' }}>
+              Consortium moat — 12+ mo cycle, long-term flywheel
+            </span>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.55', marginBottom: '1rem' }}>
+              Cross-org signed agent identity + capability attestation. Network-effect trust layer. Per-verification metering.
+            </p>
+            <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 1.25rem', flex: 1, display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+              {['Signed Agent Passport (RS-XXXX-XXXX format)', 'W3C VC / SPIFFE-compatible capability attestation', 'Cross-org counterparty verification API', 'Reputation scorecard (incident / anomaly weighted)', 'Public registry browse + DID publishing', 'Revocation lists + suspension lifecycle', 'Verification API: per-check (volume-tiered)', 'Passport issuance: per-agent', 'IETF / W3MSE / OpenID AgentID standards-body presence'].map(f => (
+                <li key={f} style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'flex-start', gap: '0.45rem' }}>
+                  <span style={{ color: 'var(--success)', fontWeight: 700, flexShrink: 0 }}>✓</span>{f}
+                </li>
+              ))}
+            </ul>
+            <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '0.75rem', marginBottom: '1rem', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+              {[['< 1K verifications/mo', 'Talk to sales'], ['1K–9K verifications/mo', 'Talk to sales'], ['10K–99K verifications/mo', 'Talk to sales'], ['1M+ verifications/mo', 'Talk to sales']].map(([vol, rate]) => (
+                <div key={vol} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem' }}>
+                  <span style={{ color: 'var(--text-tertiary)' }}>{vol}</span>
+                  <span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>{rate}</span>
+                </div>
+              ))}
+            </div>
+            <a href="mailto:sales@runesignal.io" className="btn btn-outline" style={{ textAlign: 'center', textDecoration: 'none', padding: '0.65rem' }}>Talk to sales</a>
+          </div>
+
+          {/* T-I — Insurance Carrier OEM */}
+          <div className="surface" style={{ padding: '1.75rem', display: 'flex', flexDirection: 'column', borderTop: '3px solid #ef4444' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+              <span style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', background: 'rgba(239,68,68,0.12)', color: '#f87171', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '20px', padding: '0.2rem 0.55rem' }}>T-I</span>
+              <span style={{ fontSize: '0.95rem', fontWeight: 700 }}>Insurance Carrier OEM</span>
+            </div>
+            <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-tertiary)', fontStyle: 'italic', marginBottom: '0.2rem' }}>Platform fee</div>
+            <div style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)', marginBottom: '0.5rem' }}>+ revenue-share per insured agent</div>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginBottom: '0.25rem' }}>👤 Reinsurer / Insurance Carrier</div>
+            <span style={{ fontSize: '0.72rem', fontWeight: 600, background: 'rgba(245,158,11,0.12)', color: '#fbbf24', border: '1px solid rgba(245,158,11,0.25)', borderRadius: '4px', padding: '0.2rem 0.5rem', marginBottom: '0.75rem', display: 'inline-block', width: 'fit-content' }}>
+              Phase 9 — requires 3+ signed contracts to activate
+            </span>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.55', marginBottom: '1rem' }}>
+              Carrier embeds RuneSignal as the independent evidence plane in their AI-liability policy. Push adoption across their book of business.
+            </p>
+            <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 1.25rem', flex: 1, display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+              {['White-label Evidence Pack generation for carrier book', 'Loss-event vs no-loss-event sampling template', 'Actuarial risk scoring per agent fleet', 'Co-branded carrier evidence portal', 'Revenue-share per insured agent per month', 'Carrier API for policy underwriting data', 'Custom SLA + dedicated infrastructure'].map(f => (
+                <li key={f} style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'flex-start', gap: '0.45rem' }}>
+                  <span style={{ color: 'var(--success)', fontWeight: 700, flexShrink: 0 }}>✓</span>{f}
+                </li>
+              ))}
+            </ul>
+            <div style={{ flex: 1 }} />
+            <a href="mailto:sales@runesignal.io" className="btn btn-outline" style={{ textAlign: 'center', textDecoration: 'none', padding: '0.65rem', color: '#f87171', borderColor: 'rgba(239,68,68,0.4)' }}>Partner with us</a>
+          </div>
+
+        </div>
+      </div>
+
       {/* ── Footer note ── */}
       <div
         className="text-tertiary"
