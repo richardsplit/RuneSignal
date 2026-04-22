@@ -1,58 +1,83 @@
 'use client';
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Pricing page — plan data
+//
+// PRICE VISIBILITY POLICY:
+//   T0 (Developer) — price hidden; free tier, drives top-of-funnel sign-ups
+//   T1 (Core)      — price shown: €1,500/mo  ← only public price
+//   TE (Enterprise) — price hidden; prospects must contact sales
+//
+// To update prices update ONLY the T1 entry below.
+// ─────────────────────────────────────────────────────────────────────────────
+
 const plans = [
   {
-    name: 'Starter',
-    price: 'Free',
+    tier: 'T0',
+    name: 'Developer',
+    // price: '€0',  ← hidden per pricing policy (top-of-funnel, no price anchor)
+    showPrice: false,
     period: '',
-    description: 'For teams exploring AI governance',
+    description: '1 tenant · 10K actions/month · 30-day retention. Top-of-funnel adoption.',
     features: [
-      '3 agents',
-      '7-day audit logs',
+      '1 tenant',
+      '10,000 agent actions / month',
+      '30-day audit log retention',
       'Basic SLA monitoring',
       'Community support',
-      'EU AI Act evidence report (5/mo)',
+      'No Evidence Packs',
+      'No A2A cross-org',
     ],
-    cta: 'Get started free',
+    cta: 'Start free',
     ctaHref: '/login?mode=signup',
     highlight: false,
     badge: null,
   },
   {
-    name: 'Pro',
-    price: '$399',
+    tier: 'T1',
+    name: 'Core',
+    showPrice: true,
+    price: '€1,500',
     period: '/mo',
-    description: 'For teams running AI in production',
+    scalingNote: 'Starts at €1,500/mo, scales to €6,000/mo by action volume.',
+    description: 'Full runtime for production agent fleets.',
     features: [
-      'Everything in Starter',
-      'Unlimited agents',
-      '90-day audit logs',
-      'HITL Approval API',
-      'Blast radius scoring',
+      'Everything in Developer',
+      'Up to 2M agent actions / month',
+      '30-day audit ledger (rolling)',
+      'Ed25519-signed provenance on every action',
+      'HITL Approval API + Slack / ServiceNow / Jira',
+      'Anomaly detection (Welford Z-score)',
+      'Agent FinOps budget guardrails',
+      'NHI lifecycle management',
       'Shadow AI discovery',
-      'Slack / ServiceNow / Jira adapters',
-      'SDK access',
+      'Blast radius scoring',
+      'SDK + LangChain / CrewAI plugins',
       'Priority support',
     ],
-    cta: 'Start Pro trial',
+    cta: 'Start Core trial',
     ctaHref: '/login?mode=signup',
     highlight: true,
     badge: 'Most popular',
   },
   {
-    name: 'Enterprise',
-    price: 'Custom',
-    period: '',
-    description: 'For regulated enterprises',
+    tier: 'TE',
+    name: 'Enterprise Sovereign',
+    // price: '€250,000+',  ← hidden per pricing policy (contact sales)
+    showPrice: false,
+    period: '/year',
+    description: 'Dedicated infrastructure, BYO-HSM, post-quantum signatures, EU-only data residency, co-signed notified body templates.',
     features: [
-      'Everything in Pro',
-      'Custom data residency',
-      'Dedicated infrastructure',
-      'SOC 2 Type II',
-      'GDPR DPA',
-      'SLA guarantee',
+      'Everything in Core',
+      'Dedicated high-availability tenant',
+      'Bring-your-own HSM signing',
+      'PQC signatures (ML-DSA-65) activated',
+      'EU-only data residency (S10)',
+      'Custom Annex IV template co-signed by notified body',
+      'GDPR DPA + SLA guarantee',
+      'SOC 2 Type II readiness pack',
+      'Dedicated CSM + Slack',
       'Custom integrations',
-      'Dedicated CSM',
     ],
     cta: 'Contact sales',
     ctaHref: 'mailto:sales@runesignal.io',
@@ -62,41 +87,47 @@ const plans = [
 ];
 
 const comparisonFeatures = [
-  { label: 'Agents', starter: '3', pro: 'Unlimited', enterprise: 'Unlimited' },
-  { label: 'Audit log retention', starter: '7 days', pro: '90 days', enterprise: 'Custom' },
-  { label: 'SLA monitoring', starter: '✓', pro: '✓', enterprise: '✓' },
-  { label: 'EU AI Act report', starter: '5/mo', pro: 'Unlimited', enterprise: 'Unlimited' },
-  { label: 'HITL Approval API', starter: '—', pro: '✓', enterprise: '✓' },
-  { label: 'Blast radius scoring', starter: '—', pro: '✓', enterprise: '✓' },
-  { label: 'Shadow AI discovery', starter: '—', pro: '✓', enterprise: '✓' },
-  { label: 'Slack / ServiceNow / Jira', starter: '—', pro: '✓', enterprise: '✓' },
-  { label: 'SDK access', starter: '—', pro: '✓', enterprise: '✓' },
-  { label: 'Custom data residency', starter: '—', pro: '—', enterprise: '✓' },
-  { label: 'Dedicated infrastructure', starter: '—', pro: '—', enterprise: '✓' },
-  { label: 'SOC 2 Type II', starter: '—', pro: '—', enterprise: '✓' },
-  { label: 'GDPR DPA', starter: '—', pro: '—', enterprise: '✓' },
-  { label: 'SLA guarantee', starter: '—', pro: '—', enterprise: '✓' },
-  { label: 'Custom integrations', starter: '—', pro: '—', enterprise: '✓' },
-  { label: 'Dedicated CSM', starter: '—', pro: '—', enterprise: '✓' },
-  { label: 'Support', starter: 'Community', pro: 'Priority', enterprise: 'Dedicated' },
+  { label: 'Agents',                         t0: '1 tenant',      t1: 'Unlimited',   te: 'Unlimited' },
+  { label: 'Agent actions / month',          t0: '10K',           t1: 'Up to 2M',    te: 'Custom' },
+  { label: 'Audit log retention',            t0: '30 days',       t1: '30 days rolling', te: 'Custom' },
+  { label: 'Ed25519-signed provenance',      t0: '—',             t1: '✓',           te: '✓' },
+  { label: 'HITL Approval API',              t0: '—',             t1: '✓',           te: '✓' },
+  { label: 'Anomaly detection',              t0: '—',             t1: '✓',           te: '✓' },
+  { label: 'Agent FinOps guardrails',        t0: '—',             t1: '✓',           te: '✓' },
+  { label: 'Shadow AI discovery',            t0: '—',             t1: '✓',           te: '✓' },
+  { label: 'Blast radius scoring',           t0: '—',             t1: '✓',           te: '✓' },
+  { label: 'SDK access',                     t0: '—',             t1: '✓',           te: '✓' },
+  { label: 'Slack / ServiceNow / Jira',      t0: '—',             t1: '✓',           te: '✓' },
+  { label: 'PQC signatures (ML-DSA-65)',     t0: '—',             t1: '—',           te: '✓' },
+  { label: 'EU-only data residency',         t0: '—',             t1: '—',           te: '✓' },
+  { label: 'BYO-HSM signing',               t0: '—',             t1: '—',           te: '✓' },
+  { label: 'Dedicated infrastructure',       t0: '—',             t1: '—',           te: '✓' },
+  { label: 'SOC 2 Type II readiness',        t0: '—',             t1: '—',           te: '✓' },
+  { label: 'GDPR DPA + SLA guarantee',       t0: '—',             t1: '—',           te: '✓' },
+  { label: 'Notified body template signing', t0: '—',             t1: '—',           te: '✓' },
+  { label: 'Support',                        t0: 'Community',     t1: 'Priority',    te: 'Dedicated CSM' },
 ];
 
 const faqs = [
   {
     q: 'Can I upgrade or downgrade at any time?',
-    a: 'Yes. Plans are billed monthly with no long-term commitment. You can upgrade or downgrade from your account settings and changes take effect at the start of the next billing cycle.',
+    a: 'Yes. The Core plan is billed monthly with no long-term commitment. You can upgrade or downgrade from your account settings and changes take effect at the start of the next billing cycle.',
   },
   {
-    q: 'Is there a free trial for Pro?',
-    a: 'Yes. Pro comes with a 14-day free trial — no credit card required. You get full access to every Pro feature from day one.',
+    q: 'Is there a free trial for Core?',
+    a: 'Yes. Core comes with a 14-day free trial — no credit card required. You get full access to every Core feature from day one.',
   },
   {
-    q: "What counts as an 'agent'?",
-    a: 'Any AI worker (LLM-based or autonomous) that is registered in the RuneSignal NHI (Non-Human Identity) registry. Each unique agent ID registered against your tenant consumes one agent slot.',
+    q: "What counts as an 'agent action'?",
+    a: 'Any governed operation processed by the RuneSignal runtime: HITL decisions, provenance certificates, intent mediations, anomaly checks, and FinOps budget evaluations each count as one action.',
   },
   {
     q: 'Do you offer annual billing?',
-    a: 'Yes. Annual plans come with a 20% discount compared to monthly billing. Contact us or switch to annual in your billing settings.',
+    a: 'Yes. Annual Core plans come with a 15% discount compared to monthly billing. Contact us or switch in your billing settings.',
+  },
+  {
+    q: 'How is Enterprise pricing structured?',
+    a: 'Enterprise Sovereign is scoped per deployment and quoted based on action volume, data residency requirements, and notified-body co-signing needs. Contact sales for a tailored ACV proposal.',
   },
 ];
 
@@ -107,8 +138,9 @@ export default function PricingPage() {
         .pricing-hero { text-align: center; padding: 5rem 1.5rem 3.5rem; }
         .pricing-hero h1 { font-size: clamp(2rem, 5vw, 3.25rem); font-weight: 800; letter-spacing: -0.04em; color: #f8fafc; line-height: 1.1; }
         .pricing-hero p { margin-top: 1rem; font-size: 1.125rem; color: #94a3b8; max-width: 480px; margin-left: auto; margin-right: auto; }
+        .pricing-tagline { font-size: 0.8rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #6366f1; margin-bottom: 1rem; }
 
-        .plans-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; max-width: 1060px; margin: 0 auto; padding: 0 1.5rem 5rem; }
+        .plans-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 1.5rem; max-width: 1060px; margin: 0 auto; padding: 0 1.5rem 5rem; }
 
         .plan-card { background: #0d0d20; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 2rem; display: flex; flex-direction: column; position: relative; transition: border-color 0.2s, transform 0.2s; }
         .plan-card:hover { border-color: rgba(255,255,255,0.18); transform: translateY(-2px); }
@@ -116,17 +148,20 @@ export default function PricingPage() {
         .plan-card.highlight:hover { border-color: #34d399; }
 
         .badge { display: inline-block; background: #10b981; color: #fff; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.25rem 0.65rem; border-radius: 20px; margin-bottom: 1rem; }
+        .tier-label { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #334155; margin-bottom: 0.25rem; }
 
-        .plan-name { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #64748b; margin-bottom: 0.5rem; }
+        .plan-name { font-size: 1.15rem; font-weight: 700; color: #f1f5f9; margin-bottom: 0.5rem; }
         .plan-price { font-size: 2.75rem; font-weight: 800; color: #f8fafc; letter-spacing: -0.04em; line-height: 1; }
         .plan-price span { font-size: 1rem; font-weight: 500; color: #64748b; letter-spacing: 0; }
-        .plan-desc { margin-top: 0.75rem; font-size: 0.9rem; color: #94a3b8; line-height: 1.5; min-height: 2.8rem; }
+        .plan-price-note { font-size: 0.78rem; color: #64748b; margin-top: 0.35rem; line-height: 1.4; }
+        .plan-contact { font-size: 1.25rem; font-weight: 700; color: #94a3b8; letter-spacing: -0.01em; margin: 0.25rem 0; }
+        .plan-desc { margin-top: 0.75rem; font-size: 0.875rem; color: #94a3b8; line-height: 1.55; min-height: 2.8rem; }
         .plan-divider { border: none; border-top: 1px solid rgba(255,255,255,0.07); margin: 1.5rem 0; }
         .plan-features { list-style: none; display: flex; flex-direction: column; gap: 0.625rem; flex: 1; }
-        .plan-features li { font-size: 0.875rem; color: #cbd5e1; display: flex; align-items: flex-start; gap: 0.5rem; }
+        .plan-features li { font-size: 0.85rem; color: #cbd5e1; display: flex; align-items: flex-start; gap: 0.5rem; }
         .plan-features li::before { content: '✓'; color: #10b981; font-weight: 700; flex-shrink: 0; margin-top: 0.05rem; }
 
-        .plan-cta { display: block; text-align: center; margin-top: 2rem; padding: 0.75rem 1.25rem; border-radius: 8px; font-weight: 600; font-size: 0.9rem; text-decoration: none; transition: background 0.15s, color 0.15s; }
+        .plan-cta { display: block; text-align: center; margin-top: 2rem; padding: 0.75rem 1.25rem; border-radius: 8px; font-weight: 600; font-size: 0.9rem; text-decoration: none; transition: background 0.15s, color 0.15s; cursor: pointer; }
         .plan-cta-default { background: rgba(255,255,255,0.06); color: #e2e8f0; border: 1px solid rgba(255,255,255,0.1); }
         .plan-cta-default:hover { background: rgba(255,255,255,0.1); }
         .plan-cta-highlight { background: #10b981; color: #fff; }
@@ -135,12 +170,11 @@ export default function PricingPage() {
         .section { max-width: 1060px; margin: 0 auto; padding: 0 1.5rem 5rem; }
         .section-title { font-size: 1.5rem; font-weight: 700; color: #f8fafc; letter-spacing: -0.02em; margin-bottom: 2rem; }
 
-        /* Comparison table */
         .comparison-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); }
         .comparison-table { width: 100%; border-collapse: collapse; }
-        .comparison-table thead th { background: #0d0d20; padding: 1rem 1.25rem; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b; text-align: left; }
+        .comparison-table thead th { background: #0d0d20; padding: 1rem 1.25rem; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b; text-align: left; }
         .comparison-table thead th:not(:first-child) { text-align: center; }
-        .comparison-table thead th.col-pro { color: #10b981; }
+        .comparison-table thead th.col-t1 { color: #10b981; }
         .comparison-table tbody tr { border-top: 1px solid rgba(255,255,255,0.05); transition: background 0.12s; }
         .comparison-table tbody tr:hover { background: rgba(255,255,255,0.02); }
         .comparison-table tbody td { padding: 0.875rem 1.25rem; font-size: 0.875rem; color: #cbd5e1; }
@@ -148,7 +182,6 @@ export default function PricingPage() {
         .comparison-table tbody td.check { color: #10b981; font-weight: 700; }
         .comparison-table tbody td.dash { color: #334155; }
 
-        /* FAQ */
         .faq-list { display: flex; flex-direction: column; gap: 0; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; overflow: hidden; }
         .faq-item { padding: 1.5rem 1.75rem; border-top: 1px solid rgba(255,255,255,0.06); }
         .faq-item:first-child { border-top: none; }
@@ -163,20 +196,39 @@ export default function PricingPage() {
 
       {/* Hero */}
       <section className="pricing-hero">
-        <h1>Simple, transparent pricing.</h1>
-        <p>Start free. Scale when you&apos;re ready. No surprises.</p>
+        <p className="pricing-tagline">Core Platform — Runtime</p>
+        <h1>Start free. Run in production.<br />Go sovereign.</h1>
+        <p>One platform. Three tiers. Every action governed.</p>
       </section>
 
       {/* Plan cards */}
       <div className="plans-grid">
         {plans.map((plan) => (
-          <div key={plan.name} className={`plan-card${plan.highlight ? ' highlight' : ''}`}>
+          <div key={plan.tier} className={`plan-card${plan.highlight ? ' highlight' : ''}`}>
             {plan.badge && <span className="badge">{plan.badge}</span>}
+            <div className="tier-label">{plan.tier}</div>
             <div className="plan-name">{plan.name}</div>
-            <div className="plan-price">
-              {plan.price}
-              {plan.period && <span>{plan.period}</span>}
-            </div>
+
+            {/* Price — only shown for T1 (Core) */}
+            {plan.showPrice ? (
+              <div style={{ marginTop: '0.5rem', marginBottom: '0.25rem' }}>
+                <div className="plan-price">
+                  {plan.price}
+                  {plan.period && <span>{plan.period}</span>}
+                </div>
+                {plan.scalingNote && (
+                  <div className="plan-price-note">{plan.scalingNote}</div>
+                )}
+              </div>
+            ) : (
+              /* T0 and TE: price intentionally hidden — contact sales for TE, free for T0 */
+              <div style={{ marginTop: '0.5rem', marginBottom: '0.25rem' }}>
+                <div className="plan-contact">
+                  {plan.tier === 'T0' ? 'Free' : 'Contact sales →'}
+                </div>
+              </div>
+            )}
+
             <div className="plan-desc">{plan.description}</div>
             <hr className="plan-divider" />
             <ul className="plan-features">
@@ -202,18 +254,18 @@ export default function PricingPage() {
             <thead>
               <tr>
                 <th>Feature</th>
-                <th>Starter</th>
-                <th className="col-pro">Pro</th>
-                <th>Enterprise</th>
+                <th>T0 · Developer</th>
+                <th className="col-t1">T1 · Core</th>
+                <th>TE · Enterprise</th>
               </tr>
             </thead>
             <tbody>
               {comparisonFeatures.map((row) => (
                 <tr key={row.label}>
                   <td>{row.label}</td>
-                  <td className={row.starter === '✓' ? 'check' : row.starter === '—' ? 'dash' : ''}>{row.starter}</td>
-                  <td className={row.pro === '✓' ? 'check' : row.pro === '—' ? 'dash' : ''}>{row.pro}</td>
-                  <td className={row.enterprise === '✓' ? 'check' : row.enterprise === '—' ? 'dash' : ''}>{row.enterprise}</td>
+                  <td className={row.t0 === '✓' ? 'check' : row.t0 === '—' ? 'dash' : ''}>{row.t0}</td>
+                  <td className={row.t1 === '✓' ? 'check' : row.t1 === '—' ? 'dash' : ''}>{row.t1}</td>
+                  <td className={row.te === '✓' ? 'check' : row.te === '—' ? 'dash' : ''}>{row.te}</td>
                 </tr>
               ))}
             </tbody>
@@ -233,7 +285,6 @@ export default function PricingPage() {
           ))}
         </div>
       </section>
-
     </>
   );
 }

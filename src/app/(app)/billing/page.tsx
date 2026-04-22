@@ -5,35 +5,50 @@ import { useTenant } from '@lib/contexts/TenantContext';
 import { useToast } from '@/components/ToastProvider';
 import { createBrowserClient } from '@lib/db/supabase';
 
+// ─────────────────────────────────────────────────────────────────────────────
+// PRICE VISIBILITY POLICY
+//   T0 Developer     — showPrice: false  (free tier, no price anchor needed)
+//   T1 Core          — showPrice: true   ← ONLY plan with a public price
+//   TE Enterprise    — showPrice: false  (contact sales; hides €250k+ anchor)
+// To change the displayed price update ONLY the T1 entry.
+// ─────────────────────────────────────────────────────────────────────────────
 const PLANS = [
   {
     id: 'free',
-    name: 'Free',
-    price: '€0',
-    period: '/mo',
-    description: 'Explore RuneSignal governance with no commitment.',
+    tier: 'T0',
+    name: 'Developer',
+    showPrice: false,
+    // price: '€0',  ← intentionally hidden; shown as "Free" in CTA only
+    price: '',
+    period: '',
+    description: '1 tenant · 10K actions/month · 30-day retention. Top-of-funnel adoption.',
     features: [
-      'Up to 3 Agentic Workers',
-      'Standard Audit Logging (7 days)',
-      'Basic SLA Monitoring',
-      'Community Support',
+      '1 tenant',
+      '10,000 agent actions / month',
+      '30-day audit log retention',
+      'Basic SLA monitoring',
+      'Community support',
     ],
     priceId: null,
-    buttonText: 'Current Plan',
+    buttonText: 'Start free',
     highlight: false,
   },
   {
     id: 'pro',
-    name: 'RuneSignal Core',
+    tier: 'T1',
+    name: 'Core',
+    showPrice: true,
     price: '€1,500',
     period: '/mo',
-    description: 'Advanced governance for production agent fleets.',
+    scalingNote: 'Scales to €6,000/mo by action volume.',
+    description: 'Full runtime for production agent fleets.',
     features: [
-      'Unlimited agents',
+      'Everything in Developer',
+      'Up to 2M agent actions / month',
+      'Ed25519-signed provenance on every action',
       'HITL Approval API + blast radius scoring',
-      'Shadow AI discovery',
       'Slack / Teams / ServiceNow / Jira adapters',
-      'SDK + LangChain plugin',
+      'SDK + LangChain / CrewAI plugins',
       'EU AI Act evidence reports',
       'Priority support',
     ],
@@ -43,17 +58,23 @@ const PLANS = [
   },
   {
     id: 'enterprise',
+    tier: 'TE',
     name: 'Enterprise Sovereign',
-    price: 'Custom',
-    period: '',
-    description: 'Hardened compliance for global operations. From €250k/yr.',
+    showPrice: false,
+    // price: '€250,000+',  ← intentionally hidden; prospects must contact sales
+    price: '',
+    period: '/year',
+    description: 'Dedicated infrastructure, BYO-HSM, PQC signatures, EU-only data residency.',
     features: [
-      'Dedicated High-Availability Node',
-      'On-Premise GRC Integration',
-      'SOC2 / HIPAA / ISO 42001 Readiness Pack',
-      'Custom data residency (EU sovereign)',
-      'White-Label Dashboards',
-      '24/7 Phone Support',
+      'Everything in Core',
+      'Dedicated high-availability tenant',
+      'Bring-your-own HSM signing',
+      'PQC signatures (ML-DSA-65)',
+      'EU-only data residency (S10)',
+      'SOC 2 Type II readiness pack',
+      'GDPR DPA + SLA guarantee',
+      'Dedicated CSM + Slack',
+      'Custom integrations',
     ],
     priceId: process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID,
     buttonText: 'Contact Sales',
@@ -276,14 +297,33 @@ export default function BillingPage() {
                 </div>
               )}
 
+              {/* Tier badge */}
+              <div style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-tertiary)', marginBottom: '0.2rem' }}>
+                {plan.tier}
+              </div>
+
               <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.5rem' }}>
                 {plan.name}
               </h2>
-              <div style={{ marginBottom: '1.5rem' }}>
-                <span style={{ fontSize: '2.5rem', fontWeight: 700 }}>{plan.price}</span>
-                {plan.period && (
-                  <span className="text-tertiary" style={{ fontSize: '1rem' }}>
-                    {plan.period}
+
+              {/* Price — visible only for T1 Core */}
+              <div style={{ marginBottom: '1.25rem', minHeight: '3rem' }}>
+                {plan.showPrice ? (
+                  <>
+                    <span style={{ fontSize: '2.5rem', fontWeight: 700 }}>{plan.price}</span>
+                    {plan.period && (
+                      <span className="text-tertiary" style={{ fontSize: '1rem' }}>{plan.period}</span>
+                    )}
+                    {(plan as any).scalingNote && (
+                      <div style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)', marginTop: '0.3rem' }}>
+                        {(plan as any).scalingNote}
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  /* T0 / TE: price intentionally hidden — free tier or contact-sales */
+                  <span style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                    {plan.id === 'free' ? 'Free' : 'Contact sales →'}
                   </span>
                 )}
               </div>
@@ -492,9 +532,9 @@ export default function BillingPage() {
         className="text-tertiary"
         style={{ textAlign: 'center', marginTop: '3rem', fontSize: '0.85rem' }}
       >
-        <p>All prices are in EUR. Subscriptions are billed monthly and can be cancelled any time.</p>
+        <p>Core plan billed in EUR · monthly · cancel any time. Enterprise pricing on request.</p>
         <p style={{ marginTop: '0.5rem' }}>
-          Automated fine-tuning and compliance reports included in Core / Enterprise.
+          Automated fine-tuning and compliance reports included in Core / Enterprise Sovereign.
         </p>
       </div>
     </div>
