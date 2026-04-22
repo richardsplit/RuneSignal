@@ -8,8 +8,9 @@ import { createAdminClient } from '@lib/db/supabase';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const tenantId = request.headers.get('X-Tenant-Id');
   if (!tenantId) return NextResponse.json({ error: 'Missing X-Tenant-Id' }, { status: 401 });
 
@@ -17,7 +18,7 @@ export async function GET(
   const { data: plugin, error } = await supabase
     .from('plugins')
     .select('*')
-    .eq('id', params.id)
+    .eq('id', id)
     .eq('tenant_id', tenantId)
     .single();
 
@@ -29,7 +30,7 @@ export async function GET(
   const { data: executions } = await supabase
     .from('plugin_executions')
     .select('*')
-    .eq('plugin_id', params.id)
+    .eq('plugin_id', id)
     .order('created_at', { ascending: false })
     .limit(50);
 
@@ -38,8 +39,9 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const tenantId = request.headers.get('X-Tenant-Id');
   if (!tenantId) return NextResponse.json({ error: 'Missing X-Tenant-Id' }, { status: 401 });
 
@@ -65,7 +67,7 @@ export async function PATCH(
   const { data, error } = await supabase
     .from('plugins')
     .update(updates)
-    .eq('id', params.id)
+    .eq('id', id)
     .eq('tenant_id', tenantId)
     .select()
     .single();
@@ -78,8 +80,9 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const tenantId = request.headers.get('X-Tenant-Id');
   if (!tenantId) return NextResponse.json({ error: 'Missing X-Tenant-Id' }, { status: 401 });
 
@@ -87,7 +90,7 @@ export async function DELETE(
   const { data, error } = await supabase
     .from('plugins')
     .update({ is_active: false })
-    .eq('id', params.id)
+    .eq('id', id)
     .eq('tenant_id', tenantId)
     .select()
     .single();

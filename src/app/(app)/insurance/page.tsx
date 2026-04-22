@@ -70,7 +70,9 @@ export default function InsurancePage() {
   const [loading,  setLoading]  = useState(true);
   const [error,    setError]    = useState<string | null>(null);
   const [isDemo,   setIsDemo]   = useState(false);
-  const [tab,      setTab]      = useState<'profiles' | 'claims'>('profiles');
+  const [tab,      setTab]      = useState<'profiles' | 'claims' | 'carrier'>('profiles');
+  const [generatingPack, setGeneratingPack] = useState(false);
+  const [lastPack, setLastPack] = useState<Record<string, unknown> | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -182,9 +184,9 @@ export default function InsurancePage() {
 
       {/* Tabs */}
       <div className="tab-bar">
-        {(['profiles', 'claims'] as const).map(t => (
+        {(['profiles', 'claims', 'carrier'] as const).map(t => (
           <button key={t} onClick={() => setTab(t)} className={`tab${tab === t ? ' active' : ''}`}>
-            {t === 'profiles' ? 'Agent Risk Profiles' : `Claims (${claims.length})`}
+            {t === 'profiles' ? 'Agent Risk Profiles' : t === 'claims' ? `Claims (${claims.length})` : '🔏 Carrier Evidence Pack'}
           </button>
         ))}
       </div>
@@ -302,6 +304,57 @@ export default function InsurancePage() {
               <p className="empty-state-body">Fleet is operating within policy bounds.</p>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Carrier Evidence Pack export */}
+      {tab === 'carrier' && (
+        <div className="surface" style={{ padding: '1.5rem' }}>
+          <div style={{ marginBottom: '1.25rem' }}>
+            <h2 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '0.375rem' }}>Insurance Carrier Evidence Pack</h2>
+            <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>Generate a carrier-ready evidence pack from your live audit trail. Includes loss-event sampling, anomaly rates, HITL coverage, and reversal history. One-click export for AI-liability policy underwriting.</p>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.875rem', marginBottom: '1.25rem' }}>
+            {[
+              { icon: '📊', label: 'Loss-Event Sampling', desc: 'Anomaly + incident sampling per standard carrier template' },
+              { icon: '✅', label: 'HITL Coverage Rate', desc: 'Human oversight % across all decisions' },
+              { icon: '↩️', label: 'Reversal History', desc: 'All reversed decisions with orchestration log' },
+              { icon: '🔏', label: 'Cryptographic Signature', desc: 'Ed25519-signed, append-only, tamper-evident' },
+            ].map(item => (
+              <div key={item.label} style={{ padding: '0.875rem', background: 'var(--bg-surface-2)', borderRadius: 8, border: '1px solid var(--border)' }}>
+                <div style={{ fontSize: '1.25rem', marginBottom: '0.375rem' }}>{item.icon}</div>
+                <div style={{ fontWeight: 600, fontSize: '0.875rem', marginBottom: '0.25rem' }}>{item.label}</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{item.desc}</div>
+              </div>
+            ))}
+          </div>
+          {lastPack && (
+            <div style={{ padding: '0.875rem 1rem', background: '#34d39910', border: '1px solid #34d39933', borderRadius: 8, marginBottom: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div>
+                <div style={{ fontWeight: 600, fontSize: '0.875rem', color: '#34d399' }}>✓ Pack generated</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.125rem' }}>Coverage score: {(lastPack as any).coverage_score}% · Hash: {String((lastPack as any).manifest_hash ?? '').slice(0, 16)}…</div>
+              </div>
+              <button className="btn btn-outline" style={{ fontSize: '0.75rem' }} onClick={() => {
+                const blob = new Blob([JSON.stringify(lastPack, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url;
+                a.download = `carrier-evidence-pack-${new Date().toISOString().slice(0,10)}.json`; a.click(); URL.revokeObjectURL(url);
+              }}>Download JSON</button>
+            </div>
+          )}
+          <button className="btn btn-primary" disabled={generatingPack} onClick={async () => {
+            if (!tenantId) return;
+            setGeneratingPack(true);
+            try {
+              const res = await fetch('/api/v1/insurance/claim-pack', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Tenant-Id': tenantId }, body: JSON.stringify({ carrier: 'General', created_by: 'dashboard' }) });
+              const d = await res.json();
+              if (!res.ok) { showToast(d.error ?? 'Generation failed', 'error'); return; }
+              setLastPack(d.pack);
+              showToast('Carrier evidence pack generated and signed', 'success');
+            } catch { showToast('Generation failed', 'error'); }
+            finally { setGeneratingPack(false); }
+          }}>
+            {generatingPack ? 'Generating…' : '🔏 Generate Carrier Pack (Last 90 days)'}
+          </button>
         </div>
       )}
 

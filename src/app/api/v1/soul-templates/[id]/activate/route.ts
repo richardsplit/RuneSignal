@@ -10,8 +10,9 @@ import { AuditLedgerService } from '../../../../../../../lib/ledger/service';
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const tenantId = request.headers.get('X-Tenant-Id');
   if (!tenantId) return NextResponse.json({ error: 'Missing X-Tenant-Id' }, { status: 401 });
 
@@ -21,7 +22,7 @@ export async function POST(
   const { data: template, error: templateError } = await supabase
     .from('soul_templates')
     .select('*')
-    .eq('id', params.id)
+    .eq('id', id)
     .single();
 
   if (templateError || !template) {
@@ -33,7 +34,7 @@ export async function POST(
     .from('soul_activations')
     .select('id')
     .eq('tenant_id', tenantId)
-    .eq('template_id', params.id)
+    .eq('template_id', id)
     .eq('is_active', true)
     .single();
 
@@ -64,7 +65,7 @@ export async function POST(
     .from('soul_activations')
     .insert({
       tenant_id: tenantId,
-      template_id: params.id,
+      template_id: id,
       soul_config: template.soul_config,
       is_active: true,
     })
@@ -79,7 +80,7 @@ export async function POST(
     module: 'system',
     tenant_id: tenantId,
     payload: {
-      template_id: params.id,
+      template_id: id,
       template_name: template.name,
       price_usd: template.price_usd,
     },
@@ -94,8 +95,9 @@ export async function POST(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const tenantId = request.headers.get('X-Tenant-Id');
   if (!tenantId) return NextResponse.json({ error: 'Missing X-Tenant-Id' }, { status: 401 });
 
@@ -104,7 +106,7 @@ export async function DELETE(
     .from('soul_activations')
     .update({ is_active: false })
     .eq('tenant_id', tenantId)
-    .eq('template_id', params.id);
+    .eq('template_id', id);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
