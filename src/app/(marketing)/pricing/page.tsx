@@ -1,5 +1,7 @@
 'use client';
 
+import { useState } from 'react';
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Pricing page — plan data
 //
@@ -15,7 +17,6 @@ const plans = [
   {
     tier: 'T0',
     name: 'Developer',
-    // price: '€0',  ← hidden per pricing policy (top-of-funnel, no price anchor)
     showPrice: false,
     period: '',
     description: '1 tenant · 10K actions/month · 30-day retention. Top-of-funnel adoption.',
@@ -63,7 +64,6 @@ const plans = [
   {
     tier: 'TE',
     name: 'Enterprise Sovereign',
-    // price: '€250,000+',  ← hidden per pricing policy (contact sales)
     showPrice: false,
     period: '/year',
     description: 'Dedicated infrastructure, BYO-HSM, post-quantum signatures, EU-only data residency, co-signed notified body templates.',
@@ -86,26 +86,135 @@ const plans = [
   },
 ];
 
+const addons = [
+  {
+    tier: 'T2',
+    name: 'Evidence Pack Add-On',
+    priceSub: 'per signed Pack · volume-tiered',
+    buyers: '👤 General Counsel · CRO · Head of AI Risk',
+    trigger: 'EU AI Act Art. 12 deadline: 2 August 2026',
+    triggerRed: false,
+    desc: 'Metered add-on on top of Core. Volume-tiered. One regulated enterprise at 5M decisions/yr = €50K–€500K ARR.',
+    features: [
+      'EU AI Act Annex IV technical documentation',
+      'ISO/IEC 42001 management system pack',
+      'NIST AI RMF (Govern / Map / Measure / Manage)',
+      'Insurance Carrier evidence template',
+      'Cryptographically signed + hash-manifest',
+      '10-year cold-storage retention tier',
+      'Export as JSON / PDF bundle',
+      'Notified body co-signing (TÜV / DNV / BSI) on Enterprise',
+    ],
+    tiers: [
+      ['< 100 packs/mo',   '€0.50 / pack'],
+      ['100–999 packs/mo', '€0.20 / pack'],
+      ['1K–9K packs/mo',   '€0.10 / pack'],
+      ['10K+ packs/mo',    '€0.05 / pack'],
+    ],
+    cta: 'Talk to sales',
+    ctaHref: 'mailto:sales@runesignal.io',
+    oem: false,
+  },
+  {
+    tier: 'T3',
+    name: 'Decision Ledger & Reversibility',
+    priceSub: 'ACV + per-query',
+    buyers: '👤 Head of AI Ops · CRO · General Counsel',
+    trigger: 'Triggered by first material incident',
+    triggerRed: false,
+    desc: 'Forensic replay API, outcome back-labelling, reversal orchestrator. Priced per-query on top of ACV.',
+    features: [
+      'Forensic replay: full reasoning chain per decision',
+      'Outcome back-labelling (accepted / rejected / reversed / litigated)',
+      'Webhook ingest from Jira, ServiceNow, insurance claims',
+      'Reversal orchestrator (refund / revoke / rollback / retract)',
+      'Decision outcome → SOUL policy feedback loop',
+      'Replay API: per-query (volume-tiered)',
+      'Retention: 7-year decision archive',
+    ],
+    tiers: [
+      ['< 100 replays/mo',   '€1.00 / query'],
+      ['100–999 replays/mo', '€0.40 / query'],
+      ['1K–9K replays/mo',   '€0.15 / query'],
+      ['10K+ replays/mo',    '€0.08 / query'],
+    ],
+    cta: 'Talk to sales',
+    ctaHref: 'mailto:sales@runesignal.io',
+    oem: false,
+  },
+  {
+    tier: 'T4',
+    name: 'Agent Passport Registry',
+    priceSub: 'ACV + per-verification',
+    buyers: '👤 Platform Eng · CISO · Counterparty trust',
+    trigger: 'Consortium moat — 12+ mo cycle, long-term flywheel',
+    triggerRed: true,
+    desc: 'Cross-org signed agent identity + capability attestation. Network-effect trust layer. Per-verification metering.',
+    features: [
+      'Signed Agent Passport (RS-XXXX-XXXX format)',
+      'W3C VC / SPIFFE-compatible capability attestation',
+      'Cross-org counterparty verification API',
+      'Reputation scorecard (incident / anomaly weighted)',
+      'Public registry browse + DID publishing',
+      'Revocation lists + suspension lifecycle',
+      'Verification API: per-check (volume-tiered)',
+      'Passport issuance: per-agent',
+      'IETF / W3MSE / OpenID AgentID standards-body presence',
+    ],
+    tiers: [
+      ['< 1K verifications/mo',    '€0.20 / verification'],
+      ['1K–9K verifications/mo',   '€0.08 / verification'],
+      ['10K–99K verifications/mo', '€0.03 / verification'],
+      ['1M+ verifications/mo',     '€0.01 / verification'],
+    ],
+    cta: 'Talk to sales',
+    ctaHref: 'mailto:sales@runesignal.io',
+    oem: false,
+  },
+  {
+    tier: 'T-I',
+    name: 'Insurance Carrier OEM',
+    priceSub: '+ revenue-share per insured agent',
+    buyers: '👤 Reinsurer / Insurance Carrier',
+    trigger: 'Phase 9 — requires 3+ signed contracts to activate',
+    triggerRed: false,
+    desc: 'Carrier embeds RuneSignal as the independent evidence plane in their AI-liability policy. Push adoption across their book of business.',
+    features: [
+      'White-label Evidence Pack generation for carrier book',
+      'Loss-event vs no-loss-event sampling template',
+      'Actuarial risk scoring per agent fleet',
+      'Co-branded carrier evidence portal',
+      'Revenue-share per insured agent per month',
+      'Carrier API for policy underwriting data',
+      'Custom SLA + dedicated infrastructure',
+    ],
+    tiers: [],
+    cta: 'Partner with us',
+    ctaHref: 'mailto:sales@runesignal.io',
+    oem: true,
+  },
+];
+
 const comparisonFeatures = [
-  { label: 'Agents',                         t0: '1 tenant',      t1: 'Unlimited',   te: 'Unlimited' },
-  { label: 'Agent actions / month',          t0: '10K',           t1: 'Up to 2M',    te: 'Custom' },
+  { label: 'Agents',                         t0: '1 tenant',      t1: 'Unlimited',       te: 'Unlimited' },
+  { label: 'Agent actions / month',          t0: '10K',           t1: 'Up to 2M',        te: 'Custom' },
   { label: 'Audit log retention',            t0: '30 days',       t1: '30 days rolling', te: 'Custom' },
-  { label: 'Ed25519-signed provenance',      t0: '—',             t1: '✓',           te: '✓' },
-  { label: 'HITL Approval API',              t0: '—',             t1: '✓',           te: '✓' },
-  { label: 'Anomaly detection',              t0: '—',             t1: '✓',           te: '✓' },
-  { label: 'Agent FinOps guardrails',        t0: '—',             t1: '✓',           te: '✓' },
-  { label: 'Shadow AI discovery',            t0: '—',             t1: '✓',           te: '✓' },
-  { label: 'Blast radius scoring',           t0: '—',             t1: '✓',           te: '✓' },
-  { label: 'SDK access',                     t0: '—',             t1: '✓',           te: '✓' },
-  { label: 'Slack / ServiceNow / Jira',      t0: '—',             t1: '✓',           te: '✓' },
-  { label: 'PQC signatures (ML-DSA-65)',     t0: '—',             t1: '—',           te: '✓' },
-  { label: 'EU-only data residency',         t0: '—',             t1: '—',           te: '✓' },
-  { label: 'BYO-HSM signing',               t0: '—',             t1: '—',           te: '✓' },
-  { label: 'Dedicated infrastructure',       t0: '—',             t1: '—',           te: '✓' },
-  { label: 'SOC 2 Type II readiness',        t0: '—',             t1: '—',           te: '✓' },
-  { label: 'GDPR DPA + SLA guarantee',       t0: '—',             t1: '—',           te: '✓' },
-  { label: 'Notified body template signing', t0: '—',             t1: '—',           te: '✓' },
-  { label: 'Support',                        t0: 'Community',     t1: 'Priority',    te: 'Dedicated CSM' },
+  { label: 'Ed25519-signed provenance',      t0: '—',             t1: '✓',               te: '✓' },
+  { label: 'HITL Approval API',              t0: '—',             t1: '✓',               te: '✓' },
+  { label: 'Anomaly detection',              t0: '—',             t1: '✓',               te: '✓' },
+  { label: 'Agent FinOps guardrails',        t0: '—',             t1: '✓',               te: '✓' },
+  { label: 'Shadow AI discovery',            t0: '—',             t1: '✓',               te: '✓' },
+  { label: 'Blast radius scoring',           t0: '—',             t1: '✓',               te: '✓' },
+  { label: 'SDK access',                     t0: '—',             t1: '✓',               te: '✓' },
+  { label: 'Slack / ServiceNow / Jira',      t0: '—',             t1: '✓',               te: '✓' },
+  { label: 'PQC signatures (ML-DSA-65)',     t0: '—',             t1: '—',               te: '✓' },
+  { label: 'EU-only data residency',         t0: '—',             t1: '—',               te: '✓' },
+  { label: 'BYO-HSM signing',               t0: '—',             t1: '—',               te: '✓' },
+  { label: 'Dedicated infrastructure',       t0: '—',             t1: '—',               te: '✓' },
+  { label: 'SOC 2 Type II readiness',        t0: '—',             t1: '—',               te: '✓' },
+  { label: 'GDPR DPA + SLA guarantee',       t0: '—',             t1: '—',               te: '✓' },
+  { label: 'Notified body template signing', t0: '—',             t1: '—',               te: '✓' },
+  { label: 'Support',                        t0: 'Community',     t1: 'Priority',        te: 'Dedicated CSM' },
 ];
 
 const faqs = [
@@ -132,6 +241,17 @@ const faqs = [
 ];
 
 export default function PricingPage() {
+  const [comparisonOpen, setComparisonOpen] = useState(false);
+  const [openFaqs, setOpenFaqs] = useState<Set<number>>(new Set());
+
+  function toggleFaq(i: number) {
+    setOpenFaqs((prev) => {
+      const next = new Set(prev);
+      next.has(i) ? next.delete(i) : next.add(i);
+      return next;
+    });
+  }
+
   return (
     <>
       <style jsx global>{`
@@ -168,7 +288,6 @@ export default function PricingPage() {
         .plan-cta-highlight:hover { background: #059669; }
 
         .section { max-width: 1060px; margin: 0 auto; padding: 0 1.5rem 5rem; }
-        .section-title { font-size: 1.5rem; font-weight: 700; color: #f8fafc; letter-spacing: -0.02em; margin-bottom: 2rem; }
 
         /* Metered add-ons section */
         .addons-header { max-width: 1060px; margin: 0 auto; padding: 0 1.5rem 2rem; }
@@ -182,7 +301,6 @@ export default function PricingPage() {
         .addon-tier-badge { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; background: rgba(99,102,241,0.15); color: #818cf8; border: 1px solid rgba(99,102,241,0.3); border-radius: 20px; padding: 0.2rem 0.55rem; }
         .addon-tier-badge.oem { background: rgba(239,68,68,0.12); color: #f87171; border-color: rgba(239,68,68,0.3); }
         .addon-name { font-size: 1rem; font-weight: 700; color: #f1f5f9; }
-        .addon-price-hidden { font-size: 1.1rem; font-weight: 700; color: #64748b; margin: 0.5rem 0 0.2rem; font-style: italic; }
         .addon-price-sub { font-size: 0.78rem; color: #475569; margin-bottom: 0.25rem; }
         .addon-buyers { font-size: 0.75rem; color: #64748b; margin: 0.75rem 0 0.25rem; display: flex; align-items: center; gap: 0.4rem; }
         .addon-trigger { font-size: 0.72rem; font-weight: 600; background: rgba(245,158,11,0.12); color: #fbbf24; border: 1px solid rgba(245,158,11,0.25); border-radius: 4px; padding: 0.2rem 0.5rem; margin: 0.5rem 0 0.75rem; display: inline-block; }
@@ -200,7 +318,16 @@ export default function PricingPage() {
         .addon-cta.oem { color: #f87171; border-color: rgba(239,68,68,0.3); }
         .addon-cta.oem:hover { background: rgba(239,68,68,0.08); }
 
-        .comparison-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); }
+        /* Collapsible section header */
+        .collapsible-header { display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; padding: 1.25rem 1.5rem; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; background: #0d0d20; margin-bottom: 0; transition: border-color 0.2s, background 0.2s; }
+        .collapsible-header:hover { border-color: rgba(255,255,255,0.16); background: rgba(255,255,255,0.02); }
+        .collapsible-header.open { border-radius: 12px 12px 0 0; border-bottom-color: transparent; }
+        .collapsible-title { font-size: 1.2rem; font-weight: 700; color: #f8fafc; letter-spacing: -0.02em; }
+        .collapsible-chevron { color: #64748b; transition: transform 0.25s; font-size: 1.1rem; }
+        .collapsible-chevron.open { transform: rotate(180deg); }
+        .collapsible-body { border: 1px solid rgba(255,255,255,0.08); border-top: none; border-radius: 0 0 12px 12px; overflow: hidden; }
+
+        /* Comparison table */
         .comparison-table { width: 100%; border-collapse: collapse; }
         .comparison-table thead th { background: #0d0d20; padding: 1rem 1.25rem; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b; text-align: left; }
         .comparison-table thead th:not(:first-child) { text-align: center; }
@@ -212,11 +339,16 @@ export default function PricingPage() {
         .comparison-table tbody td.check { color: #10b981; font-weight: 700; }
         .comparison-table tbody td.dash { color: #334155; }
 
+        /* FAQ accordion */
         .faq-list { display: flex; flex-direction: column; gap: 0; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; overflow: hidden; }
-        .faq-item { padding: 1.5rem 1.75rem; border-top: 1px solid rgba(255,255,255,0.06); }
+        .faq-item { border-top: 1px solid rgba(255,255,255,0.06); }
         .faq-item:first-child { border-top: none; }
-        .faq-q { font-size: 1rem; font-weight: 600; color: #f1f5f9; margin-bottom: 0.625rem; }
-        .faq-a { font-size: 0.9rem; color: #94a3b8; line-height: 1.65; }
+        .faq-toggle { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 1.75rem; cursor: pointer; background: none; border: none; text-align: left; gap: 1rem; transition: background 0.15s; }
+        .faq-toggle:hover { background: rgba(255,255,255,0.02); }
+        .faq-q { font-size: 0.975rem; font-weight: 600; color: #f1f5f9; line-height: 1.4; }
+        .faq-chevron { color: #64748b; flex-shrink: 0; transition: transform 0.25s; font-size: 1rem; }
+        .faq-chevron.open { transform: rotate(180deg); }
+        .faq-a { font-size: 0.9rem; color: #94a3b8; line-height: 1.65; padding: 0 1.75rem 1.25rem; }
 
         @media (max-width: 640px) {
           .pricing-hero { padding: 3rem 1rem 2.5rem; }
@@ -239,7 +371,6 @@ export default function PricingPage() {
             <div className="tier-label">{plan.tier}</div>
             <div className="plan-name">{plan.name}</div>
 
-            {/* Price — only shown for T1 (Core) */}
             {plan.showPrice ? (
               <div style={{ marginTop: '0.5rem', marginBottom: '0.25rem' }}>
                 <div className="plan-price">
@@ -251,7 +382,6 @@ export default function PricingPage() {
                 )}
               </div>
             ) : (
-              /* T0 and TE: price intentionally hidden — contact sales for TE, free for T0 */
               <div style={{ marginTop: '0.5rem', marginBottom: '0.25rem' }}>
                 <div className="plan-contact">
                   {plan.tier === 'T0' ? 'Free' : 'Contact sales →'}
@@ -282,171 +412,112 @@ export default function PricingPage() {
         <h2 className="addons-headline">Three products. Three buyers. Three budgets.</h2>
       </div>
 
-      <div className="addons-grid">
+      <div className="addons-grid" style={{ marginBottom: '3rem' }}>
+        {addons.map((addon) => (
+          <div key={addon.tier} className={`addon-card${addon.oem ? ' oem' : ''}`}>
+            <div className="addon-tier">
+              <span className={`addon-tier-badge${addon.oem ? ' oem' : ''}`}>{addon.tier}</span>
+              <span className="addon-name">{addon.name}</span>
+            </div>
 
-        {/* T2 — Evidence Pack Add-On */}
-        <div className="addon-card">
-          <div className="addon-tier">
-            <span className="addon-tier-badge">T2</span>
-            <span className="addon-name">Evidence Pack Add-On</span>
-          </div>
-          {/* Price hidden — contact sales */}
-          <div className="addon-price-hidden">Pricing on request</div>
-          <div className="addon-price-sub">per signed Pack · volume-tiered</div>
-          <div className="addon-buyers">👤 General Counsel · CRO · Head of AI Risk</div>
-          <span className="addon-trigger">EU AI Act Art. 12 deadline: 2 August 2026</span>
-          <div className="addon-desc">
-            Metered add-on on top of Core. Volume-tiered. One regulated enterprise at 5M decisions/yr = €50K–€500K ARR.
-          </div>
-          <ul className="addon-features">
-            <li>EU AI Act Annex IV technical documentation</li>
-            <li>ISO/IEC 42001 management system pack</li>
-            <li>NIST AI RMF (Govern / Map / Measure / Manage)</li>
-            <li>Insurance Carrier evidence template</li>
-            <li>Cryptographically signed + hash-manifest</li>
-            <li>10-year cold-storage retention tier</li>
-            <li>Export as JSON / PDF bundle</li>
-            <li>Notified body co-signing (TÜV / DNV / BSI) on Enterprise</li>
-          </ul>
-          <div className="addon-tiers-table">
-            <div className="addon-tier-row"><span className="vol">&lt; 100 packs/mo</span><span className="rate">Talk to sales</span></div>
-            <div className="addon-tier-row"><span className="vol">100–999 packs/mo</span><span className="rate">Talk to sales</span></div>
-            <div className="addon-tier-row"><span className="vol">1K–9K packs/mo</span><span className="rate">Talk to sales</span></div>
-            <div className="addon-tier-row"><span className="vol">10K+ packs/mo</span><span className="rate">Talk to sales</span></div>
-          </div>
-          <a href="mailto:sales@runesignal.io" className="addon-cta">Talk to sales</a>
-        </div>
+            {/* Platform fee label for T-I only */}
+            {addon.oem && (
+              <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#64748b', fontStyle: 'italic', marginBottom: '0.2rem' }}>
+                Platform fee
+              </div>
+            )}
 
-        {/* T3 — Decision Ledger & Reversibility */}
-        <div className="addon-card">
-          <div className="addon-tier">
-            <span className="addon-tier-badge">T3</span>
-            <span className="addon-name">Decision Ledger &amp; Reversibility</span>
-          </div>
-          {/* Price hidden — contact sales */}
-          <div className="addon-price-hidden">Pricing on request</div>
-          <div className="addon-price-sub">ACV + per-query</div>
-          <div className="addon-buyers">👤 Head of AI Ops · CRO · General Counsel</div>
-          <span className="addon-trigger">Triggered by first material incident</span>
-          <div className="addon-desc">
-            Forensic replay API, outcome back-labelling, reversal orchestrator. Priced per-query on top of ACV.
-          </div>
-          <ul className="addon-features">
-            <li>Forensic replay: full reasoning chain per decision</li>
-            <li>Outcome back-labelling (accepted / rejected / reversed / litigated)</li>
-            <li>Webhook ingest from Jira, ServiceNow, insurance claims</li>
-            <li>Reversal orchestrator (refund / revoke / rollback / retract)</li>
-            <li>Decision outcome → SOUL policy feedback loop</li>
-            <li>Replay API: per-query (volume-tiered)</li>
-            <li>Retention: 7-year decision archive</li>
-          </ul>
-          <div className="addon-tiers-table">
-            <div className="addon-tier-row"><span className="vol">&lt; 100 replays/mo</span><span className="rate">Talk to sales</span></div>
-            <div className="addon-tier-row"><span className="vol">100–999 replays/mo</span><span className="rate">Talk to sales</span></div>
-            <div className="addon-tier-row"><span className="vol">1K–9K replays/mo</span><span className="rate">Talk to sales</span></div>
-            <div className="addon-tier-row"><span className="vol">10K+ replays/mo</span><span className="rate">Talk to sales</span></div>
-          </div>
-          <a href="mailto:sales@runesignal.io" className="addon-cta">Talk to sales</a>
-        </div>
+            <div className="addon-price-sub">{addon.priceSub}</div>
+            <div className="addon-buyers">{addon.buyers}</div>
+            <span className={`addon-trigger${addon.triggerRed ? ' consortium' : ''}`}>{addon.trigger}</span>
+            <div className="addon-desc">{addon.desc}</div>
+            <ul className="addon-features">
+              {addon.features.map((f) => (
+                <li key={f}>{f}</li>
+              ))}
+            </ul>
 
-        {/* T4 — Agent Passport Registry */}
-        <div className="addon-card">
-          <div className="addon-tier">
-            <span className="addon-tier-badge">T4</span>
-            <span className="addon-name">Agent Passport Registry</span>
-          </div>
-          {/* Price hidden — contact sales */}
-          <div className="addon-price-hidden">Pricing on request</div>
-          <div className="addon-price-sub">ACV + per-verification</div>
-          <div className="addon-buyers">👤 Platform Eng · CISO · Counterparty trust</div>
-          <span className="addon-trigger consortium">Consortium moat — 12+ mo cycle, long-term flywheel</span>
-          <div className="addon-desc">
-            Cross-org signed agent identity + capability attestation. Network-effect trust layer. Per-verification metering.
-          </div>
-          <ul className="addon-features">
-            <li>Signed Agent Passport (RS-XXXX-XXXX format)</li>
-            <li>W3C VC / SPIFFE-compatible capability attestation</li>
-            <li>Cross-org counterparty verification API</li>
-            <li>Reputation scorecard (incident / anomaly weighted)</li>
-            <li>Public registry browse + DID publishing</li>
-            <li>Revocation lists + suspension lifecycle</li>
-            <li>Verification API: per-check (volume-tiered)</li>
-            <li>Passport issuance: per-agent</li>
-            <li>IETF / W3MSE / OpenID AgentID standards-body presence</li>
-          </ul>
-          <div className="addon-tiers-table">
-            <div className="addon-tier-row"><span className="vol">&lt; 1K verifications/mo</span><span className="rate">Talk to sales</span></div>
-            <div className="addon-tier-row"><span className="vol">1K–9K verifications/mo</span><span className="rate">Talk to sales</span></div>
-            <div className="addon-tier-row"><span className="vol">10K–99K verifications/mo</span><span className="rate">Talk to sales</span></div>
-            <div className="addon-tier-row"><span className="vol">1M+ verifications/mo</span><span className="rate">Talk to sales</span></div>
-          </div>
-          <a href="mailto:sales@runesignal.io" className="addon-cta">Talk to sales</a>
-        </div>
+            {/* Volume tier table with real prices */}
+            {addon.tiers.length > 0 && (
+              <div className="addon-tiers-table">
+                {addon.tiers.map(([vol, rate]) => (
+                  <div key={vol} className="addon-tier-row">
+                    <span className="vol">{vol}</span>
+                    <span className="rate">{rate}</span>
+                  </div>
+                ))}
+              </div>
+            )}
 
-        {/* T-I — Insurance Carrier OEM */}
-        <div className="addon-card oem">
-          <div className="addon-tier">
-            <span className="addon-tier-badge oem">T-I</span>
-            <span className="addon-name">Insurance Carrier OEM</span>
-          </div>
-          {/* Price hidden — revenue-share model, partner negotiation */}
-          <div className="addon-price-hidden">Platform fee</div>
-          <div className="addon-price-sub">+ revenue-share per insured agent</div>
-          <div className="addon-buyers">👤 Reinsurer / Insurance Carrier</div>
-          <span className="addon-trigger">Phase 9 — requires 3+ signed contracts to activate</span>
-          <div className="addon-desc">
-            Carrier embeds RuneSignal as the independent evidence plane in their AI-liability policy. Push adoption across their book of business.
-          </div>
-          <ul className="addon-features">
-            <li>White-label Evidence Pack generation for carrier book</li>
-            <li>Loss-event vs no-loss-event sampling template</li>
-            <li>Actuarial risk scoring per agent fleet</li>
-            <li>Co-branded carrier evidence portal</li>
-            <li>Revenue-share per insured agent per month</li>
-            <li>Carrier API for policy underwriting data</li>
-            <li>Custom SLA + dedicated infrastructure</li>
-          </ul>
-          <div style={{ flex: 1 }} />
-          <a href="mailto:sales@runesignal.io" className="addon-cta oem">Partner with us</a>
-        </div>
+            {addon.tiers.length === 0 && <div style={{ flex: 1 }} />}
 
+            <a href={addon.ctaHref} className={`addon-cta${addon.oem ? ' oem' : ''}`}>
+              {addon.cta}
+            </a>
+          </div>
+        ))}
       </div>
 
-      {/* Feature comparison */}
+      {/* ── Full feature comparison — collapsible ── */}
       <section className="section">
-        <h2 className="section-title">Full feature comparison</h2>
-        <div className="comparison-wrap">
-          <table className="comparison-table">
-            <thead>
-              <tr>
-                <th>Feature</th>
-                <th>T0 · Developer</th>
-                <th className="col-t1">T1 · Core</th>
-                <th>TE · Enterprise</th>
-              </tr>
-            </thead>
-            <tbody>
-              {comparisonFeatures.map((row) => (
-                <tr key={row.label}>
-                  <td>{row.label}</td>
-                  <td className={row.t0 === '✓' ? 'check' : row.t0 === '—' ? 'dash' : ''}>{row.t0}</td>
-                  <td className={row.t1 === '✓' ? 'check' : row.t1 === '—' ? 'dash' : ''}>{row.t1}</td>
-                  <td className={row.te === '✓' ? 'check' : row.te === '—' ? 'dash' : ''}>{row.te}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div
+          className={`collapsible-header${comparisonOpen ? ' open' : ''}`}
+          onClick={() => setComparisonOpen((v) => !v)}
+          role="button"
+          aria-expanded={comparisonOpen}
+        >
+          <span className="collapsible-title">Full feature comparison</span>
+          <span className={`collapsible-chevron${comparisonOpen ? ' open' : ''}`}>▼</span>
         </div>
+        {comparisonOpen && (
+          <div className="collapsible-body">
+            <table className="comparison-table">
+              <thead>
+                <tr>
+                  <th>Feature</th>
+                  <th>T0 · Developer</th>
+                  <th className="col-t1">T1 · Core</th>
+                  <th>TE · Enterprise</th>
+                </tr>
+              </thead>
+              <tbody>
+                {comparisonFeatures.map((row) => (
+                  <tr key={row.label}>
+                    <td>{row.label}</td>
+                    <td className={row.t0 === '✓' ? 'check' : row.t0 === '—' ? 'dash' : ''}>{row.t0}</td>
+                    <td className={row.t1 === '✓' ? 'check' : row.t1 === '—' ? 'dash' : ''}>{row.t1}</td>
+                    <td className={row.te === '✓' ? 'check' : row.te === '—' ? 'dash' : ''}>{row.te}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
 
-      {/* FAQ */}
+      {/* ── FAQ — collapsible accordion ── */}
       <section className="section">
-        <h2 className="section-title">Frequently asked questions</h2>
         <div className="faq-list">
-          {faqs.map((faq) => (
+          {/* Section header row */}
+          <div style={{ padding: '1.25rem 1.75rem', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+            <div style={{ fontSize: '1.2rem', fontWeight: 700, color: '#f8fafc', letterSpacing: '-0.02em' }}>
+              Frequently asked questions
+            </div>
+          </div>
+
+          {faqs.map((faq, i) => (
             <div key={faq.q} className="faq-item">
-              <div className="faq-q">{faq.q}</div>
-              <div className="faq-a">{faq.a}</div>
+              <button
+                className="faq-toggle"
+                onClick={() => toggleFaq(i)}
+                aria-expanded={openFaqs.has(i)}
+              >
+                <span className="faq-q">{faq.q}</span>
+                <span className={`faq-chevron${openFaqs.has(i) ? ' open' : ''}`}>▼</span>
+              </button>
+              {openFaqs.has(i) && (
+                <div className="faq-a">{faq.a}</div>
+              )}
             </div>
           ))}
         </div>
