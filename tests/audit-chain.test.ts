@@ -1,4 +1,8 @@
 import { describe, it, expect, beforeAll } from 'vitest';
+
+// Integration test — requires a live Supabase connection.
+// Skip automatically when env vars are not configured (unit test runs, CI without DB).
+const hasSupabase = !!(process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL);
 import { createAdminClient } from '../lib/db/supabase';
 import { v4 as uuidv4 } from 'uuid';
 import { IdentityService } from '../lib/modules/s6-identity/service';
@@ -6,7 +10,7 @@ import { ArbiterService } from '../lib/modules/s1-conflict/service';
 import { CertificateService } from '../lib/modules/s3-provenance/certificate';
 import { HitlService } from '../lib/modules/s7-hitl/service';
 
-describe('RuneSignal 5-Event Audit Chain', () => {
+describe.skipIf(!hasSupabase)('RuneSignal 5-Event Audit Chain', () => {
   const tenantId = uuidv4();
   let agentId: string;
   let ticketId: string;

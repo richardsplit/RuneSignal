@@ -15,10 +15,16 @@ vi.mock('@/lib/db/supabase', () => ({
       const chain: Record<string, any> = {};
       chain.select = vi.fn().mockReturnValue(chain);
       chain.eq = vi.fn().mockReturnValue(chain);
+      chain.or = vi.fn().mockReturnValue(chain);
+      chain.in = vi.fn().mockReturnValue(chain);
       chain.not = vi.fn().mockReturnValue(chain);
+      chain.gte = vi.fn().mockReturnValue(chain);
+      chain.lte = vi.fn().mockReturnValue(chain);
+      chain.filter = vi.fn().mockReturnValue(chain);
       chain.order = vi.fn().mockReturnValue(chain);
       chain.limit = vi.fn().mockReturnValue(chain);
       chain.range = vi.fn().mockReturnValue(chain);
+      chain.update = vi.fn().mockResolvedValue({ data: null, error: null });
       chain.single = vi.fn().mockResolvedValue({ data: null, error: null });
       chain.catch = vi.fn(() => ({ data: null }));
       chain.insert = vi.fn(() => ({
