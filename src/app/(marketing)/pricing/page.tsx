@@ -1,10 +1,23 @@
 'use client';
 
-const corePlans = [
+import { useState } from 'react';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Pricing page — plan data
+//
+// PRICE VISIBILITY POLICY:
+//   T0 (Developer) — price hidden; free tier, drives top-of-funnel sign-ups
+//   T1 (Core)      — price shown: €1,500/mo  ← only public price
+//   TE (Enterprise) — price hidden; prospects must contact sales
+//
+// To update prices update ONLY the T1 entry below.
+// ─────────────────────────────────────────────────────────────────────────────
+
+const plans = [
   {
     tier: 'T0',
     name: 'Developer',
-    price: '€0',
+    showPrice: false,
     period: '',
     description: '1 tenant · 10K actions/month · 30-day retention. Top-of-funnel adoption.',
     features: [
@@ -20,21 +33,22 @@ const corePlans = [
     ctaHref: '/login?mode=signup',
     highlight: false,
     badge: null,
-    accentColor: '#64748b',
   },
   {
     tier: 'T1',
     name: 'Core',
+    showPrice: true,
     price: '€1,500',
     period: '/mo',
-    description: 'Full runtime for production agent fleets. Starts at €1,500/mo, scales to €6,000/mo by action volume.',
+    scalingNote: 'Starts at €1,500/mo, scales to €6,000/mo by action volume.',
+    description: 'Full runtime for production agent fleets.',
     features: [
       'Everything in Developer',
       'Up to 2M agent actions / month',
-      '90-day audit ledger (rolling)',
+      '30-day audit ledger (rolling)',
       'Ed25519-signed provenance on every action',
-      'HITL Approval API + Slack/ServiceNow/Jira',
-      'Anomaly detection (Welford z-score)',
+      'HITL Approval API + Slack / ServiceNow / Jira',
+      'Anomaly detection (Welford Z-score)',
       'Agent FinOps budget guardrails',
       'NHI lifecycle management',
       'Shadow AI discovery',
@@ -46,13 +60,12 @@ const corePlans = [
     ctaHref: '/login?mode=signup',
     highlight: true,
     badge: 'Most popular',
-    accentColor: '#10b981',
   },
   {
     tier: 'TE',
     name: 'Enterprise Sovereign',
-    price: '€250K+',
-    period: ' / year',
+    showPrice: false,
+    period: '/year',
     description: 'Dedicated infrastructure, BYO-HSM, post-quantum signatures, EU-only data residency, co-signed notified body templates.',
     features: [
       'Everything in Core',
@@ -70,19 +83,18 @@ const corePlans = [
     ctaHref: 'mailto:sales@runesignal.io',
     highlight: false,
     badge: null,
-    accentColor: '#7c3aed',
   },
 ];
 
-const addOns = [
+const addons = [
   {
     tier: 'T2',
     name: 'Evidence Pack Add-On',
-    price: '€0.05 – €0.50',
-    unit: 'per signed Pack',
-    description: 'Metered add-on on top of Core. Volume-tiered. One regulated enterprise at 5M decisions/yr = €50K–€500K ARR.',
-    buyer: 'General Counsel · CRO · Head of AI Risk',
-    urgency: 'EU AI Act Art. 12 deadline: 2 August 2026',
+    priceSub: 'per signed Pack · volume-tiered',
+    buyers: '👤 General Counsel · CRO · Head of AI Risk',
+    trigger: 'EU AI Act Art. 12 deadline: 2 August 2026',
+    triggerRed: false,
+    desc: 'Metered add-on on top of Core. Volume-tiered. One regulated enterprise at 5M decisions/yr = €50K–€500K ARR.',
     features: [
       'EU AI Act Annex IV technical documentation',
       'ISO/IEC 42001 management system pack',
@@ -94,46 +106,50 @@ const addOns = [
       'Notified body co-signing (TÜV / DNV / BSI) on Enterprise',
     ],
     tiers: [
-      { qty: '< 100 packs/mo',   price: '€0.50 / pack' },
-      { qty: '100–999 packs/mo', price: '€0.20 / pack' },
-      { qty: '1K–9K packs/mo',   price: '€0.10 / pack' },
-      { qty: '10K+ packs/mo',    price: '€0.05 / pack' },
+      ['< 100 packs/mo',   '€0.50 / pack'],
+      ['100–999 packs/mo', '€0.20 / pack'],
+      ['1K–9K packs/mo',   '€0.10 / pack'],
+      ['10K+ packs/mo',    '€0.05 / pack'],
     ],
-    accentColor: '#f59e0b',
+    cta: 'Talk to sales',
+    ctaHref: 'mailto:sales@runesignal.io',
+    oem: false,
   },
   {
     tier: 'T3',
     name: 'Decision Ledger & Reversibility',
-    price: '€15K – €150K',
-    unit: 'ACV + per-query',
-    description: 'Forensic replay API, outcome back-labeling, reversal orchestrator. Priced per-query on top of ACV.',
-    buyer: 'Head of AI Ops · CRO · General Counsel',
-    urgency: 'Triggered by first material incident',
+    priceSub: 'ACV + per-query',
+    buyers: '👤 Head of AI Ops · CRO · General Counsel',
+    trigger: 'Triggered by first material incident',
+    triggerRed: false,
+    desc: 'Forensic replay API, outcome back-labelling, reversal orchestrator. Priced per-query on top of ACV.',
     features: [
       'Forensic replay: full reasoning chain per decision',
-      'Outcome back-labeling (accepted / rejected / reversed / litigated)',
+      'Outcome back-labelling (accepted / rejected / reversed / litigated)',
       'Webhook ingest from Jira, ServiceNow, insurance claims',
       'Reversal orchestrator (refund / revoke / rollback / retract)',
       'Decision outcome → SOUL policy feedback loop',
-      'Replay API: €0.10 – €1.00 per query (volume-tiered)',
+      'Replay API: per-query (volume-tiered)',
       'Retention: 7-year decision archive',
     ],
     tiers: [
-      { qty: '< 100 replays/mo',   price: '€1.00 / query' },
-      { qty: '100–999 replays/mo', price: '€0.50 / query' },
-      { qty: '1K–9K replays/mo',   price: '€0.20 / query' },
-      { qty: '10K+ replays/mo',    price: '€0.10 / query' },
+      ['< 100 replays/mo',   '€1.00 / query'],
+      ['100–999 replays/mo', '€0.40 / query'],
+      ['1K–9K replays/mo',   '€0.15 / query'],
+      ['10K+ replays/mo',    '€0.08 / query'],
     ],
-    accentColor: '#3b82f6',
+    cta: 'Talk to sales',
+    ctaHref: 'mailto:sales@runesignal.io',
+    oem: false,
   },
   {
     tier: 'T4',
     name: 'Agent Passport Registry',
-    price: '€25K – €500K',
-    unit: 'ACV + per-verification',
-    description: 'Cross-org signed agent identity + capability attestation. Network-effect trust layer. Per-verification metering.',
-    buyer: 'Platform Eng · CISO · Counterparty trust',
-    urgency: 'Consortium moat — 12+ mo cycle, long-term flywheel',
+    priceSub: 'ACV + per-verification',
+    buyers: '👤 Platform Eng · CISO · Counterparty trust',
+    trigger: 'Consortium moat — 12+ mo cycle, long-term flywheel',
+    triggerRed: true,
+    desc: 'Cross-org signed agent identity + capability attestation. Network-effect trust layer. Per-verification metering.',
     features: [
       'Signed Agent Passport (RS-XXXX-XXXX format)',
       'W3C VC / SPIFFE-compatible capability attestation',
@@ -141,26 +157,28 @@ const addOns = [
       'Reputation scorecard (incident / anomaly weighted)',
       'Public registry browse + DID publishing',
       'Revocation lists + suspension lifecycle',
-      'Verification API: €0.02 – €0.20 per check',
-      'Passport issuance: €1.00 – €5.00 per agent',
-      'IETF WIMSE / OpenID AgentID standards-body presence',
+      'Verification API: per-check (volume-tiered)',
+      'Passport issuance: per-agent',
+      'IETF / W3MSE / OpenID AgentID standards-body presence',
     ],
     tiers: [
-      { qty: '< 1K verifications/mo',   price: '€0.20 / verification' },
-      { qty: '1K–9K verifications/mo',  price: '€0.10 / verification' },
-      { qty: '10K–99K verifications/mo', price: '€0.05 / verification' },
-      { qty: '1M+ verifications/mo',    price: '€0.02 / verification' },
+      ['< 1K verifications/mo',    '€0.20 / verification'],
+      ['1K–9K verifications/mo',   '€0.08 / verification'],
+      ['10K–99K verifications/mo', '€0.03 / verification'],
+      ['1M+ verifications/mo',     '€0.01 / verification'],
     ],
-    accentColor: '#8b5cf6',
+    cta: 'Talk to sales',
+    ctaHref: 'mailto:sales@runesignal.io',
+    oem: false,
   },
   {
-    tier: 'TI',
+    tier: 'T-I',
     name: 'Insurance Carrier OEM',
-    price: 'Platform fee',
-    unit: '+ revenue-share per insured agent',
-    description: 'Carrier embeds RuneSignal as the independent evidence plane in their AI-liability policy. Push adoption across their book of business.',
-    buyer: 'Reinsurer / Insurance Carrier',
-    urgency: 'Phase 9 — requires 3+ signed contracts to activate',
+    priceSub: '+ revenue-share per insured agent',
+    buyers: '👤 Reinsurer / Insurance Carrier',
+    trigger: 'Phase 9 — requires 3+ signed contracts to activate',
+    triggerRed: false,
+    desc: 'Carrier embeds RuneSignal as the independent evidence plane in their AI-liability policy. Push adoption across their book of business.',
     features: [
       'White-label Evidence Pack generation for carrier book',
       'Loss-event vs no-loss-event sampling template',
@@ -171,264 +189,339 @@ const addOns = [
       'Custom SLA + dedicated infrastructure',
     ],
     tiers: [],
-    accentColor: '#ef4444',
+    cta: 'Partner with us',
+    ctaHref: 'mailto:sales@runesignal.io',
+    oem: true,
   },
 ];
 
 const comparisonFeatures = [
-  { label: 'Agent actions / month',      t0: '10K',        t1: '2M',         te: 'Unlimited' },
-  { label: 'Audit log retention',        t0: '30 days',    t1: '90 days',    te: 'Custom / 10yr' },
-  { label: 'Cryptographic signing',      t0: '—',          t1: '✓',          te: '✓ + HSM/PQC' },
-  { label: 'HITL Approval API',          t0: '—',          t1: '✓',          te: '✓' },
-  { label: 'Anomaly detection',          t0: '—',          t1: '✓',          te: '✓' },
-  { label: 'NHI lifecycle',              t0: '—',          t1: '✓',          te: '✓' },
-  { label: 'A2A cross-org gateway',      t0: '—',          t1: '✓',          te: '✓' },
-  { label: 'Evidence Packs (add-on)',     t0: '—',          t1: 'Metered T2', te: 'Metered T2' },
-  { label: 'Decision Ledger (add-on)',    t0: '—',          t1: 'Metered T3', te: 'Metered T3' },
-  { label: 'Agent Passport Registry',    t0: '—',          t1: 'Metered T4', te: 'Metered T4' },
-  { label: 'EU-only data residency',     t0: '—',          t1: '—',          te: '✓' },
-  { label: 'Dedicated infrastructure',   t0: '—',          t1: '—',          te: '✓' },
-  { label: 'PQC signatures (ML-DSA-65)', t0: '—',          t1: '—',          te: '✓' },
-  { label: 'Notified body co-signing',   t0: '—',          t1: '—',          te: '✓' },
-  { label: 'SOC 2 Type II',             t0: '—',          t1: '—',          te: '✓' },
-  { label: 'GDPR DPA + SLA',            t0: '—',          t1: '—',          te: '✓' },
-  { label: 'Dedicated CSM',             t0: '—',          t1: '—',          te: '✓' },
-  { label: 'Support',                   t0: 'Community',  t1: 'Priority',   te: 'Dedicated' },
+  { label: 'Agents',                         t0: '1 tenant',      t1: 'Unlimited',       te: 'Unlimited' },
+  { label: 'Agent actions / month',          t0: '10K',           t1: 'Up to 2M',        te: 'Custom' },
+  { label: 'Audit log retention',            t0: '30 days',       t1: '30 days rolling', te: 'Custom' },
+  { label: 'Ed25519-signed provenance',      t0: '—',             t1: '✓',               te: '✓' },
+  { label: 'HITL Approval API',              t0: '—',             t1: '✓',               te: '✓' },
+  { label: 'Anomaly detection',              t0: '—',             t1: '✓',               te: '✓' },
+  { label: 'Agent FinOps guardrails',        t0: '—',             t1: '✓',               te: '✓' },
+  { label: 'Shadow AI discovery',            t0: '—',             t1: '✓',               te: '✓' },
+  { label: 'Blast radius scoring',           t0: '—',             t1: '✓',               te: '✓' },
+  { label: 'SDK access',                     t0: '—',             t1: '✓',               te: '✓' },
+  { label: 'Slack / ServiceNow / Jira',      t0: '—',             t1: '✓',               te: '✓' },
+  { label: 'PQC signatures (ML-DSA-65)',     t0: '—',             t1: '—',               te: '✓' },
+  { label: 'EU-only data residency',         t0: '—',             t1: '—',               te: '✓' },
+  { label: 'BYO-HSM signing',               t0: '—',             t1: '—',               te: '✓' },
+  { label: 'Dedicated infrastructure',       t0: '—',             t1: '—',               te: '✓' },
+  { label: 'SOC 2 Type II readiness',        t0: '—',             t1: '—',               te: '✓' },
+  { label: 'GDPR DPA + SLA guarantee',       t0: '—',             t1: '—',               te: '✓' },
+  { label: 'Notified body template signing', t0: '—',             t1: '—',               te: '✓' },
+  { label: 'Support',                        t0: 'Community',     t1: 'Priority',        te: 'Dedicated CSM' },
 ];
 
 const faqs = [
   {
-    q: 'How does Evidence Pack metered billing work?',
-    a: 'Every time you generate a signed Evidence Pack, a usage event is recorded. You are billed at the end of the month based on volume tier. A regulated enterprise running 5M decisions/year at €0.10/pack = €500K ARR on top of Core — this is the Snowflake/Datadog pricing shape.',
-  },
-  {
-    q: 'Is the EU AI Act deadline forcing this purchase?',
-    a: 'Yes. EU AI Act Art. 12 mandates signed, append-only decision logs with 10-year retention for high-risk AI systems. The compliance deadline is 2 August 2026. Evidence Packs are the RuneSignal implementation of that requirement.',
-  },
-  {
     q: 'Can I upgrade or downgrade at any time?',
-    a: 'Core plans are billed monthly with no long-term commitment. Metered add-ons (T2/T3/T4) scale automatically with usage — you only pay for what you consume. Enterprise Sovereign is annual.',
+    a: 'Yes. The Core plan is billed monthly with no long-term commitment. You can upgrade or downgrade from your account settings and changes take effect at the start of the next billing cycle.',
+  },
+  {
+    q: 'Is there a free trial for Core?',
+    a: 'Yes. Core comes with a 14-day free trial — no credit card required. You get full access to every Core feature from day one.',
   },
   {
     q: "What counts as an 'agent action'?",
-    a: 'Any event routed through the RuneSignal governance runtime — LLM calls, tool invocations, HITL approvals, anomaly checks, A2A handshakes. Each event is signed, logged, and counted against your monthly quota.',
+    a: 'Any governed operation processed by the RuneSignal runtime: HITL decisions, provenance certificates, intent mediations, anomaly checks, and FinOps budget evaluations each count as one action.',
   },
   {
     q: 'Do you offer annual billing?',
-    a: 'Yes. Annual plans come with a 20% discount compared to monthly. Core annual starts at €15,000/yr (vs €18,000/yr monthly). Contact us to activate.',
+    a: 'Yes. Annual Core plans come with a 15% discount compared to monthly billing. Contact us or switch in your billing settings.',
   },
   {
-    q: 'What is the Agent Passport Registry network-effect moat?',
-    a: 'The Registry is to agents what VeriSign was to SSL certificates — a neutral, consortium-backed trust anchor that every counterparty queries. Once an agent has a RuneSignal Passport, any company they interact with can verify it via API. This creates a cross-org flywheel that is not replicable by runtime-only competitors.',
+    q: 'How is Enterprise pricing structured?',
+    a: 'Enterprise Sovereign is scoped per deployment and quoted based on action volume, data residency requirements, and notified-body co-signing needs. Contact sales for a tailored ACV proposal.',
   },
 ];
 
 export default function PricingPage() {
+  const [comparisonOpen, setComparisonOpen] = useState(false);
+  const [openFaqs, setOpenFaqs] = useState<Set<number>>(new Set());
+
+  function toggleFaq(i: number) {
+    setOpenFaqs((prev) => {
+      const next = new Set(prev);
+      next.has(i) ? next.delete(i) : next.add(i);
+      return next;
+    });
+  }
+
   return (
     <>
       <style jsx global>{`
-        * { box-sizing: border-box; }
-        .pricing-hero { text-align: center; padding: 5rem 1.5rem 3rem; }
+        .pricing-hero { text-align: center; padding: 5rem 1.5rem 3.5rem; }
         .pricing-hero h1 { font-size: clamp(2rem, 5vw, 3.25rem); font-weight: 800; letter-spacing: -0.04em; color: #f8fafc; line-height: 1.1; }
-        .pricing-hero .sub { margin-top: 1rem; font-size: 1.125rem; color: #94a3b8; max-width: 560px; margin-left: auto; margin-right: auto; }
-        .pricing-hero .label { display: inline-block; background: rgba(16,185,129,0.12); color: #34d399; border: 1px solid rgba(52,211,153,0.3); border-radius: 20px; padding: 0.3rem 0.9rem; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 1.5rem; }
+        .pricing-hero p { margin-top: 1rem; font-size: 1.125rem; color: #94a3b8; max-width: 480px; margin-left: auto; margin-right: auto; }
+        .pricing-tagline { font-size: 0.8rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #6366f1; margin-bottom: 1rem; }
 
-        .section-wrap { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem; }
-        .section-heading { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #64748b; margin-bottom: 0.625rem; }
-        .section-title { font-size: 1.5rem; font-weight: 700; color: #f8fafc; letter-spacing: -0.02em; margin-bottom: 2rem; }
+        .plans-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 1.5rem; max-width: 1060px; margin: 0 auto; padding: 0 1.5rem 5rem; }
 
-        /* Core plans grid */
-        .core-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 1.5rem; margin-bottom: 5rem; }
         .plan-card { background: #0d0d20; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 2rem; display: flex; flex-direction: column; position: relative; transition: border-color 0.2s, transform 0.2s; }
         .plan-card:hover { border-color: rgba(255,255,255,0.18); transform: translateY(-2px); }
-        .plan-card.hl { border-color: #10b981; box-shadow: 0 0 0 1px #10b981, 0 8px 32px rgba(16,185,129,0.12); }
-        .tier-badge { display: inline-block; font-size: 0.65rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.2rem 0.55rem; border-radius: 20px; margin-bottom: 0.625rem; }
-        .plan-name { font-size: 1.1rem; font-weight: 700; color: #f8fafc; margin-bottom: 0.5rem; }
-        .plan-price { font-size: 2.5rem; font-weight: 800; color: #f8fafc; letter-spacing: -0.04em; line-height: 1; }
-        .plan-price small { font-size: 1rem; font-weight: 500; color: #64748b; letter-spacing: 0; }
-        .plan-desc { margin-top: 0.75rem; font-size: 0.85rem; color: #94a3b8; line-height: 1.55; border-bottom: 1px solid rgba(255,255,255,0.07); padding-bottom: 1.25rem; margin-bottom: 1.25rem; }
-        .plan-features { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.55rem; flex: 1; }
-        .plan-features li { font-size: 0.85rem; color: #cbd5e1; display: flex; align-items: flex-start; gap: 0.5rem; }
-        .plan-features li::before { content: '✓'; font-weight: 700; flex-shrink: 0; margin-top: 0.05rem; }
-        .plan-cta { display: block; text-align: center; margin-top: 2rem; padding: 0.75rem 1.25rem; border-radius: 8px; font-weight: 600; font-size: 0.875rem; text-decoration: none; transition: background 0.15s; }
-        .plan-cta-def { background: rgba(255,255,255,0.06); color: #e2e8f0; border: 1px solid rgba(255,255,255,0.1); }
-        .plan-cta-def:hover { background: rgba(255,255,255,0.1); }
-        .plan-cta-hl { background: #10b981; color: #fff; }
-        .plan-cta-hl:hover { background: #059669; }
-        .plan-cta-ent { background: rgba(124,58,237,0.15); color: #a78bfa; border: 1px solid rgba(124,58,237,0.35); }
-        .plan-cta-ent:hover { background: rgba(124,58,237,0.25); }
+        .plan-card.highlight { border-color: #10b981; box-shadow: 0 0 0 1px #10b981, 0 8px 32px rgba(16,185,129,0.12); }
+        .plan-card.highlight:hover { border-color: #34d399; }
 
-        /* Add-on cards */
-        .addon-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 5rem; }
-        .addon-card { background: #0d0d20; border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 1.75rem; display: flex; flex-direction: column; }
-        .addon-card:hover { border-color: rgba(255,255,255,0.15); }
-        .addon-header { display: flex; align-items: flex-start; gap: 0.75rem; margin-bottom: 0.75rem; }
-        .addon-price { font-size: 1.5rem; font-weight: 800; color: #f8fafc; letter-spacing: -0.03em; }
-        .addon-unit { font-size: 0.8rem; color: #64748b; margin-top: 0.25rem; }
-        .addon-desc { font-size: 0.8rem; color: #94a3b8; line-height: 1.5; margin-bottom: 0.875rem; }
-        .addon-buyer { font-size: 0.7rem; color: #64748b; margin-bottom: 0.375rem; }
-        .addon-urgency { font-size: 0.7rem; font-weight: 600; color: #f59e0b; background: rgba(245,158,11,0.1); border-radius: 4px; padding: 0.2rem 0.5rem; display: inline-block; margin-bottom: 1rem; }
-        .addon-features { list-style: none; padding: 0; margin: 0 0 1rem; display: flex; flex-direction: column; gap: 0.4rem; flex: 1; }
-        .addon-features li { font-size: 0.8rem; color: #cbd5e1; display: flex; gap: 0.4rem; align-items: flex-start; }
-        .addon-features li::before { content: '✓'; font-weight: 700; flex-shrink: 0; }
-        .tier-table { width: 100%; border-collapse: collapse; margin-top: auto; }
-        .tier-table td { font-size: 0.72rem; padding: 0.3rem 0; color: #94a3b8; border-top: 1px solid rgba(255,255,255,0.05); }
-        .tier-table td:last-child { text-align: right; color: #f8fafc; font-weight: 600; font-variant-numeric: tabular-nums; }
-        .addon-cta { display: block; text-align: center; margin-top: 1.25rem; padding: 0.6rem 1rem; border-radius: 7px; font-weight: 600; font-size: 0.8rem; text-decoration: none; background: rgba(255,255,255,0.06); color: #e2e8f0; border: 1px solid rgba(255,255,255,0.1); transition: background 0.15s; }
-        .addon-cta:hover { background: rgba(255,255,255,0.1); }
+        .badge { display: inline-block; background: #10b981; color: #fff; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.25rem 0.65rem; border-radius: 20px; margin-bottom: 1rem; }
+        .tier-label { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #334155; margin-bottom: 0.25rem; }
+
+        .plan-name { font-size: 1.15rem; font-weight: 700; color: #f1f5f9; margin-bottom: 0.5rem; }
+        .plan-price { font-size: 2.75rem; font-weight: 800; color: #f8fafc; letter-spacing: -0.04em; line-height: 1; }
+        .plan-price span { font-size: 1rem; font-weight: 500; color: #64748b; letter-spacing: 0; }
+        .plan-price-note { font-size: 0.78rem; color: #64748b; margin-top: 0.35rem; line-height: 1.4; }
+        .plan-contact { font-size: 1.25rem; font-weight: 700; color: #94a3b8; letter-spacing: -0.01em; margin: 0.25rem 0; }
+        .plan-desc { margin-top: 0.75rem; font-size: 0.875rem; color: #94a3b8; line-height: 1.55; min-height: 2.8rem; }
+        .plan-divider { border: none; border-top: 1px solid rgba(255,255,255,0.07); margin: 1.5rem 0; }
+        .plan-features { list-style: none; display: flex; flex-direction: column; gap: 0.625rem; flex: 1; }
+        .plan-features li { font-size: 0.85rem; color: #cbd5e1; display: flex; align-items: flex-start; gap: 0.5rem; }
+        .plan-features li::before { content: '✓'; color: #10b981; font-weight: 700; flex-shrink: 0; margin-top: 0.05rem; }
+
+        .plan-cta { display: block; text-align: center; margin-top: 2rem; padding: 0.75rem 1.25rem; border-radius: 8px; font-weight: 600; font-size: 0.9rem; text-decoration: none; transition: background 0.15s, color 0.15s; cursor: pointer; }
+        .plan-cta-default { background: rgba(255,255,255,0.06); color: #e2e8f0; border: 1px solid rgba(255,255,255,0.1); }
+        .plan-cta-default:hover { background: rgba(255,255,255,0.1); }
+        .plan-cta-highlight { background: #10b981; color: #fff; }
+        .plan-cta-highlight:hover { background: #059669; }
+
+        .section { max-width: 1060px; margin: 0 auto; padding: 0 1.5rem 5rem; }
+
+        /* Metered add-ons section */
+        .addons-header { max-width: 1060px; margin: 0 auto; padding: 0 1.5rem 2rem; }
+        .addons-eyebrow { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #6366f1; margin-bottom: 0.75rem; }
+        .addons-headline { font-size: clamp(1.5rem, 3.5vw, 2.25rem); font-weight: 800; color: #f8fafc; letter-spacing: -0.03em; }
+        .addons-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 1.25rem; max-width: 1060px; margin: 0 auto; padding: 0 1.5rem 2rem; }
+        .addon-card { background: #0d0d20; border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 1.75rem; display: flex; flex-direction: column; transition: border-color 0.2s, transform 0.2s; }
+        .addon-card:hover { border-color: rgba(255,255,255,0.16); transform: translateY(-2px); }
+        .addon-card.oem { border-color: rgba(239,68,68,0.35); }
+        .addon-tier { display: inline-flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; }
+        .addon-tier-badge { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; background: rgba(99,102,241,0.15); color: #818cf8; border: 1px solid rgba(99,102,241,0.3); border-radius: 20px; padding: 0.2rem 0.55rem; }
+        .addon-tier-badge.oem { background: rgba(239,68,68,0.12); color: #f87171; border-color: rgba(239,68,68,0.3); }
+        .addon-name { font-size: 1rem; font-weight: 700; color: #f1f5f9; }
+        .addon-price-sub { font-size: 0.78rem; color: #475569; margin-bottom: 0.25rem; }
+        .addon-buyers { font-size: 0.75rem; color: #64748b; margin: 0.75rem 0 0.25rem; display: flex; align-items: center; gap: 0.4rem; }
+        .addon-trigger { font-size: 0.72rem; font-weight: 600; background: rgba(245,158,11,0.12); color: #fbbf24; border: 1px solid rgba(245,158,11,0.25); border-radius: 4px; padding: 0.2rem 0.5rem; margin: 0.5rem 0 0.75rem; display: inline-block; }
+        .addon-trigger.consortium { background: rgba(239,68,68,0.1); color: #f87171; border-color: rgba(239,68,68,0.25); }
+        .addon-desc { font-size: 0.85rem; color: #94a3b8; line-height: 1.55; margin-bottom: 1rem; }
+        .addon-features { list-style: none; padding: 0; margin: 0 0 1.25rem; display: flex; flex-direction: column; gap: 0.5rem; flex: 1; }
+        .addon-features li { font-size: 0.82rem; color: #cbd5e1; display: flex; align-items: flex-start; gap: 0.45rem; }
+        .addon-features li::before { content: '✓'; color: #10b981; font-weight: 700; flex-shrink: 0; }
+        .addon-tiers-table { border-top: 1px solid rgba(255,255,255,0.07); padding-top: 1rem; margin-top: auto; margin-bottom: 1.25rem; display: flex; flex-direction: column; gap: 0.3rem; }
+        .addon-tier-row { display: flex; justify-content: space-between; font-size: 0.78rem; }
+        .addon-tier-row .vol { color: #64748b; }
+        .addon-tier-row .rate { color: #94a3b8; font-weight: 600; }
+        .addon-cta { display: block; text-align: center; padding: 0.65rem 1rem; border-radius: 8px; font-weight: 600; font-size: 0.875rem; text-decoration: none; background: rgba(255,255,255,0.05); color: #e2e8f0; border: 1px solid rgba(255,255,255,0.1); transition: background 0.15s; cursor: pointer; }
+        .addon-cta:hover { background: rgba(255,255,255,0.09); }
+        .addon-cta.oem { color: #f87171; border-color: rgba(239,68,68,0.3); }
+        .addon-cta.oem:hover { background: rgba(239,68,68,0.08); }
+
+        /* Collapsible section header */
+        .collapsible-header { display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; padding: 1.25rem 1.5rem; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; background: #0d0d20; margin-bottom: 0; transition: border-color 0.2s, background 0.2s; }
+        .collapsible-header:hover { border-color: rgba(255,255,255,0.16); background: rgba(255,255,255,0.02); }
+        .collapsible-header.open { border-radius: 12px 12px 0 0; border-bottom-color: transparent; }
+        .collapsible-title { font-size: 1.2rem; font-weight: 700; color: #f8fafc; letter-spacing: -0.02em; }
+        .collapsible-chevron { color: #64748b; transition: transform 0.25s; font-size: 1.1rem; }
+        .collapsible-chevron.open { transform: rotate(180deg); }
+        .collapsible-body { border: 1px solid rgba(255,255,255,0.08); border-top: none; border-radius: 0 0 12px 12px; overflow: hidden; }
 
         /* Comparison table */
-        .comparison-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); margin-bottom: 5rem; }
-        .ctable { width: 100%; border-collapse: collapse; }
-        .ctable thead th { background: #0d0d20; padding: 1rem 1.25rem; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b; text-align: left; }
-        .ctable thead th:not(:first-child) { text-align: center; }
-        .ctable thead th.hl { color: #10b981; }
-        .ctable tbody tr { border-top: 1px solid rgba(255,255,255,0.05); transition: background 0.12s; }
-        .ctable tbody tr:hover { background: rgba(255,255,255,0.02); }
-        .ctable tbody td { padding: 0.75rem 1.25rem; font-size: 0.85rem; color: #cbd5e1; }
-        .ctable tbody td:not(:first-child) { text-align: center; color: #94a3b8; }
-        .ctable .ck { color: #10b981; font-weight: 700; }
-        .ctable .ds { color: #334155; }
-        .ctable .mt { color: #f59e0b; font-size: 0.78rem; }
+        .comparison-table { width: 100%; border-collapse: collapse; }
+        .comparison-table thead th { background: #0d0d20; padding: 1rem 1.25rem; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b; text-align: left; }
+        .comparison-table thead th:not(:first-child) { text-align: center; }
+        .comparison-table thead th.col-t1 { color: #10b981; }
+        .comparison-table tbody tr { border-top: 1px solid rgba(255,255,255,0.05); transition: background 0.12s; }
+        .comparison-table tbody tr:hover { background: rgba(255,255,255,0.02); }
+        .comparison-table tbody td { padding: 0.875rem 1.25rem; font-size: 0.875rem; color: #cbd5e1; }
+        .comparison-table tbody td:not(:first-child) { text-align: center; color: #94a3b8; }
+        .comparison-table tbody td.check { color: #10b981; font-weight: 700; }
+        .comparison-table tbody td.dash { color: #334155; }
 
-        /* FAQ */
-        .faq-list { display: flex; flex-direction: column; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; overflow: hidden; margin-bottom: 5rem; }
-        .faq-item { padding: 1.5rem 1.75rem; border-top: 1px solid rgba(255,255,255,0.06); }
+        /* FAQ accordion */
+        .faq-list { display: flex; flex-direction: column; gap: 0; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; overflow: hidden; }
+        .faq-item { border-top: 1px solid rgba(255,255,255,0.06); }
         .faq-item:first-child { border-top: none; }
-        .faq-q { font-size: 0.975rem; font-weight: 600; color: #f1f5f9; margin-bottom: 0.5rem; }
-        .faq-a { font-size: 0.875rem; color: #94a3b8; line-height: 1.65; }
+        .faq-toggle { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 1.75rem; cursor: pointer; background: none; border: none; text-align: left; gap: 1rem; transition: background 0.15s; }
+        .faq-toggle:hover { background: rgba(255,255,255,0.02); }
+        .faq-q { font-size: 0.975rem; font-weight: 600; color: #f1f5f9; line-height: 1.4; }
+        .faq-chevron { color: #64748b; flex-shrink: 0; transition: transform 0.25s; font-size: 1rem; }
+        .faq-chevron.open { transform: rotate(180deg); }
+        .faq-a { font-size: 0.9rem; color: #94a3b8; line-height: 1.65; padding: 0 1.75rem 1.25rem; }
 
         @media (max-width: 640px) {
-          .pricing-hero { padding: 3rem 1rem 2rem; }
+          .pricing-hero { padding: 3rem 1rem 2.5rem; }
+          .plans-grid { padding-bottom: 3rem; }
         }
       `}</style>
 
       {/* Hero */}
       <section className="pricing-hero">
-        <div className="label">Agent Evidence Plane — Pricing</div>
-        <h1>Three revenue lines.<br />One unified runtime.</h1>
-        <p className="sub">Core platform + metered Evidence Packs, Decision Ledger, and Agent Registry. Three buyers, three budgets, one cryptographic guarantee.</p>
+        <p className="pricing-tagline">Core Platform — Runtime</p>
+        <h1>Start free. Run in production.<br />Go sovereign.</h1>
+        <p>One platform. Three tiers. Every action governed.</p>
       </section>
 
-      {/* Core plans */}
-      <div className="section-wrap" style={{ marginBottom: '1rem' }}>
-        <div className="section-heading">Core platform — Runtime</div>
-        <div className="section-title" style={{ marginBottom: '1.5rem' }}>Start free. Run in production. Go sovereign.</div>
-        <div className="core-grid">
-          {corePlans.map((plan) => (
-            <div key={plan.tier} className={`plan-card${plan.highlight ? ' hl' : ''}`}>
-              <span className="tier-badge" style={{ background: plan.accentColor + '22', color: plan.accentColor, border: `1px solid ${plan.accentColor}44` }}>{plan.tier}</span>
-              <div className="plan-name">{plan.name}</div>
-              <div className="plan-price">
-                {plan.price}
-                {plan.period && <small>{plan.period}</small>}
-              </div>
-              <div className="plan-desc">{plan.description}</div>
-              <ul className="plan-features" style={{ '--check-color': plan.accentColor } as React.CSSProperties}>
-                {plan.features.map((f) => (
-                  <li key={f} style={{ '--check-color': plan.accentColor } as React.CSSProperties}>
-                    <span style={{ color: plan.accentColor }}>✓</span>
-                    <span>{f}</span>
-                  </li>
-                ))}
-              </ul>
-              <a
-                href={plan.ctaHref}
-                className={`plan-cta ${plan.highlight ? 'plan-cta-hl' : plan.tier === 'TE' ? 'plan-cta-ent' : 'plan-cta-def'}`}
-                style={plan.highlight ? { background: plan.accentColor } : {}}
-              >
-                {plan.cta}
-              </a>
-            </div>
-          ))}
-        </div>
-      </div>
+      {/* Plan cards */}
+      <div className="plans-grid">
+        {plans.map((plan) => (
+          <div key={plan.tier} className={`plan-card${plan.highlight ? ' highlight' : ''}`}>
+            {plan.badge && <span className="badge">{plan.badge}</span>}
+            <div className="tier-label">{plan.tier}</div>
+            <div className="plan-name">{plan.name}</div>
 
-      {/* Add-on products */}
-      <div className="section-wrap" style={{ marginBottom: '1rem' }}>
-        <div className="section-heading">Metered add-ons — Evidence Plane</div>
-        <div className="section-title" style={{ marginBottom: '1.5rem' }}>Three products. Three buyers. Three budgets.</div>
-        <div className="addon-grid">
-          {addOns.map((addon) => (
-            <div key={addon.tier} className="addon-card" style={{ borderColor: addon.accentColor + '33' }}>
-              <div className="addon-header">
-                <span className="tier-badge" style={{ background: addon.accentColor + '1a', color: addon.accentColor, border: `1px solid ${addon.accentColor}33`, fontSize: '0.62rem', fontWeight: 800 }}>{addon.tier}</span>
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#f8fafc', lineHeight: 1.2 }}>{addon.name}</div>
+            {plan.showPrice ? (
+              <div style={{ marginTop: '0.5rem', marginBottom: '0.25rem' }}>
+                <div className="plan-price">
+                  {plan.price}
+                  {plan.period && <span>{plan.period}</span>}
+                </div>
+                {plan.scalingNote && (
+                  <div className="plan-price-note">{plan.scalingNote}</div>
+                )}
+              </div>
+            ) : (
+              <div style={{ marginTop: '0.5rem', marginBottom: '0.25rem' }}>
+                <div className="plan-contact">
+                  {plan.tier === 'T0' ? 'Free' : 'Contact sales →'}
                 </div>
               </div>
-              <div className="addon-price" style={{ color: addon.accentColor }}>{addon.price}</div>
-              <div className="addon-unit">{addon.unit}</div>
-              <div className="addon-desc" style={{ marginTop: '0.625rem' }}>{addon.description}</div>
-              <div className="addon-buyer">👤 {addon.buyer}</div>
-              <div className="addon-urgency">{addon.urgency}</div>
-              <ul className="addon-features">
-                {addon.features.map((f) => (
-                  <li key={f}>
-                    <span style={{ color: addon.accentColor }}>✓</span>
-                    <span>{f}</span>
-                  </li>
-                ))}
-              </ul>
-              {addon.tiers.length > 0 && (
-                <table className="tier-table">
-                  <tbody>
-                    {addon.tiers.map((t) => (
-                      <tr key={t.qty}>
-                        <td>{t.qty}</td>
-                        <td>{t.price}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-              <a href="mailto:sales@runesignal.io" className="addon-cta" style={{ marginTop: '1.25rem', borderColor: addon.accentColor + '44', color: addon.accentColor }}>
-                {addon.tier === 'TI' ? 'Partner with us' : 'Talk to sales'}
-              </a>
-            </div>
-          ))}
-        </div>
-      </div>
+            )}
 
-      {/* Comparison table */}
-      <div className="section-wrap">
-        <h2 className="section-title">Full feature comparison</h2>
-        <div className="comparison-wrap">
-          <table className="ctable">
-            <thead>
-              <tr>
-                <th>Feature</th>
-                <th>Developer (T0)</th>
-                <th className="hl">Core (T1)</th>
-                <th>Enterprise Sovereign (TE)</th>
-              </tr>
-            </thead>
-            <tbody>
-              {comparisonFeatures.map((row) => (
-                <tr key={row.label}>
-                  <td>{row.label}</td>
-                  <td className={row.t0 === '✓' ? 'ck' : row.t0 === '—' ? 'ds' : row.t0.startsWith('Metered') ? 'mt' : ''}>{row.t0}</td>
-                  <td className={row.t1 === '✓' ? 'ck' : row.t1 === '—' ? 'ds' : row.t1.startsWith('Metered') ? 'mt' : ''}>{row.t1}</td>
-                  <td className={row.te === '✓' ? 'ck' : row.te === '—' ? 'ds' : row.te.startsWith('Metered') ? 'mt' : ''}>{row.te}</td>
-                </tr>
+            <div className="plan-desc">{plan.description}</div>
+            <hr className="plan-divider" />
+            <ul className="plan-features">
+              {plan.features.map((f) => (
+                <li key={f}>{f}</li>
               ))}
-            </tbody>
-          </table>
-        </div>
+            </ul>
+            <a
+              href={plan.ctaHref}
+              className={`plan-cta ${plan.highlight ? 'plan-cta-highlight' : 'plan-cta-default'}`}
+            >
+              {plan.cta}
+            </a>
+          </div>
+        ))}
       </div>
 
-      {/* FAQ */}
-      <div className="section-wrap">
-        <h2 className="section-title">Frequently asked questions</h2>
+      {/* ── Metered Add-Ons — Evidence Plane ── */}
+      <div className="addons-header">
+        <p className="addons-eyebrow">Metered Add-Ons — Evidence Plane</p>
+        <h2 className="addons-headline">Three products. Three buyers. Three budgets.</h2>
+      </div>
+
+      <div className="addons-grid" style={{ marginBottom: '3rem' }}>
+        {addons.map((addon) => (
+          <div key={addon.tier} className={`addon-card${addon.oem ? ' oem' : ''}`}>
+            <div className="addon-tier">
+              <span className={`addon-tier-badge${addon.oem ? ' oem' : ''}`}>{addon.tier}</span>
+              <span className="addon-name">{addon.name}</span>
+            </div>
+
+            {/* Platform fee label for T-I only */}
+            {addon.oem && (
+              <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#64748b', fontStyle: 'italic', marginBottom: '0.2rem' }}>
+                Platform fee
+              </div>
+            )}
+
+            <div className="addon-price-sub">{addon.priceSub}</div>
+            <div className="addon-buyers">{addon.buyers}</div>
+            <span className={`addon-trigger${addon.triggerRed ? ' consortium' : ''}`}>{addon.trigger}</span>
+            <div className="addon-desc">{addon.desc}</div>
+            <ul className="addon-features">
+              {addon.features.map((f) => (
+                <li key={f}>{f}</li>
+              ))}
+            </ul>
+
+            {/* Volume tier table with real prices */}
+            {addon.tiers.length > 0 && (
+              <div className="addon-tiers-table">
+                {addon.tiers.map(([vol, rate]) => (
+                  <div key={vol} className="addon-tier-row">
+                    <span className="vol">{vol}</span>
+                    <span className="rate">{rate}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {addon.tiers.length === 0 && <div style={{ flex: 1 }} />}
+
+            <a href={addon.ctaHref} className={`addon-cta${addon.oem ? ' oem' : ''}`}>
+              {addon.cta}
+            </a>
+          </div>
+        ))}
+      </div>
+
+      {/* ── Full feature comparison — collapsible ── */}
+      <section className="section">
+        <div
+          className={`collapsible-header${comparisonOpen ? ' open' : ''}`}
+          onClick={() => setComparisonOpen((v) => !v)}
+          role="button"
+          aria-expanded={comparisonOpen}
+        >
+          <span className="collapsible-title">Full feature comparison</span>
+          <span className={`collapsible-chevron${comparisonOpen ? ' open' : ''}`}>▼</span>
+        </div>
+        {comparisonOpen && (
+          <div className="collapsible-body">
+            <table className="comparison-table">
+              <thead>
+                <tr>
+                  <th>Feature</th>
+                  <th>T0 · Developer</th>
+                  <th className="col-t1">T1 · Core</th>
+                  <th>TE · Enterprise</th>
+                </tr>
+              </thead>
+              <tbody>
+                {comparisonFeatures.map((row) => (
+                  <tr key={row.label}>
+                    <td>{row.label}</td>
+                    <td className={row.t0 === '✓' ? 'check' : row.t0 === '—' ? 'dash' : ''}>{row.t0}</td>
+                    <td className={row.t1 === '✓' ? 'check' : row.t1 === '—' ? 'dash' : ''}>{row.t1}</td>
+                    <td className={row.te === '✓' ? 'check' : row.te === '—' ? 'dash' : ''}>{row.te}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      {/* ── FAQ — collapsible accordion ── */}
+      <section className="section">
         <div className="faq-list">
-          {faqs.map((faq) => (
+          {/* Section header row */}
+          <div style={{ padding: '1.25rem 1.75rem', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+            <div style={{ fontSize: '1.2rem', fontWeight: 700, color: '#f8fafc', letterSpacing: '-0.02em' }}>
+              Frequently asked questions
+            </div>
+          </div>
+
+          {faqs.map((faq, i) => (
             <div key={faq.q} className="faq-item">
-              <div className="faq-q">{faq.q}</div>
-              <div className="faq-a">{faq.a}</div>
+              <button
+                className="faq-toggle"
+                onClick={() => toggleFaq(i)}
+                aria-expanded={openFaqs.has(i)}
+              >
+                <span className="faq-q">{faq.q}</span>
+                <span className={`faq-chevron${openFaqs.has(i) ? ' open' : ''}`}>▼</span>
+              </button>
+              {openFaqs.has(i) && (
+                <div className="faq-a">{faq.a}</div>
+              )}
             </div>
           ))}
         </div>
-      </div>
+      </section>
     </>
   );
 }
