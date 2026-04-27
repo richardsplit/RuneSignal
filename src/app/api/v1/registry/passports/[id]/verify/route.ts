@@ -38,7 +38,7 @@ export async function POST(
     metadata: { verified_fields: ['status', 'valid_to', 'signature'] },
   });
 
-  recordUsage({ tenantId, event: 'registry_verification', resourceId: id, resourceType: 'passport', metadata: { result } });
+  recordUsage({ tenantId, event: 'passport_verification', resourceId: id, resourceType: 'passport', metadata: { result } });
 
   return NextResponse.json({
     verification: {

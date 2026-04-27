@@ -3,8 +3,8 @@ import crypto from 'crypto';
 
 export type MeterEvent =
   | 'evidence_pack_signed'
-  | 'ledger_replay'
-  | 'registry_verification'
+  | 'decision_ledger_replay'
+  | 'passport_verification'
   | 'passport_issued';
 
 interface RecordUsageOptions {
@@ -121,10 +121,10 @@ export async function getUsageSummary(tenantId: string, since?: Date): Promise<R
     .gte('created_at', from.toISOString());
 
   const summary: Record<string, number> = {
-    evidence_pack_signed:  0,
-    ledger_replay:         0,
-    registry_verification: 0,
-    passport_issued:       0,
+    evidence_pack_signed:   0,
+    decision_ledger_replay: 0,
+    passport_verification:  0,
+    passport_issued:        0,
   };
 
   for (const row of data ?? []) {

@@ -62,7 +62,7 @@ export async function POST(
     return NextResponse.json({ error: 'Decision not found' }, { status: 404 });
   }
 
-  recordUsage({ tenantId, event: 'ledger_replay', resourceId: decisionId, resourceType: 'decision' });
+  recordUsage({ tenantId, event: 'decision_ledger_replay', resourceId: decisionId, resourceType: 'decision' });
 
   const replay = {
     decision_id:   decisionId,
