@@ -37,12 +37,12 @@ interface Template {
 
 /* ─── Constants ─────────────────────────────────────────────────────── */
 const REGULATION_META: Record<string, { label: string; color: string; badge: string }> = {
-  eu_ai_act:   { label: 'EU AI Act',    color: '#3b82f6', badge: 'Annex IV' },
-  iso_42001:   { label: 'ISO 42001',    color: '#8b5cf6', badge: 'AI-MS' },
-  nist_ai_rmf: { label: 'NIST AI RMF', color: '#06b6d4', badge: 'RMF 1.0' },
-  soc2:        { label: 'SOC 2',        color: '#10b981', badge: 'Type II' },
-  hipaa:       { label: 'HIPAA',        color: '#f59e0b', badge: 'PHI' },
-  insurance:   { label: 'Insurance',    color: '#ef4444', badge: 'Carrier' },
+  eu_ai_act:   { label: 'EU AI Act',    color: 'var(--accent)',   badge: 'Annex IV' },
+  iso_42001:   { label: 'ISO 42001',    color: 'var(--info)',     badge: 'AI-MS' },
+  nist_ai_rmf: { label: 'NIST AI RMF', color: 'var(--info)',     badge: 'RMF 1.0' },
+  soc2:        { label: 'SOC 2',        color: 'var(--success)',  badge: 'Type II' },
+  hipaa:       { label: 'HIPAA',        color: 'var(--warning)',  badge: 'PHI' },
+  insurance:   { label: 'Insurance',    color: 'var(--danger)',   badge: 'Carrier' },
 };
 
 const TEMPLATES: Template[] = [
@@ -54,9 +54,9 @@ const TEMPLATES: Template[] = [
 
 /* ─── Helpers ───────────────────────────────────────────────────────── */
 function scoreColor(score: number): string {
-  if (score >= 80) return '#34d399';
-  if (score >= 60) return '#f59e0b';
-  return '#ef4444';
+  if (score >= 80) return 'var(--success)';
+  if (score >= 60) return 'var(--warning)';
+  return 'var(--danger)';
 }
 
 function relativeTime(iso: string): string {
@@ -169,8 +169,8 @@ export default function EvidenceStudioPage() {
         {[
           { label: 'Total Packs',     value: packs.length },
           { label: 'Ready',           value: packs.filter(p => p.status === 'ready').length, color: 'var(--success)' },
-          { label: 'Regulator Packs', value: packs.filter(p => p.pack_type === 'regulator').length, color: '#3b82f6' },
-          { label: 'Insurance Packs', value: packs.filter(p => p.pack_type === 'insurance').length, color: '#ef4444' },
+          { label: 'Regulator Packs', value: packs.filter(p => p.pack_type === 'regulator').length, color: 'var(--accent)' },
+          { label: 'Insurance Packs', value: packs.filter(p => p.pack_type === 'insurance').length, color: 'var(--danger)' },
           { label: 'Avg Coverage',    value: packs.length > 0 ? `${Math.round(packs.reduce((s, p) => s + (p.coverage_score ?? 0), 0) / packs.length)}%` : '—', color: packs.length > 0 ? scoreColor(packs.reduce((s, p) => s + (p.coverage_score ?? 0), 0) / packs.length) : undefined },
         ].map((k, i) => (
           <div key={i} className="kpi-card">
@@ -180,13 +180,13 @@ export default function EvidenceStudioPage() {
         ))}
       </div>
 
-      {error && <div style={{ padding: '0.75rem 1rem', background: '#ef444415', border: '1px solid #ef444433', borderRadius: 8, color: '#ef4444', marginBottom: '1rem', fontSize: '0.875rem' }}>{error}</div>}
+      {error && <div className="callout callout-danger" style={{ marginBottom: '1rem' }}>{error}</div>}
 
       {/* Filter bar */}
       <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
         {['all', ...Object.keys(REGULATION_META)].map(reg => (
           <button key={reg} onClick={() => setFilterReg(reg)}
-            style={{ padding: '0.3125rem 0.75rem', borderRadius: 999, fontSize: '0.75rem', fontWeight: 500, cursor: 'pointer', border: `1px solid ${filterReg === reg ? 'var(--accent)' : 'var(--border)'}`, background: filterReg === reg ? 'var(--accent)' : 'transparent', color: filterReg === reg ? 'var(--text-inverse)' : 'var(--text-secondary)' }}>
+            style={{ padding: '0.3125rem 0.75rem', borderRadius: 'var(--radius-pill)', fontSize: '0.75rem', fontWeight: 500, cursor: 'pointer', border: `1px solid ${filterReg === reg ? 'var(--accent)' : 'var(--border-default)'}`, background: filterReg === reg ? 'var(--accent)' : 'transparent', color: filterReg === reg ? 'var(--text-inverse)' : 'var(--text-secondary)' }}>
             {reg === 'all' ? 'All' : (REGULATION_META[reg]?.label ?? reg)}
           </button>
         ))}
@@ -195,19 +195,18 @@ export default function EvidenceStudioPage() {
       {/* Pack list */}
       {loading ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-          {[1, 2, 3].map(i => <div key={i} className="skeleton-pulse" style={{ height: 88, borderRadius: 8 }} />)}
+          {[1, 2, 3].map(i => <div key={i} className="skeleton-pulse" style={{ height: 88, borderRadius: 'var(--radius-md)' }} />)}
         </div>
       ) : filtered.length === 0 ? (
-        <div style={{ padding: '3rem', textAlign: 'center', background: 'var(--bg-surface)', border: '1px dashed var(--border)', borderRadius: 8 }}>
-          <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>🔏</div>
-          <div style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.375rem' }}>No evidence packs yet</div>
-          <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '1.25rem' }}>Generate your first signed Evidence Pack from the live audit trail.</div>
+        <div className="empty-state">
+          <p className="empty-state-title">No evidence packs yet</p>
+          <p className="empty-state-body">Generate your first signed evidence pack from the live audit trail.</p>
           <button className="btn btn-primary" onClick={() => setShowGenerate(true)}>Generate First Pack</button>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           {filtered.map(pack => {
-            const meta = REGULATION_META[pack.regulation] ?? { label: pack.regulation, color: 'var(--text-muted)', badge: '' };
+            const meta = REGULATION_META[pack.regulation] ?? { label: pack.regulation, color: 'var(--text-tertiary)', badge: '' };
             return (
               <div key={pack.id} className="surface" style={{ padding: '1.25rem', display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
 
@@ -220,15 +219,15 @@ export default function EvidenceStudioPage() {
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', marginBottom: '0.25rem', flexWrap: 'wrap' }}>
                     <span style={{ fontWeight: 600, fontSize: '0.9375rem', color: 'var(--text-primary)' }}>{pack.pack_name}</span>
-                    <span style={{ fontSize: '0.6875rem', fontWeight: 700, padding: '0.125rem 0.5rem', borderRadius: 999, background: `${meta.color}18`, color: meta.color, border: `1px solid ${meta.color}33` }}>
+                    <span className="chip" style={{ color: meta.color, borderColor: meta.color, background: 'transparent' }}>
                       {meta.label}
                     </span>
                     {pack.pack_type === 'insurance' && (
-                      <span style={{ fontSize: '0.6875rem', padding: '0.125rem 0.5rem', borderRadius: 999, background: '#ef444415', color: '#ef4444', border: '1px solid #ef444433' }}>Insurance</span>
+                      <span className="chip chip-danger">Insurance</span>
                     )}
-                    <span style={{ fontSize: '0.6875rem', padding: '0.125rem 0.5rem', borderRadius: 999, background: 'var(--success-bg, #34d39915)', color: 'var(--success)', border: '1px solid #34d39933' }}>✓ Signed</span>
+                    <span className="chip chip-success">Signed</span>
                   </div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
                     {pack.clauses_covered}/{pack.clauses_total} clauses · Hash: <span className="mono" style={{ fontSize: '0.6875rem' }}>{pack.manifest_hash?.slice(0, 16)}…</span> · {relativeTime(pack.created_at)}
                   </div>
                 </div>
@@ -251,45 +250,50 @@ export default function EvidenceStudioPage() {
 
       {/* Generate modal */}
       {showGenerate && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }} onClick={() => setShowGenerate(false)}>
-          <div className="surface" style={{ width: '100%', maxWidth: 520, padding: '1.75rem', borderRadius: 12 }} onClick={e => e.stopPropagation()}>
-            <h2 style={{ fontSize: '1.125rem', fontWeight: 700, marginBottom: '1.25rem' }}>Generate Evidence Pack</h2>
+        <div className="modal-overlay" onClick={() => setShowGenerate(false)}>
+          <div className="modal-content" style={{ maxWidth: 520 }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <span className="modal-title">Generate Evidence Pack</span>
+              <button className="modal-close" onClick={() => setShowGenerate(false)} aria-label="Close">✕</button>
+            </div>
+            <div className="modal-body">
 
             <div style={{ marginBottom: '1rem' }}>
-              <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, display: 'block', marginBottom: '0.375rem' }}>TEMPLATE</label>
+              <label style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', fontWeight: 600, display: 'block', marginBottom: '0.375rem' }}>TEMPLATE</label>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 {TEMPLATES.map(t => (
                   <div key={t.id} onClick={() => setGenTemplate(t)}
-                    style={{ padding: '0.75rem 1rem', borderRadius: 8, cursor: 'pointer', border: `1px solid ${genTemplate.id === t.id ? 'var(--accent)' : 'var(--border)'}`, background: genTemplate.id === t.id ? 'var(--accent-dim, #3b82f615)' : 'var(--bg-surface-2)' }}>
+                    style={{ padding: '0.75rem 1rem', borderRadius: 'var(--radius-md)', cursor: 'pointer', border: `1px solid ${genTemplate.id === t.id ? 'var(--accent)' : 'var(--border-default)'}`, background: genTemplate.id === t.id ? 'var(--accent-soft)' : 'var(--surface-2)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <span style={{ fontWeight: 600, fontSize: '0.875rem', color: 'var(--text-primary)' }}>{t.name}</span>
-                      {t.notified_body && <span style={{ fontSize: '0.6875rem', color: 'var(--text-muted)' }}>Pre-signed: {t.notified_body}</span>}
+                      {t.notified_body && <span style={{ fontSize: '0.6875rem', color: 'var(--text-tertiary)' }}>Pre-signed: {t.notified_body}</span>}
                     </div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>{t.description}</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '0.25rem' }}>{t.description}</div>
                   </div>
                 ))}
               </div>
             </div>
 
             <div style={{ marginBottom: '1.25rem' }}>
-              <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, display: 'block', marginBottom: '0.375rem' }}>DATE RANGE</label>
+              <label style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', fontWeight: 600, display: 'block', marginBottom: '0.375rem' }}>DATE RANGE</label>
               <div style={{ display: 'flex', gap: '0.5rem' }}>
                 {[30, 60, 90].map(d => (
                   <button key={d} onClick={() => setGenDays(d)}
-                    style={{ flex: 1, padding: '0.5rem', borderRadius: 6, cursor: 'pointer', fontSize: '0.8125rem', border: `1px solid ${genDays === d ? 'var(--accent)' : 'var(--border)'}`, background: genDays === d ? 'var(--accent)' : 'transparent', color: genDays === d ? 'var(--text-inverse)' : 'var(--text-secondary)', fontWeight: genDays === d ? 600 : 400 }}>
+                    style={{ flex: 1, padding: '0.5rem', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: '0.8125rem', border: `1px solid ${genDays === d ? 'var(--accent)' : 'var(--border-default)'}`, background: genDays === d ? 'var(--accent)' : 'transparent', color: genDays === d ? 'var(--text-inverse)' : 'var(--text-secondary)', fontWeight: genDays === d ? 600 : 400 }}>
                     Last {d}d
                   </button>
                 ))}
               </div>
             </div>
 
-            {genError && <div style={{ padding: '0.625rem 0.875rem', background: '#ef444415', border: '1px solid #ef444433', borderRadius: 6, color: '#ef4444', fontSize: '0.8125rem', marginBottom: '1rem' }}>{genError}</div>}
+            {genError && <div className="callout callout-danger" style={{ marginBottom: '1rem' }}>{genError}</div>}
 
-            <div style={{ display: 'flex', gap: '0.625rem', justifyContent: 'flex-end' }}>
+            <div style={{ display: 'flex', gap: '0.625rem', justifyContent: 'flex-end', paddingTop: 'var(--space-4)' }}>
               <button className="btn btn-outline" onClick={() => setShowGenerate(false)} disabled={generating}>Cancel</button>
               <button className="btn btn-primary" onClick={handleGenerate} disabled={generating}>
                 {generating ? 'Generating…' : 'Generate & Sign'}
               </button>
+            </div>
             </div>
           </div>
         </div>
@@ -297,3 +301,4 @@ export default function EvidenceStudioPage() {
     </div>
   );
 }
+

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState } from 'react';
 import Link from 'next/link';
@@ -21,9 +21,9 @@ export function SidebarFooter({ collapsed, toggle, userRole }: SidebarFooterProp
         onMouseEnter={() => setAvatarHovered(true)}
         onMouseLeave={() => setAvatarHovered(false)}
         title={collapsed ? 'Account' : undefined}
-        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: collapsed ? '0.4375rem' : '0.4375rem 0.5rem', borderRadius: 'var(--radius-md)', textDecoration: 'none', background: avatarHovered ? 'rgba(255,255,255,0.04)' : 'transparent', transition: 'background var(--t-fast)', justifyContent: collapsed ? 'center' : 'flex-start' }}
+        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: collapsed ? '0.4375rem' : '0.4375rem 0.5rem', borderRadius: 'var(--radius-md)', textDecoration: 'none', background: avatarHovered ? 'var(--hover-wash)' : 'transparent', transition: 'background var(--t-fast)', justifyContent: collapsed ? 'center' : 'flex-start' }}
       >
-        <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'var(--accent-dim)', border: '1px solid var(--accent-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '0.625rem', fontWeight: 700, color: 'var(--accent)', letterSpacing: '0.02em' }}>
+        <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'var(--accent-soft)', border: '1px solid var(--accent-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '0.625rem', fontWeight: 700, color: 'var(--accent)', letterSpacing: '0.02em' }}>
           {userRole?.email ? userRole.email.slice(0, 2).toUpperCase() : 'RS'}
         </div>
         {!collapsed && (
@@ -45,13 +45,14 @@ export function SidebarFooter({ collapsed, toggle, userRole }: SidebarFooterProp
         onMouseEnter={() => setToggleHovered(true)}
         onMouseLeave={() => setToggleHovered(false)}
         title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: collapsed ? '0.4375rem' : '0.4375rem 0.5rem', borderRadius: 'var(--radius-md)', background: toggleHovered ? 'rgba(255,255,255,0.04)' : 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.75rem', transition: 'background var(--t-fast), color var(--t-fast)', justifyContent: collapsed ? 'center' : 'flex-start', width: '100%' }}
+        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: collapsed ? '0.4375rem' : '0.4375rem 0.5rem', borderRadius: 'var(--radius-md)', background: toggleHovered ? 'var(--hover-wash)' : 'transparent', border: 'none', color: 'var(--text-tertiary)', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.75rem', transition: 'background var(--t-fast), color var(--t-fast)', justifyContent: collapsed ? 'center' : 'flex-start', width: '100%' }}
       >
         <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 15, height: 15, flexShrink: 0 }}>
           {collapsed ? <IconChevronRight /> : <IconChevronLeft />}
         </span>
-        {!collapsed && <span style={{ color: 'var(--text-muted)' }}>Collapse</span>}
+        {!collapsed && <span style={{ color: 'var(--text-tertiary)' }}>Collapse</span>}
       </button>
     </div>
   );
 }
+

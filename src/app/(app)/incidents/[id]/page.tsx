@@ -165,7 +165,7 @@ export default function IncidentDetailPage() {
   /* ─── Render states ─── */
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '0.5rem 0.75rem', borderRadius: 'var(--radius-md)',
-    background: 'var(--bg-surface-2)', border: '1px solid var(--border)', color: 'var(--text-primary)',
+    background: 'var(--surface-2)', border: '1px solid var(--border-default)', color: 'var(--text-primary)',
     fontSize: '0.875rem', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit',
   };
 
@@ -173,13 +173,13 @@ export default function IncidentDetailPage() {
     return (
       <div style={{ maxWidth: 1100 }}>
         <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', marginBottom: '1.5rem' }}>
-          <div className="skeleton-pulse" style={{ height: 14, width: 80, borderRadius: 4 }} />
-          <div className="skeleton-pulse" style={{ height: 14, width: 16, borderRadius: 4 }} />
-          <div className="skeleton-pulse" style={{ height: 14, width: 200, borderRadius: 4 }} />
+          <div className="skeleton-pulse" style={{ height: 14, width: 80, borderRadius: 'var(--radius-xs)' }} />
+          <div className="skeleton-pulse" style={{ height: 14, width: 16, borderRadius: 'var(--radius-xs)' }} />
+          <div className="skeleton-pulse" style={{ height: 14, width: 200, borderRadius: 'var(--radius-xs)' }} />
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '340px 1fr', gap: '1.5rem' }}>
-          <div className="skeleton-pulse" style={{ height: 480, borderRadius: 8 }} />
-          <div className="skeleton-pulse" style={{ height: 480, borderRadius: 8 }} />
+          <div className="skeleton-pulse" style={{ height: 480, borderRadius: 'var(--radius-md)' }} />
+          <div className="skeleton-pulse" style={{ height: 480, borderRadius: 'var(--radius-md)' }} />
         </div>
       </div>
     );
@@ -188,10 +188,10 @@ export default function IncidentDetailPage() {
   if (error || !incident) {
     return (
       <div style={{ maxWidth: 1100 }}>
-        <Link href="/incidents" style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', textDecoration: 'none' }}>← Incidents</Link>
-        <div style={{ marginTop: '2rem', padding: '2rem', background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: 8, textAlign: 'center' }}>
-          <div style={{ color: '#ef4444', fontWeight: 600, marginBottom: '0.5rem' }}>Failed to load incident</div>
-          <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>{error}</div>
+        <Link href="/incidents" style={{ fontSize: '0.8125rem', color: 'var(--text-tertiary)', textDecoration: 'none' }}>← Incidents</Link>
+        <div style={{ marginTop: '2rem', padding: '2rem', background: 'var(--surface-2)', border: '1px solid var(--border-default)', borderRadius: 'var(--radius-md)', textAlign: 'center' }}>
+          <div style={{ color: 'var(--danger)', fontWeight: 600, marginBottom: '0.5rem' }}>Failed to load incident</div>
+          <div style={{ fontSize: '0.875rem', color: 'var(--text-tertiary)', marginBottom: '1rem' }}>{error}</div>
           <button className="btn btn-outline" onClick={loadAll}>Retry</button>
         </div>
       </div>
@@ -205,10 +205,10 @@ export default function IncidentDetailPage() {
     <div style={{ maxWidth: 1100 }}>
 
       {/* Breadcrumb */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem', fontSize: '0.8125rem', color: 'var(--text-muted)' }}>
-        <Link href="/incidents" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem', fontSize: '0.8125rem', color: 'var(--text-tertiary)' }}>
+        <Link href="/incidents" style={{ color: 'var(--text-tertiary)', textDecoration: 'none' }}
           onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-primary)')}
-          onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}
+          onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-tertiary)')}
         >
           Incidents
         </Link>
@@ -220,9 +220,9 @@ export default function IncidentDetailPage() {
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '1.5rem', gap: '1rem' }}>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '0.375rem' }}>
-            <h1 style={{ fontSize: '1.375rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0, lineHeight: 1.2 }}>{incident.title}</h1>
+            <h1 className="page-title" style={{ margin: 0 }}>{incident.title}</h1>
             {incident.is_serious_incident && (
-              <span style={{ fontSize: '0.6875rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', padding: '0.15rem 0.5rem', borderRadius: 4, background: '#ef444420', color: '#ef4444', border: '1px solid #ef444440', flexShrink: 0 }}>Art.73</span>
+              <span className="chip chip-danger" style={{ flexShrink: 0, textTransform: 'uppercase', fontWeight: 700 }}>Art.73</span>
             )}
           </div>
           {incident.description && (
@@ -246,14 +246,14 @@ export default function IncidentDetailPage() {
       {/* Art.73 Deadline Banner */}
       {incident.is_serious_incident && days !== null && days <= 7 && !['reported','closed'].includes(incident.status) && (
         <div style={{
-          padding: '0.875rem 1.25rem', borderRadius: 8, marginBottom: '1.5rem',
-          background: days <= 2 ? '#ef444410' : '#f59e0b10',
-          border: `1px solid ${days <= 2 ? '#ef444440' : '#f59e0b40'}`,
+          padding: '0.875rem 1.25rem', borderRadius: 'var(--radius-md)', marginBottom: '1.5rem',
+          background: days <= 2 ? 'var(--danger-soft)' : 'var(--warning-soft)',
+          border: `1px solid ${days <= 2 ? 'var(--danger-border)' : 'var(--warning-border)'}`,
           display: 'flex', alignItems: 'center', gap: '0.75rem',
         }}>
           <span style={{ fontSize: '1.25rem' }}>{days <= 2 ? '🚨' : '⚠️'}</span>
           <div>
-            <span style={{ fontWeight: 700, fontSize: '0.875rem', color: days <= 2 ? '#ef4444' : '#f59e0b' }}>
+            <span style={{ fontWeight: 700, fontSize: '0.875rem', color: days <= 2 ? 'var(--danger)' : 'var(--warning)' }}>
               Art.73 deadline {days <= 0 ? 'is OVERDUE' : `in ${days} day${days === 1 ? '' : 's'}`}
             </span>
             <span style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', marginLeft: '0.5rem' }}>
@@ -309,7 +309,7 @@ export default function IncidentDetailPage() {
               </div>
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <span style={{ fontSize: '0.875rem', color: incident.incident_commander ? 'var(--text-primary)' : 'var(--text-muted)', flex: 1 }}>
+                <span style={{ fontSize: '0.875rem', color: incident.incident_commander ? 'var(--text-primary)' : 'var(--text-tertiary)', flex: 1 }}>
                   {incident.incident_commander ?? 'Unassigned'}
                 </span>
                 <button className="btn btn-ghost" style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }} onClick={() => setEditCommander(true)}>
@@ -338,7 +338,7 @@ export default function IncidentDetailPage() {
               </div>
             ) : (
               <div>
-                <p style={{ fontSize: '0.8125rem', color: incident.root_cause ? 'var(--text-secondary)' : 'var(--text-muted)', marginBottom: '0.625rem', lineHeight: 1.5 }}>
+                <p style={{ fontSize: '0.8125rem', color: incident.root_cause ? 'var(--text-secondary)' : 'var(--text-tertiary)', marginBottom: '0.625rem', lineHeight: 1.5 }}>
                   {incident.root_cause ?? 'Not yet identified.'}
                 </p>
                 <button className="btn btn-ghost" style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }} onClick={() => setEditRootCause(true)}>
@@ -354,7 +354,7 @@ export default function IncidentDetailPage() {
               <SectionTitle>Related Events</SectionTitle>
               {incident.related_agent_ids.length > 0 && (
                 <div style={{ marginBottom: '0.5rem' }}>
-                  <div style={{ fontSize: '0.6875rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>Agents</div>
+                  <div style={{ fontSize: '0.6875rem', color: 'var(--text-tertiary)', marginBottom: '0.25rem' }}>Agents</div>
                   {incident.related_agent_ids.map(id => (
                     <Link key={id} href={`/identity/${id}`} className="mono" style={{ display: 'block', fontSize: '0.6875rem', color: 'var(--accent)', textDecoration: 'none', marginBottom: '0.125rem' }}>{id}</Link>
                   ))}
@@ -362,13 +362,13 @@ export default function IncidentDetailPage() {
               )}
               {incident.related_anomaly_ids.length > 0 && (
                 <div style={{ marginBottom: '0.5rem' }}>
-                  <div style={{ fontSize: '0.6875rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>Anomalies</div>
+                  <div style={{ fontSize: '0.6875rem', color: 'var(--text-tertiary)', marginBottom: '0.25rem' }}>Anomalies</div>
                   {incident.related_anomaly_ids.map(id => <span key={id} className="mono" style={{ display: 'block', fontSize: '0.6875rem', color: 'var(--text-secondary)' }}>{id}</span>)}
                 </div>
               )}
               {incident.related_hitl_ids.length > 0 && (
                 <div>
-                  <div style={{ fontSize: '0.6875rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>HITL Tickets</div>
+                  <div style={{ fontSize: '0.6875rem', color: 'var(--text-tertiary)', marginBottom: '0.25rem' }}>HITL Tickets</div>
                   {incident.related_hitl_ids.map(id => (
                     <Link key={id} href={`/exceptions`} className="mono" style={{ display: 'block', fontSize: '0.6875rem', color: 'var(--accent)', textDecoration: 'none', marginBottom: '0.125rem' }}>{id}</Link>
                   ))}
@@ -385,26 +385,26 @@ export default function IncidentDetailPage() {
           <div className="surface" style={{ padding: '1.25rem' }}>
             <SectionTitle>Incident Timeline</SectionTitle>
             {timeline.length === 0 ? (
-              <p style={{ fontSize: '0.8125rem', color: 'var(--text-muted)' }}>No timeline entries yet.</p>
+              <p style={{ fontSize: '0.8125rem', color: 'var(--text-tertiary)' }}>No timeline entries yet.</p>
             ) : (
               <div style={{ position: 'relative', paddingLeft: '1.25rem' }}>
                 {/* vertical line */}
-                <div style={{ position: 'absolute', left: '0.3125rem', top: 8, bottom: 8, width: 1, background: 'var(--border)' }} />
+                <div style={{ position: 'absolute', left: '0.3125rem', top: 8, bottom: 8, width: 1, background: 'var(--border-subtle)' }} />
                 {[...timeline].reverse().map((entry, i) => {
-                  const meta = TIMELINE_EVENT_LABELS[entry.event_type] ?? { label: entry.event_type, color: 'var(--text-muted)' };
+                  const meta = TIMELINE_EVENT_LABELS[entry.event_type] ?? { label: entry.event_type, color: 'var(--text-tertiary)' };
                   return (
                     <div key={entry.id ?? i} style={{ position: 'relative', marginBottom: '1rem' }}>
                       {/* dot */}
-                      <div style={{ position: 'absolute', left: -16, top: 5, width: 7, height: 7, borderRadius: '50%', background: meta.color, border: '1.5px solid var(--bg-surface)' }} />
+                      <div style={{ position: 'absolute', left: -16, top: 5, width: 7, height: 7, borderRadius: '50%', background: meta.color, border: '1.5px solid var(--bg-base)' }} />
                       <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', flexWrap: 'wrap' }}>
                         <span style={{ fontSize: '0.75rem', fontWeight: 600, color: meta.color }}>{meta.label}</span>
-                        <span style={{ fontSize: '0.6875rem', color: 'var(--text-muted)' }}>
+                        <span style={{ fontSize: '0.6875rem', color: 'var(--text-tertiary)' }}>
                           {new Date(entry.created_at).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                         </span>
-                        <span style={{ fontSize: '0.6875rem', color: 'var(--text-muted)' }}>by {entry.actor}</span>
+                        <span style={{ fontSize: '0.6875rem', color: 'var(--text-tertiary)' }}>by {entry.actor}</span>
                       </div>
                       {entry.detail && Object.keys(entry.detail).length > 0 && (
-                        <pre style={{ fontSize: '0.6875rem', color: 'var(--text-secondary)', marginTop: '0.25rem', padding: '0.375rem 0.625rem', background: 'var(--bg-surface-2)', borderRadius: 4, overflowX: 'auto', lineHeight: 1.4, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                        <pre style={{ fontSize: '0.6875rem', color: 'var(--text-secondary)', marginTop: '0.25rem', padding: '0.375rem 0.625rem', background: 'var(--surface-2)', borderRadius: 'var(--radius-xs)', overflowX: 'auto', lineHeight: 1.4, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
                           {JSON.stringify(entry.detail, null, 2)}
                         </pre>
                       )}
@@ -423,14 +423,14 @@ export default function IncidentDetailPage() {
               <div style={{ marginBottom: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 {actions.map((action, i) => (
                   <div key={action.id ?? i} style={{
-                    padding: '0.75rem', borderRadius: 6,
-                    background: 'var(--bg-surface-2)', border: '1px solid var(--border)',
+                    padding: '0.75rem', borderRadius: 'var(--radius-sm)',
+                    background: 'var(--surface-2)', border: '1px solid var(--border-default)',
                     display: 'flex', gap: '0.75rem', alignItems: 'flex-start',
                   }}>
                     <span style={{ fontSize: '1rem', marginTop: '0.125rem' }}>{action.status === 'done' ? '✅' : '⏳'}</span>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: '0.875rem', color: 'var(--text-primary)', fontWeight: 500 }}>{action.description}</div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '0.25rem' }}>
                         {action.owner && <span>Owner: {action.owner}</span>}
                         {action.owner && action.due_date && <span> · </span>}
                         {action.due_date && <span>Due: {new Date(action.due_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</span>}
@@ -458,7 +458,7 @@ export default function IncidentDetailPage() {
 
           {/* Art.73 Report */}
           {incident.is_serious_incident && (
-            <div className="surface" style={{ padding: '1.25rem', border: '1px solid #ef444430' }}>
+            <div className="surface" style={{ padding: '1.25rem', border: '1px solid var(--danger-border)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
                 <SectionTitle>Art. 73 Serious Incident Report</SectionTitle>
               </div>
@@ -466,9 +466,9 @@ export default function IncidentDetailPage() {
               {incident.art73_report_id ? (
                 <div>
                   <div style={{
-                    padding: '0.75rem 1rem', borderRadius: 6,
-                    background: '#34d39910', border: '1px solid #34d39930',
-                    marginBottom: '1rem', fontSize: '0.8125rem', color: '#34d399',
+                    padding: 'var(--space-3) var(--space-4)', borderRadius: 'var(--radius-sm)',
+                    background: 'var(--success-soft)', border: '1px solid var(--success-border)',
+                    marginBottom: '1rem', fontSize: '0.8125rem', color: 'var(--success)',
                   }}>
                     ✅ Report generated — ID: <span className="mono" style={{ fontSize: '0.6875rem' }}>{incident.art73_report_id}</span>
                   </div>
@@ -488,11 +488,11 @@ export default function IncidentDetailPage() {
                     Generate and submit the structured report to <strong>{incident.market_surveillance_authority}</strong> within the 15-day deadline.
                   </p>
                   {days !== null && (
-                    <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: days <= 2 ? '#ef4444' : days <= 7 ? '#f59e0b' : 'var(--text-secondary)', marginBottom: '1rem' }}>
+                    <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: days <= 2 ? 'var(--danger)' : days <= 7 ? 'var(--warning)' : 'var(--text-secondary)', marginBottom: '1rem' }}>
                       {days <= 0 ? '🚨 Deadline overdue' : `⏱ ${days} day${days === 1 ? '' : 's'} remaining`}
                     </div>
                   )}
-                  <button className="btn btn-primary" onClick={handleGenerateArt73} disabled={generatingReport} style={{ background: '#ef4444', borderColor: '#ef4444' }}>
+                  <button className="btn btn-danger" onClick={handleGenerateArt73} disabled={generatingReport}>
                     {generatingReport ? 'Generating…' : 'Generate Art.73 Report'}
                   </button>
                 </div>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useTenant } from '@lib/contexts/TenantContext';
 import { useToast } from '@/components/ToastProvider';
 import Modal from '@/components/ui/Modal';
@@ -91,38 +91,39 @@ export default function ApiKeysTab() {
 
   return (
     <div className="animate-fade-in">
-      <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '1.5rem', color: 'var(--color-text-main)' }}>Developer API Keys</h2>
-      <p style={{ color: 'var(--color-text-muted)', marginBottom: '2rem', fontSize: '0.9rem' }}>Use these keys to authenticate your AI agents with the RuneSignal SDK.</p>
+      <h2 className="t-h3" style={{ marginBottom: 'var(--space-3)' }}>Developer API Keys</h2>
+      <p style={{ color: 'var(--text-tertiary)', marginBottom: 'var(--space-8)', fontSize: '0.9rem' }}>Use these keys to authenticate your AI agents with the RuneSignal SDK.</p>
       
       <div style={{ display: 'grid', gap: '1rem', marginBottom: '2rem' }}>
         {loading ? (
-          <p style={{ color: 'var(--color-text-muted)' }}>Loading keys...</p>
+          <p style={{ color: 'var(--text-tertiary)' }}>Loading keys...</p>
         ) : keys.map(k => (
-          <div key={k.id} className="glass-panel" style={{ padding: '1.25rem', borderLeft: '4px solid var(--color-primary-emerald)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+          <div key={k.id} className="surface" style={{ padding: 'var(--space-5)', borderLeft: '3px solid var(--accent)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-3)' }}>
               <div>
-                <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>{k.name}</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontFamily: 'monospace' }}>
-                  ID: {k.id.split('-')[0]}...
+                <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>{k.name}</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)', marginTop: '0.125rem' }}>
+                  {k.id.split('-')[0]}...
                 </div>
               </div>
-              <button 
-                className="btn btn-outline" 
-                style={{ fontSize: '0.75rem', color: 'var(--color-error-rose)', borderColor: 'rgba(244, 63, 94, 0.3)' }} 
+              <button
+                className="btn btn-ghost btn-sm"
+                style={{ color: 'var(--danger)' }}
                 onClick={() => handleRevoke(k.id)}
               >
-                Revoke Key
+                Revoke
               </button>
             </div>
-            <div style={{ display: 'flex', gap: '1.5rem', fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
-              <div>Created: {new Date(k.created_at).toLocaleDateString()}</div>
-              <div>Last used: {k.last_used_at ? new Date(k.last_used_at).toLocaleDateString() : 'Never'}</div>
+            <div style={{ display: 'flex', gap: 'var(--space-6)', fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
+              <span>Created {new Date(k.created_at).toLocaleDateString()}</span>
+              <span>Last used: {k.last_used_at ? new Date(k.last_used_at).toLocaleDateString() : 'Never'}</span>
             </div>
           </div>
         ))}
         {!loading && keys.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--color-text-muted)', border: '1px dashed var(--border-glass)', borderRadius: 'var(--radius-md)' }}>
-            No active API keys found. Generate one to get started.
+          <div className="empty-state">
+            <p className="empty-state-title">No API keys yet</p>
+            <p className="empty-state-body">Generate a key to authenticate your AI agents with the RuneSignal SDK.</p>
           </div>
         )}
       </div>
@@ -138,42 +139,35 @@ export default function ApiKeysTab() {
         title="Your New API Key"
       >
         <div style={{ padding: '1rem 0' }}>
-          <div style={{ 
-            background: 'rgba(245, 158, 11, 0.1)', 
-            border: '1px solid var(--color-accent-amber)', 
-            padding: '1rem', 
-            borderRadius: 'var(--radius-md)', 
-            marginBottom: '1.5rem',
-            color: 'var(--color-accent-amber)',
-            fontSize: '0.85rem'
-          }}>
-            <strong>⚠️ Important:</strong> Copy this key now! This is the ONLY time we will show it. If you lose it, you will have to generate a new one.
+          <div className="callout callout-warning" style={{ marginBottom: 'var(--space-6)' }}>
+            <strong>Important:</strong> Copy this key now. This is the only time it will be shown.
           </div>
           
           <div style={{ marginBottom: '2rem' }}>
             <label className="form-label">Key Name</label>
-            <div style={{ color: 'var(--color-text-main)', fontWeight: 600, marginBottom: '1rem' }}>{newKeyData?.name}</div>
+            <div style={{ color: 'var(--text-primary)', fontWeight: 600, marginBottom: 'var(--space-4)' }}>{newKeyData?.name}</div>
             
             <label className="form-label">API Key Secret</label>
             <div style={{ 
               display: 'flex', 
-              gap: '0.5rem', 
-              background: 'rgba(0,0,0,0.2)', 
-              padding: '0.75rem 1rem', 
-              borderRadius: 'var(--radius-sm)',
-              border: '1px solid var(--border-glass)',
-              fontFamily: 'monospace',
-              fontSize: '1rem',
-              color: 'var(--color-primary-emerald)',
-              wordBreak: 'break-all'
+              gap: 'var(--space-2)',
+              background: 'var(--bg-base)', 
+              padding: 'var(--space-3) var(--space-4)', 
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid var(--border-default)',
+              fontFamily: 'var(--font-mono)',
+              fontSize: '0.875rem',
+              color: 'var(--accent)',
+              wordBreak: 'break-all',
+              alignItems: 'flex-start'
             }}>
-              {newKeyData?.key}
+              <span style={{ flex: 1 }}>{newKeyData?.key}</span>
               <button 
                 onClick={() => copyToClipboard(newKeyData?.key || '')}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: 'var(--color-text-muted)' }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: 'var(--text-tertiary)', flexShrink: 0 }}
                 title="Copy to clipboard"
               >
-                📋
+                Copy
               </button>
             </div>
           </div>
@@ -186,3 +180,4 @@ export default function ApiKeysTab() {
     </div>
   );
 }
+

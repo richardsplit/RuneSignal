@@ -333,7 +333,7 @@ export default function ComplianceDashboard() {
             <div className="surface" style={{ overflow: 'hidden' }}>
               <div className="panel-header">
                 <span className="panel-title">{activeFw?.name ?? 'Controls'}</span>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
                   {satisfiedCount} / {controls.length} satisfied
                 </span>
               </div>
@@ -352,7 +352,7 @@ export default function ComplianceDashboard() {
                     {controls.map(c => (
                       <tr key={c.id}>
                         <td>
-                          <span style={{ fontSize: '0.6875rem', color: 'var(--text-muted)' }}>
+                          <span style={{ fontSize: '0.6875rem', color: 'var(--text-tertiary)' }}>
                             {activeFw?.name ?? c.framework_id ?? '—'}
                           </span>
                         </td>
@@ -366,13 +366,13 @@ export default function ComplianceDashboard() {
                             {c.title}
                           </p>
                           {c.description && (
-                            <p style={{ fontSize: '0.6875rem', color: 'var(--text-muted)', marginTop: '0.125rem', maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            <p style={{ fontSize: '0.6875rem', color: 'var(--text-tertiary)', marginTop: '0.125rem', maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                               {c.description}
                             </p>
                           )}
                         </td>
                         <td>
-                          <span style={{ fontSize: '0.6875rem', color: 'var(--text-muted)' }}>
+                          <span style={{ fontSize: '0.6875rem', color: 'var(--text-tertiary)' }}>
                             {c.evidence_types?.join(', ') || (c.evidence?.length ? `${c.evidence.length} item${c.evidence.length !== 1 ? 's' : ''}` : '—')}
                           </span>
                         </td>
@@ -408,7 +408,7 @@ export default function ComplianceDashboard() {
             <div className="surface" style={{ overflow: 'hidden' }}>
               <div className="panel-header">
                 <span className="panel-title">Evidence Items</span>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
                   {evidence.length} records
                 </span>
               </div>
@@ -426,7 +426,7 @@ export default function ComplianceDashboard() {
                     {evidence.map((ev, i) => {
                       const confidence = typeof ev.confidence === 'number' ? ev.confidence : null;
                       const confColor = confidence === null
-                        ? 'var(--text-muted)'
+                        ? 'var(--text-tertiary)'
                         : confidence >= 0.8 ? 'var(--success)'
                         : confidence >= 0.5 ? 'var(--warning)'
                         : 'var(--danger)';
@@ -449,11 +449,11 @@ export default function ComplianceDashboard() {
                                 {(confidence * 100).toFixed(0)}%
                               </span>
                             ) : (
-                              <span style={{ color: 'var(--text-muted)', fontSize: '0.8125rem' }}>—</span>
+                              <span style={{ color: 'var(--text-tertiary)', fontSize: '0.8125rem' }}>—</span>
                             )}
                           </td>
                           <td>
-                            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                            <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
                               {dateStr ? new Date(dateStr).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
                             </span>
                           </td>

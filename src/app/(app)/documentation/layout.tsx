@@ -63,8 +63,8 @@ export default function DocumentationLayout({
       style={{
         display: 'flex',
         minHeight: '100vh',
-        background: '#0a0a0a',
-        color: '#e5e5e5',
+        background: 'var(--bg-base)',
+        color: 'var(--text-primary)',
         fontFamily: 'Inter, system-ui, sans-serif',
       }}
     >
@@ -73,7 +73,7 @@ export default function DocumentationLayout({
         style={{
           width: 220,
           flexShrink: 0,
-          borderRight: '1px solid #1a1a1a',
+          borderRight: '1px solid var(--border-subtle)',
           padding: '24px 0',
           position: 'sticky',
           top: 0,
@@ -84,14 +84,14 @@ export default function DocumentationLayout({
         <div
           style={{
             padding: '0 16px 16px',
-            borderBottom: '1px solid #1a1a1a',
+            borderBottom: '1px solid var(--border-subtle)',
             marginBottom: 16,
           }}
         >
-          <div style={{ fontSize: 12, fontWeight: 700, color: '#10b981', letterSpacing: 1 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--success)', letterSpacing: 1 }}>
             RUNESIGNAL
           </div>
-          <div style={{ fontSize: 11, color: '#525252', marginTop: 2 }}>
+          <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 2 }}>
             Developer Docs
           </div>
         </div>
@@ -104,7 +104,7 @@ export default function DocumentationLayout({
                 fontWeight: 600,
                 textTransform: 'uppercase',
                 letterSpacing: 1,
-                color: '#525252',
+                color: 'var(--text-tertiary)',
                 padding: '0 16px 6px',
               }}
             >
@@ -120,21 +120,21 @@ export default function DocumentationLayout({
                   display: 'block',
                   padding: '5px 16px',
                   fontSize: 13,
-                  color: '#a3a3a3',
+                  color: 'var(--text-secondary)',
                   textDecoration: 'none',
                   borderRadius: 0,
-                  transition: 'color 0.15s',
+                  transition: 'color var(--t-fast)',
                 }}
                 onMouseEnter={e => {
-                  (e.target as HTMLElement).style.color = '#e5e5e5';
+                  (e.target as HTMLElement).style.color = 'var(--text-primary)';
                 }}
                 onMouseLeave={e => {
-                  (e.target as HTMLElement).style.color = '#a3a3a3';
+                  (e.target as HTMLElement).style.color = 'var(--text-secondary)';
                 }}
               >
                 {item.label}
                 {(item as any).external && (
-                  <span style={{ color: '#525252', marginLeft: 4, fontSize: 10 }}>↗</span>
+                  <span style={{ color: 'var(--text-tertiary)', marginLeft: 4, fontSize: 10 }}>↗</span>
                 )}
               </Link>
             ))}

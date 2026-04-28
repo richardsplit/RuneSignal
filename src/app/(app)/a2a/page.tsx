@@ -90,7 +90,7 @@ export default function A2ADashboard() {
         <div
           ref={overlayRef}
           onClick={e => { if (e.target === overlayRef.current) setInitiateOpen(false); }}
-          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 500 }}
+          style={{ position: 'fixed', inset: 0, background: 'var(--surface-overlay)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 500 }}
         >
           <div className="surface" style={{ width: 440, padding: '1.75rem', borderRadius: 'var(--radius-lg)' }}>
             <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '1.25rem', color: 'var(--text-primary)' }}>Initiate A2A Handshake</h2>
@@ -211,7 +211,7 @@ export default function A2ADashboard() {
                     padding: '1rem',
                     borderRadius: 'var(--radius-md)',
                     border: `2px solid ${initiatorSigned ? 'var(--success-border)' : 'var(--border-default)'}`,
-                    background: initiatorSigned ? 'var(--success-bg)' : 'var(--surface-2)',
+                    background: initiatorSigned ? 'var(--success-soft)' : 'var(--surface-2)',
                     display: 'flex', flexDirection: 'column', alignItems: 'center',
                     transition: 'all var(--t-base)',
                   }}>
@@ -246,9 +246,9 @@ export default function A2ADashboard() {
                       border: `3px solid ${h.status === 'accepted' || h.status === 'completed'
                         ? 'var(--accent-border)' : 'var(--border-default)'}`,
                       background: h.status === 'accepted' || h.status === 'completed'
-                        ? 'var(--accent-dim)' : 'var(--surface-2)',
+                        ? 'var(--accent-soft)' : 'var(--surface-2)',
                       boxShadow: h.status === 'accepted' || h.status === 'completed'
-                        ? '0 0 20px var(--accent-dim)' : 'none',
+                        ? '0 0 20px var(--accent-soft)' : 'none',
                       transition: 'all var(--t-base)',
                     }}>
                       {h.status === 'accepted' || h.status === 'completed' ? (
@@ -274,7 +274,7 @@ export default function A2ADashboard() {
                     padding: '1rem',
                     borderRadius: 'var(--radius-md)',
                     border: `2px solid ${responderSigned ? 'var(--success-border)' : 'var(--border-default)'}`,
-                    background: responderSigned ? 'var(--success-bg)' : 'var(--surface-2)',
+                    background: responderSigned ? 'var(--success-soft)' : 'var(--surface-2)',
                     display: 'flex', flexDirection: 'column', alignItems: 'center',
                     transition: 'all var(--t-base)',
                   }}>

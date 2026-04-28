@@ -44,7 +44,7 @@ export default function ManageTeamModal({ isOpen, onClose, workspaceName }: Mana
               className="form-input" 
               value={role}
               onChange={(e) => setRole(e.target.value)}
-              style={{ flex: 1, background: 'var(--color-bg-main)' }}
+              style={{ flex: 1, background: 'var(--bg-base)' }}
             >
               <option value="Member">Member</option>
               <option value="Owner">Owner</option>
@@ -59,20 +59,14 @@ export default function ManageTeamModal({ isOpen, onClose, workspaceName }: Mana
           <h3 style={{ fontSize: '0.9rem', marginBottom: '1rem', fontWeight: 600 }}>Active Members</h3>
           <div style={{ display: 'grid', gap: '0.75rem' }}>
             {members.map((member, i) => (
-              <div key={i} className="glass-panel" style={{ padding: '0.75rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div key={i} className="surface" style={{ padding: '0.75rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
                   <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>{member.name}</div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>{member.email}</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>{member.email}</div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--color-primary-emerald)', fontWeight: 600 }}>{member.role}</span>
-                  <span style={{ 
-                    fontSize: '0.7rem', 
-                    padding: '0.1rem 0.4rem', 
-                    background: member.status === 'Active' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)',
-                    color: member.status === 'Active' ? 'var(--color-primary-emerald)' : 'var(--color-warning-amber)',
-                    borderRadius: '4px'
-                  }}>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--success)', fontWeight: 600 }}>{member.role}</span>
+                  <span className={member.status === 'Active' ? 'chip chip-success' : 'chip chip-warning'} style={{ fontSize: '0.7rem' }}>
                     {member.status}
                   </span>
                 </div>

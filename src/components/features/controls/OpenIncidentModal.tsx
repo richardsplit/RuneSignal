@@ -23,7 +23,7 @@ export function OpenIncidentModal({ control, onClose, onCreated }: Props) {
 
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '0.5rem 0.75rem', borderRadius: 'var(--radius-md)',
-    background: 'var(--bg-surface-2)', border: '1px solid var(--border)', color: 'var(--text-primary)',
+    background: 'var(--surface-2)', border: '1px solid var(--border-default)', color: 'var(--text-primary)',
     fontSize: '0.875rem', outline: 'none', boxSizing: 'border-box',
   };
 
@@ -50,16 +50,16 @@ export function OpenIncidentModal({ control, onClose, onCreated }: Props) {
   };
 
   return (
-    <div ref={overlayRef} onClick={handleOverlayClick} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
-      <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', width: '100%', maxWidth: 460, boxShadow: '0 24px 64px rgba(0,0,0,0.5)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border)' }}>
+    <div ref={overlayRef} onClick={handleOverlayClick} style={{ position: 'fixed', inset: 0, background: 'var(--surface-overlay)', backdropFilter: 'blur(4px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+      <div style={{ background: 'var(--surface-1)', border: '1px solid var(--border-default)', borderRadius: 'var(--radius-lg)', width: '100%', maxWidth: 460, boxShadow: 'var(--shadow-modal)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-default)' }}>
           <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>Open Incident from Control</div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '1.25rem' }}>×</button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-tertiary)', cursor: 'pointer', fontSize: '1.25rem' }}>×</button>
         </div>
         <form onSubmit={handleSubmit} style={{ padding: '1.25rem 1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <div style={{ padding: '0.75rem', background: 'var(--bg-surface-2)', borderRadius: 6, fontSize: '0.8125rem', color: 'var(--text-secondary)' }}>
+          <div style={{ padding: '0.75rem', background: 'var(--surface-2)', borderRadius: 'var(--radius-sm)', fontSize: '0.8125rem', color: 'var(--text-secondary)' }}>
             <strong style={{ color: 'var(--text-primary)' }}>Control breach: </strong>{control.name}<br />
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
               {control.regulation && `${REGULATION_LABELS[control.regulation] ?? control.regulation}`}
               {control.clause_ref && ` · ${control.clause_ref}`}
               {` · ${control.consecutive_failures} consecutive failure${control.consecutive_failures !== 1 ? 's' : ''}`}
@@ -67,7 +67,7 @@ export function OpenIncidentModal({ control, onClose, onCreated }: Props) {
           </div>
           <div>
             <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '0.375rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-              Reported By <span style={{ color: '#ef4444' }}>*</span>
+              Reported By <span style={{ color: 'var(--danger)' }}>*</span>
             </label>
             <input style={inputStyle} value={reportedBy} onChange={e => setReportedBy(e.target.value)} placeholder="email or identifier" required autoFocus />
           </div>
@@ -82,3 +82,4 @@ export function OpenIncidentModal({ control, onClose, onCreated }: Props) {
     </div>
   );
 }
+

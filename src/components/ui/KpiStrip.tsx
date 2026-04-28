@@ -18,7 +18,7 @@ export function KpiStrip({ items, loading }: KpiStripProps) {
         <div key={i} className="kpi-card">
           <div className="kpi-label">{k.label}</div>
           {loading
-            ? <div className="skeleton-pulse" style={{ height: 28, width: '40%', borderRadius: 4, marginTop: 2 }} />
+            ? <div className="skeleton-pulse" style={{ height: 28, width: '40%', borderRadius: 'var(--radius-xs)', marginTop: 2 }} />
             : <div className="kpi-value" style={k.color ? { color: k.color } : undefined}>{k.value}</div>
           }
         </div>

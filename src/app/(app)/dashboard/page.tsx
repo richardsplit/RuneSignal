@@ -59,6 +59,12 @@ export default async function Home() {
 
   const controlPassRate = totalControls > 0 ? Math.round((passingControls / totalControls) * 100) : null;
 
+  const incidentColor = totalOpenIncidents > 0
+    ? (criticalIncidents > 0 ? 'var(--danger)' : 'var(--warning)')
+    : 'var(--success)';
+
+  const controlColor = failingControls > 0 ? 'var(--danger)' : 'var(--success)';
+
   return (
     <div>
       <div style={{ marginBottom: '2rem' }}>
@@ -66,101 +72,91 @@ export default async function Home() {
         <p className="page-description">Real-time visibility into your AI agent fleets.</p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
-        {/* S3 Card */}
-        <div className="surface" style={{ padding: '1.5rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-            <h3 className="t-h4">S3 Provenance</h3>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1rem' }}>
+
+        {/* Provenance */}
+        <div className="kpi-card">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-3)' }}>
+            <div className="kpi-label">Provenance</div>
             <span className="badge badge-success">Active</span>
           </div>
-          <p className="kpi-value success" style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>
-            {certificates.toLocaleString()}
-          </p>
-          <p className="t-body-sm text-secondary">Certificates generated (all time)</p>
+          <div className="kpi-value success">{certificates.toLocaleString()}</div>
+          <p className="t-body-sm" style={{ color: 'var(--text-tertiary)', marginTop: 'var(--space-2)' }}>Certificates generated</p>
         </div>
 
-        {/* S6 Card */}
-        <div className="surface" style={{ padding: '1.5rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-            <h3 className="t-h4">S6 Identity</h3>
+        {/* Agent Identity */}
+        <div className="kpi-card">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-3)' }}>
+            <div className="kpi-label">Agent Identity</div>
             <span className="badge badge-success">Active</span>
           </div>
-          <p className="kpi-value info" style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>
-            {activeAgents.toLocaleString()}
-          </p>
-          <p className="t-body-sm text-secondary">Registered Agents Active</p>
+          <div className="kpi-value info">{activeAgents.toLocaleString()}</div>
+          <p className="t-body-sm" style={{ color: 'var(--text-tertiary)', marginTop: 'var(--space-2)' }}>Registered agents active</p>
         </div>
 
-        {/* S1 Card */}
-        <div className="surface" style={{ padding: '1.5rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-            <h3 className="t-h4">S1 Conflict</h3>
+        {/* Conflict */}
+        <div className="kpi-card">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-3)' }}>
+            <div className="kpi-label">Conflict Arbiter</div>
             <span className="badge badge-success">Active</span>
           </div>
-          <div style={{ display: 'flex', gap: '1rem', alignItems: 'baseline' }}>
-            <p className="kpi-value warning" style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>
-              {totalConflicts}
-            </p>
+          <div style={{ display: 'flex', gap: 'var(--space-3)', alignItems: 'baseline' }}>
+            <div className="kpi-value warning">{totalConflicts}</div>
             {blockedConflicts > 0 && (
-              <p className="kpi-value danger" style={{ fontSize: '1.25rem' }}>
-                {blockedConflicts} Blocked
-              </p>
+              <div className="kpi-value danger" style={{ fontSize: '1.25rem' }}>{blockedConflicts} blocked</div>
             )}
           </div>
-          <p className="t-body-sm text-secondary">Conflicts detected past 24h</p>
+          <p className="t-body-sm" style={{ color: 'var(--text-tertiary)', marginTop: 'var(--space-2)' }}>Conflicts detected (24h)</p>
         </div>
 
-        {/* Incidents Card */}
+        {/* Incidents */}
         <a href="/incidents" style={{ textDecoration: 'none' }}>
-          <div className="surface" style={{ padding: '1.5rem', cursor: 'pointer', transition: 'border-color 0.15s', borderColor: totalOpenIncidents > 0 ? (criticalIncidents > 0 ? '#ef444430' : '#f59e0b30') : undefined }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-              <h3 className="t-h4">Incidents</h3>
+          <div className="kpi-card" style={{ cursor: 'pointer' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-3)' }}>
+              <div className="kpi-label">Incidents</div>
               {totalOpenIncidents === 0
                 ? <span className="badge badge-success">Clear</span>
                 : <span className="badge badge-danger">{criticalIncidents > 0 ? `${criticalIncidents} Critical` : 'Open'}</span>
               }
             </div>
-            <p style={{ fontSize: '2.5rem', fontWeight: 700, color: totalOpenIncidents > 0 ? (criticalIncidents > 0 ? '#ef4444' : '#f59e0b') : 'var(--success)', marginBottom: '0.5rem', lineHeight: 1 }}>
-              {totalOpenIncidents}
-            </p>
-            <p className="t-body-sm text-secondary">Open incidents (excl. closed)</p>
+            <div className="kpi-value" style={{ color: incidentColor }}>{totalOpenIncidents}</div>
+            <p className="t-body-sm" style={{ color: 'var(--text-tertiary)', marginTop: 'var(--space-2)' }}>Open incidents</p>
           </div>
         </a>
 
-        {/* Controls Card */}
+        {/* Controls */}
         <a href="/controls" style={{ textDecoration: 'none' }}>
-          <div className="surface" style={{ padding: '1.5rem', cursor: 'pointer', borderColor: failingControls > 0 ? '#ef444430' : undefined }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-              <h3 className="t-h4">Controls</h3>
+          <div className="kpi-card" style={{ cursor: 'pointer' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-3)' }}>
+              <div className="kpi-label">Controls</div>
               {failingControls === 0
-                ? <span className="badge badge-success">{controlPassRate !== null ? `${controlPassRate}% Pass` : 'No controls'}</span>
-                : <span className="badge badge-danger">{failingControls} Failing</span>
+                ? <span className="badge badge-success">{controlPassRate !== null ? `${controlPassRate}% pass` : 'No controls'}</span>
+                : <span className="badge badge-danger">{failingControls} failing</span>
               }
             </div>
-            <div style={{ display: 'flex', gap: '1rem', alignItems: 'baseline' }}>
-              <p style={{ fontSize: '2.5rem', fontWeight: 700, color: failingControls > 0 ? '#ef4444' : 'var(--success)', marginBottom: '0.5rem', lineHeight: 1 }}>
-                {failingControls}
-              </p>
+            <div style={{ display: 'flex', gap: 'var(--space-3)', alignItems: 'baseline' }}>
+              <div className="kpi-value" style={{ color: controlColor }}>{failingControls}</div>
               {totalControls > 0 && (
-                <p style={{ fontSize: '1.125rem', fontWeight: 500, color: 'var(--text-muted)' }}>
+                <div style={{ fontSize: '1rem', fontWeight: 500, color: 'var(--text-tertiary)' }}>
                   / {totalControls}
-                </p>
+                </div>
               )}
             </div>
-            <p className="t-body-sm text-secondary">Failing compliance controls</p>
+            <p className="t-body-sm" style={{ color: 'var(--text-tertiary)', marginTop: 'var(--space-2)' }}>Failing compliance controls</p>
           </div>
         </a>
+
       </div>
 
-      {/* Zero-state prompt for new tenants */}
+      {/* Zero-state */}
       {activeAgents === 0 && certificates === 0 && (
-        <div className="empty-state" style={{ marginTop: '2rem', borderStyle: 'dashed' }}>
+        <div className="empty-state" style={{ marginTop: '2rem' }}>
           <p className="empty-state-title">Your governance environment is ready</p>
           <p className="empty-state-body">
             Register your first AI agent to start generating provenance certificates and firewall evaluations.
           </p>
           <a href="/identity" className="btn btn-primary" style={{ marginTop: '1rem' }}>
-            Register First Agent
+            Register first agent
           </a>
         </div>
       )}

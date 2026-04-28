@@ -90,7 +90,7 @@ export default function PolicyBuilderModal({ isOpen, onClose, onSuccess }: Polic
           <button type="button" className="btn btn-outline" onClick={onClose} disabled={isSubmitting}>
             Cancel
           </button>
-          <button type="submit" className="btn btn-primary" style={{ background: 'var(--color-primary-emerald)' }} disabled={isSubmitting}>
+          <button type="submit" className="btn btn-primary" style={{ background: 'var(--success)' }} disabled={isSubmitting}>
             {isSubmitting ? 'Generating Embeddings...' : 'Create Policy'}
           </button>
         </div>

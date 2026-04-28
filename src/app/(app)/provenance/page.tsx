@@ -129,7 +129,7 @@ export default function ProvenancePage() {
           <div key={i} className="kpi-card">
             <div className="kpi-label">{k.label}</div>
             {loading && i < 3
-              ? <div className="skeleton-pulse" style={{ height: 28, width: '40%', borderRadius: 4, marginTop: 2 }} />
+              ? <div className="skeleton-pulse" style={{ height: 28, width: '40%', borderRadius: 'var(--radius-xs)', marginTop: 2 }} />
               : <div className="kpi-value" style={k.color ? { color: k.color } : undefined}>{k.value}</div>
             }
           </div>
@@ -179,7 +179,7 @@ export default function ProvenancePage() {
             ) : filtered.length === 0 ? (
               <tr>
                 <td colSpan={8} style={{ padding: '3rem', textAlign: 'center' }}>
-                  <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>No certificates match "{search}".</p>
+                  <p style={{ fontSize: '0.875rem', color: 'var(--text-tertiary)' }}>No certificates match "{search}".</p>
                 </td>
               </tr>
             ) : filtered.map(entry => {
@@ -247,3 +247,4 @@ export default function ProvenancePage() {
     </div>
   );
 }
+

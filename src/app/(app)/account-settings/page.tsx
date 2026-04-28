@@ -129,7 +129,7 @@ export default function AccountSettingsPage() {
                     padding: '0.625rem 0.875rem',
                     borderRadius: 'var(--radius-sm)',
                     color: activeTab === tab.id ? 'var(--accent)' : 'var(--text-secondary)',
-                    background: activeTab === tab.id ? 'var(--accent-dim)' : 'transparent',
+                    background: activeTab === tab.id ? 'var(--accent-soft)' : 'transparent',
                     border: 'none',
                     borderLeft: `2px solid ${activeTab === tab.id ? 'var(--accent)' : 'transparent'}`,
                     fontSize: '0.875rem',

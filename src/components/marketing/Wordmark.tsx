@@ -37,7 +37,7 @@ export function LogoMark({
       width={size}
       height={size}
       style={{
-        borderRadius: 6,
+        borderRadius: 'var(--radius-sm)',
         flexShrink: 0,
         display: 'block',
         objectFit: 'contain',

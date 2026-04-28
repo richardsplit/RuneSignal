@@ -71,12 +71,12 @@ export default function WebhooksTab() {
     }
   };
 
-  if (loading) return <p style={{ color: 'var(--color-text-muted)' }}>Loading settings...</p>;
+  if (loading) return <p style={{ color: 'var(--text-tertiary)' }}>Loading settings...</p>;
 
   return (
     <div className="animate-fade-in">
-      <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '1.5rem', color: 'var(--color-text-main)' }}>Governance Webhooks</h2>
-      <p style={{ color: 'var(--color-text-muted)', marginBottom: '2rem', fontSize: '0.9rem' }}>
+      <h2 className="t-h3" style={{ marginBottom: 'var(--space-3)' }}>Governance Webhooks</h2>
+      <p style={{ color: 'var(--text-tertiary)', marginBottom: 'var(--space-8)', fontSize: '0.9rem' }}>
         Configure external endpoints to receive real-time alerts for policy violations, anomalies, and critical agent events.
       </p>
       
@@ -90,7 +90,7 @@ export default function WebhooksTab() {
             value={settings.slack_url}
             onChange={e => setSettings({ ...settings, slack_url: e.target.value })}
           />
-          <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.5rem', display: 'block' }}>
+          <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: 'var(--space-2)', display: 'block' }}>
             Notifications will be formatted as Slack blocks with event details.
           </span>
         </div>
@@ -104,8 +104,8 @@ export default function WebhooksTab() {
             value={settings.custom_url}
             onChange={e => setSettings({ ...settings, custom_url: e.target.value })}
           />
-          <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.5rem', display: 'block' }}>
-            We'll send a POST request with a signed JSON payload.
+          <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: 'var(--space-2)', display: 'block' }}>
+            We&apos;ll send a POST request with a signed JSON payload.
           </span>
         </div>
 
@@ -119,7 +119,7 @@ export default function WebhooksTab() {
           <label className="form-label" htmlFor="webhooks_active" style={{ marginBottom: 0 }}>Enable Webhook Deliveries</label>
         </div>
 
-        <div style={{ borderTop: '1px solid var(--border-glass)', paddingTop: '1.5rem', marginTop: '1rem' }}>
+        <div style={{ borderTop: '1px solid var(--border-default)', paddingTop: 'var(--space-6)', marginTop: 'var(--space-4)' }}>
           <button type="submit" className="btn btn-primary" disabled={saving}>
             {saving ? 'Saving...' : 'Save Webhook Configuration'}
           </button>

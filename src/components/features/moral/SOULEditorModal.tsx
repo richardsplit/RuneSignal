@@ -165,9 +165,9 @@ export default function SOULEditorModal({ isOpen, onClose, onSuccess, currentSou
     return (
       <Modal isOpen={isOpen} onClose={() => setShowConfirm(false)} title="Confirm SOUL Update">
         <div style={{ maxWidth: '700px' }}>
-          <div style={{ padding: '1rem', background: 'rgba(245, 158, 11, 0.1)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-accent-amber)', marginBottom: '1.5rem' }}>
-            <p style={{ color: 'var(--color-accent-amber)', fontWeight: 600, marginBottom: '0.5rem' }}>⚠️ Warning</p>
-            <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>This will update the Corporate SOUL for ALL agents in this tenant. The change is cryptographically signed and immutable.</p>
+          <div style={{ padding: 'var(--space-4)', background: 'var(--warning-soft)', borderRadius: 'var(--radius-md)', border: '1px solid var(--warning-border)', marginBottom: '1.5rem' }}>
+            <p style={{ color: 'var(--warning)', fontWeight: 600, marginBottom: '0.5rem' }}>⚠️ Warning</p>
+            <p style={{ color: 'var(--text-tertiary)', fontSize: '0.9rem' }}>This will update the Corporate SOUL for ALL agents in this tenant. The change is cryptographically signed and immutable.</p>
           </div>
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
             <button className="btn btn-outline" onClick={() => setShowConfirm(false)}>Cancel</button>
@@ -184,7 +184,7 @@ export default function SOULEditorModal({ isOpen, onClose, onSuccess, currentSou
     <Modal isOpen={isOpen} onClose={onClose} title="Corporate SOUL Editor">
       <div style={{ maxWidth: '700px' }}>
         {/* Tabs */}
-        <div style={{ display: 'flex', gap: '0.25rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--border-glass)', paddingBottom: '0.5rem' }}>
+        <div style={{ display: 'flex', gap: '0.25rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--border-default)', paddingBottom: '0.5rem' }}>
           {tabs.map(tab => (
             <button
               key={tab.id}
@@ -202,7 +202,7 @@ export default function SOULEditorModal({ isOpen, onClose, onSuccess, currentSou
         {renderTab()}
 
         {/* Actions */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '2rem', borderTop: '1px solid var(--border-glass)', paddingTop: '1.5rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '2rem', borderTop: '1px solid var(--border-default)', paddingTop: '1.5rem' }}>
           <button className="btn btn-outline" onClick={onClose}>Cancel</button>
           <button className="btn btn-primary" onClick={() => setShowConfirm(true)}>Review & Sign</button>
         </div>

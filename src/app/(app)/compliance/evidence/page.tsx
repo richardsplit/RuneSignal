@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -238,9 +238,9 @@ export default function EvidenceWizardPage() {
                 )}
               </div>
               {agentsLoading ? (
-                <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.8125rem' }}>Loading agents…</div>
+                <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-tertiary)', fontSize: '0.8125rem' }}>Loading agents…</div>
               ) : agents.length === 0 ? (
-                <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.8125rem' }}>No active agents found. Evidence will include all tenant data.</div>
+                <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-tertiary)', fontSize: '0.8125rem' }}>No active agents found. Evidence will include all tenant data.</div>
               ) : (
                 <table className="data-table" style={{ width: '100%' }}>
                   <thead>
@@ -267,7 +267,7 @@ export default function EvidenceWizardPage() {
                         </td>
                         <td>
                           <div style={{ fontWeight: 600, fontSize: '0.875rem' }}>{a.agent_name}</div>
-                          <div className="mono" style={{ fontSize: '0.6875rem', color: 'var(--text-muted)' }}>{a.id}</div>
+                          <div className="mono" style={{ fontSize: '0.6875rem', color: 'var(--text-tertiary)' }}>{a.id}</div>
                         </td>
                         <td><span className="badge badge-neutral" style={{ fontSize: '0.7rem' }}>{a.agent_type}</span></td>
                       </tr>
@@ -442,7 +442,7 @@ export default function EvidenceWizardPage() {
             marginBottom: '1.25rem',
           }}>
             {livePreviewLoading ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', color: 'var(--text-muted)', fontSize: '0.8125rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', color: 'var(--text-tertiary)', fontSize: '0.8125rem' }}>
                 <div style={{ width: 16, height: 16, border: '2px solid var(--border-default)', borderTopColor: 'var(--accent)', borderRadius: '50%', animation: 'spin 0.8s linear infinite', flexShrink: 0 }} />
                 Computing live coverage…
               </div>
@@ -452,26 +452,26 @@ export default function EvidenceWizardPage() {
                   <div style={{ fontSize: '2rem', fontWeight: 700, color: scoreColor(livePreview.overall_score), lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
                     {livePreview.overall_score}%
                   </div>
-                  <div style={{ fontSize: '0.6rem', fontWeight: 600, color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase', marginTop: '0.25rem' }}>
+                  <div style={{ fontSize: '0.6rem', fontWeight: 600, color: 'var(--text-tertiary)', letterSpacing: '0.08em', textTransform: 'uppercase', marginTop: '0.25rem' }}>
                     Live Score
                   </div>
                 </div>
                 <div style={{ borderLeft: '1px solid var(--border-subtle)', height: 40, flexShrink: 0 }} />
                 <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap', fontSize: '0.8125rem' }}>
                   <div>
-                    <div style={{ color: 'var(--text-muted)', fontSize: '0.6875rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Clauses</div>
+                    <div style={{ color: 'var(--text-tertiary)', fontSize: '0.6875rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Clauses</div>
                     <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{livePreview.clauses_covered} / {livePreview.clauses_total}</div>
                   </div>
                   <div>
-                    <div style={{ color: 'var(--text-muted)', fontSize: '0.6875rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Gaps</div>
+                    <div style={{ color: 'var(--text-tertiary)', fontSize: '0.6875rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Gaps</div>
                     <div style={{ fontWeight: 600, color: livePreview.gaps.length > 0 ? 'var(--warning)' : 'var(--success)' }}>{livePreview.gaps.length}</div>
                   </div>
                   <div>
-                    <div style={{ color: 'var(--text-muted)', fontSize: '0.6875rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>HITL Receipts</div>
+                    <div style={{ color: 'var(--text-tertiary)', fontSize: '0.6875rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>HITL Receipts</div>
                     <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{livePreview.hitl_count}</div>
                   </div>
                   <div>
-                    <div style={{ color: 'var(--text-muted)', fontSize: '0.6875rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Passing Controls</div>
+                    <div style={{ color: 'var(--text-tertiary)', fontSize: '0.6875rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Passing Controls</div>
                     <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{livePreview.control_count}</div>
                   </div>
                 </div>
@@ -479,7 +479,7 @@ export default function EvidenceWizardPage() {
                 <span className="badge badge-accent" style={{ fontSize: '0.65rem' }}>Dry-run · not saved</span>
               </>
             ) : (
-              <span style={{ color: 'var(--text-muted)', fontSize: '0.8125rem' }}>Live score unavailable — connect tenant to compute.</span>
+              <span style={{ color: 'var(--text-tertiary)', fontSize: '0.8125rem' }}>Live score unavailable — connect tenant to compute.</span>
             )}
           </div>
 
@@ -748,3 +748,4 @@ export default function EvidenceWizardPage() {
     </div>
   );
 }
+

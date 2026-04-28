@@ -9,15 +9,36 @@ import type { User } from '@supabase/supabase-js';
 
 /* ── Route → breadcrumb label ────────────────────────────────────── */
 const ROUTE_LABELS: Record<string, { section: string | null; title: string }> = {
-  '/dashboard':  { section: null,              title: 'Dashboard'         },
-  '/provenance': { section: 'Governance',      title: 'Provenance'        },
-  '/conflict':   { section: 'Governance',      title: 'Conflict Arbiter'  },
-  '/exceptions': { section: 'Governance',      title: 'Review Queue'      },
-  '/audit':      { section: 'Governance',      title: 'Audit Trail'       },
-  '/identity':   { section: 'Operations',      title: 'Agent Identity'    },
-  '/firewall':   { section: null,              title: 'Firewall'          },
-  '/compliance': { section: 'Intelligence',    title: 'Governance Intel'  },
-  '/finops':     { section: 'Operations',      title: 'FinOps'            },
+  '/dashboard':                   { section: null,              title: 'Dashboard'            },
+  '/firewall':                    { section: null,              title: 'Firewall'             },
+  '/provenance':                  { section: 'Governance',      title: 'Provenance'           },
+  '/conflict':                    { section: 'Governance',      title: 'Conflict Arbiter'     },
+  '/incidents':                   { section: 'Governance',      title: 'Incidents'            },
+  '/exceptions':                  { section: 'Governance',      title: 'Review Queue'         },
+  '/audit':                       { section: 'Governance',      title: 'Audit Trail'          },
+  '/evidence':                    { section: 'Evidence Plane',  title: 'Evidence Packs'       },
+  '/ledger':                      { section: 'Evidence Plane',  title: 'Decision Ledger'      },
+  '/registry':                    { section: 'Evidence Plane',  title: 'Agent Registry'       },
+  '/insurance':                   { section: 'Evidence Plane',  title: 'Insurance Export'     },
+  '/explain':                     { section: 'Intelligence',    title: 'Explainability'       },
+  '/compliance':                  { section: 'Intelligence',    title: 'Governance Intel'     },
+  '/compliance/reports':          { section: 'Intelligence',    title: 'Compliance Reports'   },
+  '/compliance/evidence':         { section: 'Intelligence',    title: 'Evidence Wizard'      },
+  '/controls':                    { section: 'Intelligence',    title: 'Controls'             },
+  '/anomaly':                     { section: 'Intelligence',    title: 'Anomaly Detection'    },
+  '/identity':                    { section: 'Operations',      title: 'Agent Identity'       },
+  '/nhi':                         { section: 'Operations',      title: 'NHI Lifecycle'        },
+  '/finops':                      { section: 'Operations',      title: 'FinOps'               },
+  '/sovereignty':                 { section: 'Operations',      title: 'Data Residency'       },
+  '/a2a':                         { section: 'Advanced',        title: 'A2A Gateway'          },
+  '/account-settings':            { section: 'Platform',        title: 'Account Settings'     },
+  '/account-settings/mfa':        { section: 'Platform',        title: 'Security & MFA'       },
+  '/account-settings/sso':        { section: 'Platform',        title: 'SSO Configuration'    },
+  '/account-settings/integrations': { section: 'Platform',      title: 'Integrations'         },
+  '/billing':                     { section: 'Platform',        title: 'Billing'              },
+  '/plugins':                     { section: 'Platform',        title: 'Plugins'              },
+  '/documentation':               { section: null,              title: 'Documentation'        },
+  '/tenant-management':           { section: 'Platform',        title: 'Tenant Management'    },
 };
 
 /* ── Icons ───────────────────────────────────────────────────────── */
@@ -33,17 +54,22 @@ const DocsIcon = () => (
     <path d="M4.5 5.5h4M4.5 7.5h2.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
   </svg>
 );
-const PlusIcon = () => (
-  <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
-    <path d="M6.5 2v9M2 6.5h9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-  </svg>
-);
+
+function resolveRoute(pathname: string) {
+  if (ROUTE_LABELS[pathname]) return ROUTE_LABELS[pathname];
+  const match = Object.keys(ROUTE_LABELS)
+    .filter(k => pathname.startsWith(k + '/'))
+    .sort((a, b) => b.length - a.length)[0];
+  if (match) return ROUTE_LABELS[match];
+  const segment = '/' + pathname.split('/').filter(Boolean)[0];
+  return { section: null, title: segment.slice(1).replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) };
+}
 
 export default function Header() {
   const { showToast } = useToast();
   const pathname = usePathname();
   const router = useRouter();
-  const route = ROUTE_LABELS[pathname] ?? { section: null, title: pathname };
+  const route = resolveRoute(pathname);
 
   const [user, setUser] = useState<User | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -97,14 +123,6 @@ export default function Header() {
         </button>
 
         <div className="app-topbar-divider" aria-hidden />
-
-        <button
-          className="btn btn-primary btn-sm"
-          onClick={() => router.push('/identity')}
-        >
-          <PlusIcon />
-          <span>Connect agent</span>
-        </button>
 
         <button
           className="btn btn-icon btn-ghost notif-btn"

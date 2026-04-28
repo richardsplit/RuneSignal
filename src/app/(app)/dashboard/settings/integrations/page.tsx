@@ -112,8 +112,8 @@ function IntegrationCardComponent({ integration }: { integration: IntegrationCar
 
   return (
     <div className="surface" style={{ overflow: 'hidden' }}>
-      <div style={{ padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+      <div style={{ padding: 'var(--space-4)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
           <span style={{ fontSize: '1.5rem' }}>{integration.icon}</span>
           <div>
             <div style={{ fontWeight: 600, fontSize: '0.875rem', color: 'var(--text-primary)' }}>{integration.name}</div>
@@ -151,7 +151,7 @@ function IntegrationCardComponent({ integration }: { integration: IntegrationCar
                 {testResult.success ? '✓ ' : '✗ '}{testResult.message}
               </div>
             )}
-            <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+            <div style={{ display: 'flex', gap: 'var(--space-2)', marginTop: 'var(--space-1)' }}>
               <button className="btn btn-outline" type="button" onClick={handleTest} disabled={saving}>Test Connection</button>
               <button className="btn btn-primary" type="submit" disabled={saving}>{saving ? 'Saving…' : 'Save'}</button>
             </div>
@@ -165,11 +165,11 @@ function IntegrationCardComponent({ integration }: { integration: IntegrationCar
 export default function IntegrationsSettingsPage() {
   return (
     <div style={{ maxWidth: '760px' }}>
-      <div style={{ marginBottom: '1.75rem' }}>
+      <div style={{ marginBottom: 'var(--space-4)' }}>
         <h1 className="page-title">Integrations</h1>
         <p className="page-description">Route HITL approvals and compliance events to your existing workflow tools.</p>
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
         {INTEGRATIONS.map(integration => (
           <IntegrationCardComponent key={integration.id} integration={integration} />
         ))}

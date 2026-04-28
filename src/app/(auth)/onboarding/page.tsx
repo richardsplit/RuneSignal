@@ -60,10 +60,10 @@ export default function OnboardingPage() {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      background: 'radial-gradient(circle at top right, #1a1a2e 0%, #0d0d1a 100%)',
+      background: 'var(--bg-base)',
       padding: '2rem'
     }}>
-      <div className="glass-panel animate-fade-in" style={{
+      <div className="surface animate-fade-in" style={{
         width: '100%',
         maxWidth: '480px',
         padding: '3rem 2.5rem',
@@ -76,16 +76,16 @@ export default function OnboardingPage() {
         <h1 className="gradient-text" style={{ fontSize: '1.75rem', marginBottom: '1rem', fontWeight: 700 }}>
           Initialize Your Workspace
         </h1>
-        <p style={{ color: 'var(--color-text-muted)', marginBottom: '2.5rem', fontSize: '0.95rem' }}>
+        <p style={{ color: 'var(--text-tertiary)', marginBottom: '2.5rem', fontSize: '0.95rem' }}>
           Welcome to RuneSignal. Please provide your company details to set up your secure governance environment.
         </p>
 
         {error && (
           <div style={{ 
-            background: 'rgba(239, 68, 68, 0.1)', 
-            border: '1px solid var(--color-error-rose)', 
-            color: 'var(--color-error-rose)',
-            padding: '0.75rem',
+            background: 'var(--danger-soft)', 
+            border: '1px solid var(--danger-border)', 
+            color: 'var(--danger)',
+            padding: 'var(--space-3)',
             borderRadius: 'var(--radius-md)',
             fontSize: '0.85rem',
             marginBottom: '1.5rem',
@@ -109,8 +109,8 @@ export default function OnboardingPage() {
             />
           </div>
 
-          <div style={{ padding: '1rem', background: 'rgba(16, 185, 129, 0.05)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-glass)', marginBottom: '1rem' }}>
-             <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', textAlign: 'left', lineHeight: 1.5 }}>
+          <div style={{ padding: 'var(--space-4)', background: 'var(--success-soft)', borderRadius: 'var(--radius-md)', border: '1px solid var(--success-border)', marginBottom: '1rem' }}>
+             <p style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', textAlign: 'left', lineHeight: 1.5 }}>
                Your workspace will be initialized with a local **Corporate SOUL** and an immutable **Audit Ledger** for agentic governance.
              </p>
           </div>
@@ -125,7 +125,7 @@ export default function OnboardingPage() {
           </button>
         </form>
 
-        <p style={{ marginTop: '2rem', fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
+        <p style={{ marginTop: '2rem', fontSize: '0.8rem', color: 'var(--text-tertiary)' }}>
           By creating a workspace, you agree to the RuneSignal Enterprise Governance Terms.
         </p>
       </div>

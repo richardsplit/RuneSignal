@@ -8,7 +8,7 @@ import { Wordmark } from '@/components/marketing/Wordmark';
 /* ── Checkmark icon ────────────────────────────────────────────────────── */
 const CheckCircle = () => (
   <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
-    <circle cx="32" cy="32" r="32" fill="var(--success-bg)" />
+    <circle cx="32" cy="32" r="32" fill="var(--success-soft)" />
     <circle cx="32" cy="32" r="24" stroke="var(--success)" strokeWidth="2" fill="none" />
     <path d="M21 32l8 8 14-14" stroke="var(--success)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
@@ -48,7 +48,7 @@ function BillingSuccessContent() {
       <div style={{
         background: 'var(--surface-1)',
         border: '1px solid var(--border-subtle)',
-        borderRadius: '20px',
+        borderRadius: 'var(--radius-2xl)',
         padding: '3rem 4rem',
         maxWidth: '520px',
         width: '100%',
@@ -57,13 +57,7 @@ function BillingSuccessContent() {
           <CheckCircle />
         </div>
 
-        <h1 style={{
-          fontSize: '1.75rem',
-          fontWeight: 700,
-          color: 'var(--text-primary)',
-          letterSpacing: '-0.03em',
-          marginBottom: '0.75rem',
-        }}>
+        <h1 className="page-title" style={{ marginBottom: '0.75rem' }}>
           Subscription activated
         </h1>
 
@@ -81,7 +75,7 @@ function BillingSuccessContent() {
             background: 'var(--surface-2)',
             border: '1px solid var(--border-subtle)',
             borderRadius: 'var(--radius-md)',
-            padding: '0.75rem 1rem',
+            padding: 'var(--space-3) var(--space-4)',
             marginBottom: '2rem',
             fontSize: '0.75rem',
             wordBreak: 'break-all',
@@ -92,7 +86,7 @@ function BillingSuccessContent() {
 
         {/* What's unlocked */}
         <div style={{
-          background: 'var(--success-bg)',
+          background: 'var(--success-soft)',
           border: '1px solid var(--success-border)',
           borderRadius: 'var(--radius-md)',
           padding: '1.25rem',

@@ -88,10 +88,10 @@ const EVENTS: AuditEvent[] = [
 
 /* ─── Severity config ────────────────────────────────────────────────── */
 const SEV_CONFIG: Record<EventSeverity, { color: string; bg: string; border: string; label: string }> = {
-  critical: { color: 'var(--danger)',  bg: 'var(--danger-bg)',  border: 'var(--danger-border)',  label: 'Critical' },
-  warning:  { color: 'var(--warning)', bg: 'var(--warning-bg)', border: 'var(--warning-border)', label: 'Warning'  },
-  info:     { color: 'var(--info)',    bg: 'var(--info-bg)',    border: 'var(--info-border)',    label: 'Info'     },
-  success:  { color: 'var(--success)', bg: 'var(--success-bg)', border: 'var(--success-border)', label: 'Success'  },
+  critical: { color: 'var(--danger)',  bg: 'var(--danger-soft)',  border: 'var(--danger-border)',  label: 'Critical' },
+  warning:  { color: 'var(--warning)', bg: 'var(--warning-soft)', border: 'var(--warning-border)', label: 'Warning'  },
+  info:     { color: 'var(--info)',    bg: 'var(--info-soft)',    border: 'var(--info-border)',    label: 'Info'     },
+  success:  { color: 'var(--success)', bg: 'var(--success-soft)', border: 'var(--success-border)', label: 'Success'  },
 };
 
 const CAT_LABELS: Record<EventCategory, string> = {
@@ -296,9 +296,9 @@ export default function AuditPage() {
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexShrink: 0 }}>
                         {event.ref && (
-                          <span className="mono" style={{ fontSize: '0.6875rem', color: 'var(--text-muted)' }}>{event.ref}</span>
+                          <span className="mono" style={{ fontSize: '0.6875rem', color: 'var(--text-tertiary)' }}>{event.ref}</span>
                         )}
-                        <span className="mono" style={{ fontSize: '0.6875rem', color: 'var(--text-muted)' }}>{event.ts}</span>
+                        <span className="mono" style={{ fontSize: '0.6875rem', color: 'var(--text-tertiary)' }}>{event.ts}</span>
                       </div>
                     </div>
 
@@ -314,8 +314,8 @@ export default function AuditPage() {
 
                     {/* Event ID */}
                     <div style={{ marginTop: '0.625rem', paddingTop: '0.625rem', borderTop: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span className="mono" style={{ fontSize: '0.625rem', color: 'var(--text-muted)' }}>{event.id}</span>
-                      <span style={{ fontSize: '0.6875rem', color: 'var(--text-muted)' }}>Immutable · Ledger-verified</span>
+                      <span className="mono" style={{ fontSize: '0.625rem', color: 'var(--text-tertiary)' }}>{event.id}</span>
+                      <span style={{ fontSize: '0.6875rem', color: 'var(--text-tertiary)' }}>Immutable · Ledger-verified</span>
                     </div>
                   </div>
                 </div>
@@ -335,3 +335,4 @@ export default function AuditPage() {
     </div>
   );
 }
+

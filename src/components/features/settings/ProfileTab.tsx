@@ -39,7 +39,7 @@ export default function ProfileTab({ profile, setProfile, onSave, isSaving }: Pr
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', marginBottom: '1.75rem' }}>
           <div style={{
             width: 64, height: 64, borderRadius: '50%',
-            background: 'var(--accent-dim)',
+            background: 'var(--accent-soft)',
             border: '2px solid var(--accent-border)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: '1.25rem', fontWeight: 700, color: 'var(--accent)',

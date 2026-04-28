@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { createContext, useCallback, useContext, useState } from 'react';
 
@@ -37,7 +37,7 @@ function DismissBtn({ onClick }: { onClick: () => void }) {
         background: 'transparent',
         border: 'none',
         cursor: 'pointer',
-        color: 'var(--text-muted)',
+        color: 'var(--text-tertiary)',
         padding: '0 0.125rem',
         fontSize: '0.75rem',
         lineHeight: 1,
@@ -99,3 +99,4 @@ export function useToast() {
   if (!ctx) throw new Error('useToast must be used within a ToastProvider');
   return ctx;
 }
+

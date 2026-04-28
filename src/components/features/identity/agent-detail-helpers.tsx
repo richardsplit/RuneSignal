@@ -1,22 +1,22 @@
-'use client';
+﻿'use client';
 
 import React from 'react';
 import { AgentTimelineEvent } from '@/lib/api';
 
-export const RISK_TIER_MAP: Record<string, { label: string; color: string }> = {
-  prohibited:   { label: 'Prohibited',   color: '#ef4444' },
-  high_risk:    { label: 'High Risk',    color: '#f59e0b' },
-  limited_risk: { label: 'Limited Risk', color: '#60a5fa' },
-  minimal_risk: { label: 'Minimal Risk', color: 'var(--success)' },
-  unclassified: { label: 'Unclassified', color: 'var(--text-muted)' },
+export const RISK_TIER_MAP: Record<string, { label: string; color: string; chipClass: string }> = {
+  prohibited:   { label: 'Prohibited',   color: 'var(--danger)',        chipClass: 'chip chip-danger'   },
+  high_risk:    { label: 'High Risk',    color: 'var(--warning)',       chipClass: 'chip chip-warning'  },
+  limited_risk: { label: 'Limited Risk', color: 'var(--info)',          chipClass: 'chip chip-accent'   },
+  minimal_risk: { label: 'Minimal Risk', color: 'var(--success)',       chipClass: 'chip chip-success'  },
+  unclassified: { label: 'Unclassified', color: 'var(--text-tertiary)', chipClass: 'chip'               },
 };
 
 export const SOURCE_META: Record<AgentTimelineEvent['source'], { label: string; color: string; icon: string }> = {
-  audit:    { label: 'Audit',    color: 'var(--accent)', icon: '📋' },
-  firewall: { label: 'Firewall', color: '#ef4444',       icon: '🛡' },
-  hitl:     { label: 'HITL',     color: '#a78bfa',       icon: '👤' },
-  anomaly:  { label: 'Anomaly',  color: '#f59e0b',       icon: '⚠️' },
-  incident: { label: 'Incident', color: '#f87171',       icon: '🚨' },
+  audit:    { label: 'Audit',    color: 'var(--accent)',  icon: '📋' },
+  firewall: { label: 'Firewall', color: 'var(--danger)',  icon: '🛡' },
+  hitl:     { label: 'HITL',     color: 'var(--info)',    icon: '👤' },
+  anomaly:  { label: 'Anomaly',  color: 'var(--warning)', icon: '⚠️' },
+  incident: { label: 'Incident', color: 'var(--danger)',  icon: '🚨' },
 };
 
 export const DATE_RANGES = [
@@ -62,9 +62,10 @@ export function eventHref(event: AgentTimelineEvent): string | null {
 
 export function StatBox({ label, value, color }: { label: string; value: number; color?: string }) {
   return (
-    <div style={{ textAlign: 'center', padding: '0.75rem 1rem', background: 'var(--bg-surface-2)', borderRadius: 'var(--radius-md)', flex: 1, minWidth: 80 }}>
+    <div style={{ textAlign: 'center', padding: '0.75rem 1rem', background: 'var(--surface-2)', borderRadius: 'var(--radius-md)', flex: 1, minWidth: 80 }}>
       <div style={{ fontSize: '1.25rem', fontWeight: 700, color: color ?? 'var(--text-primary)', lineHeight: 1 }}>{value}</div>
-      <div style={{ fontSize: '0.625rem', color: 'var(--text-muted)', marginTop: '0.25rem', letterSpacing: '0.05em', textTransform: 'uppercase' }}>{label}</div>
+      <div style={{ fontSize: '0.625rem', color: 'var(--text-tertiary)', marginTop: '0.25rem', letterSpacing: '0.05em', textTransform: 'uppercase' }}>{label}</div>
     </div>
   );
 }
+

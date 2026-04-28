@@ -21,7 +21,7 @@ interface Command {
 /* ── Icon builders ───────────────────────────────────────────────────── */
 function PageIcon({ active }: { active: boolean }) {
   return (
-    <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style={{ color: active ? 'var(--accent)' : 'var(--text-muted)' }}>
+    <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style={{ color: active ? 'var(--accent)' : 'var(--text-tertiary)' }}>
       <rect x="1.5" y="1.5" width="10" height="10" rx="1.5" stroke="currentColor" strokeWidth="1.2"/>
       <path d="M4 5h5M4 7.5h3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
     </svg>
@@ -30,7 +30,7 @@ function PageIcon({ active }: { active: boolean }) {
 
 function ActionIcon({ active }: { active: boolean }) {
   return (
-    <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style={{ color: active ? 'var(--accent)' : 'var(--text-muted)' }}>
+    <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style={{ color: active ? 'var(--accent)' : 'var(--text-tertiary)' }}>
       <path d="M6.5 1.5v10M1.5 6.5h10" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
     </svg>
   );
@@ -53,12 +53,12 @@ function Kbd({ children }: { children: React.ReactNode }) {
       alignItems: 'center',
       justifyContent: 'center',
       padding: '0.15rem 0.35rem',
-      borderRadius: '4px',
-      background: 'var(--bg-surface-3)',
+      borderRadius: 'var(--radius-xs)',
+      background: 'var(--surface-3)',
       border: '1px solid var(--border-default)',
       fontSize: '0.6875rem',
       fontFamily: 'inherit',
-      color: 'var(--text-muted)',
+      color: 'var(--text-tertiary)',
       lineHeight: 1,
     }}>
       {children}
@@ -185,8 +185,13 @@ export default function CommandPalette() {
       }
       if (e.key === 'Escape') setOpen(false);
     };
+    const customHandler = () => setOpen(prev => !prev);
     window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
+    window.addEventListener('runesignal:cmdk', customHandler);
+    return () => {
+      window.removeEventListener('keydown', handler);
+      window.removeEventListener('runesignal:cmdk', customHandler);
+    };
   }, []);
 
   useEffect(() => {
@@ -236,7 +241,7 @@ export default function CommandPalette() {
       {/* Backdrop */}
       <div
         onClick={() => setOpen(false)}
-        style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)', zIndex: 10000 }}
+        style={{ position: 'fixed', inset: 0, background: 'var(--surface-overlay)', backdropFilter: 'blur(4px)', zIndex: 10000 }}
       />
 
       {/* Panel */}
@@ -246,7 +251,7 @@ export default function CommandPalette() {
         left: '50%',
         transform: 'translateX(-50%)',
         width: 'min(580px, 92vw)',
-        background: 'var(--bg-surface-2)',
+        background: 'var(--surface-2)',
         border: '1px solid var(--border-strong)',
         borderRadius: 'var(--radius-xl)',
         boxShadow: 'var(--shadow-lg)',
@@ -257,7 +262,7 @@ export default function CommandPalette() {
 
         {/* Input */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.875rem 1.125rem', borderBottom: '1px solid var(--border-subtle)' }}>
-          <span style={{ color: 'var(--text-muted)', flexShrink: 0 }}><SearchIcon /></span>
+          <span style={{ color: 'var(--text-tertiary)', flexShrink: 0 }}><SearchIcon /></span>
           <input
             ref={inputRef}
             value={query}
@@ -272,7 +277,7 @@ export default function CommandPalette() {
         <div style={{ maxHeight: '400px', overflowY: 'auto', padding: '0.5rem' }}>
           {Object.entries(groups).map(([group, cmds]) => (
             <div key={group} style={{ marginBottom: '0.25rem' }}>
-              <div style={{ padding: '0.4rem 0.75rem 0.25rem', fontSize: '0.625rem', fontWeight: 600, color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase', userSelect: 'none' }}>
+              <div style={{ padding: '0.4rem 0.75rem 0.25rem', fontSize: '0.625rem', fontWeight: 600, color: 'var(--text-tertiary)', letterSpacing: '0.08em', textTransform: 'uppercase', userSelect: 'none' }}>
                 {group}
               </div>
               {cmds.map(cmd => {
@@ -291,7 +296,7 @@ export default function CommandPalette() {
                       gap: '0.75rem',
                       padding: '0.625rem 0.75rem',
                       borderRadius: 'var(--radius-md)',
-                      background: isSelected ? 'var(--bg-surface-3)' : 'transparent',
+                      background: isSelected ? 'var(--surface-3)' : 'transparent',
                       border: `1px solid ${isSelected ? 'var(--border-default)' : 'transparent'}`,
                       cursor: 'pointer',
                       textAlign: 'left',
@@ -300,8 +305,8 @@ export default function CommandPalette() {
                     <span style={{
                       width: '28px',
                       height: '28px',
-                      borderRadius: '6px',
-                      background: isSelected ? (isAction ? 'var(--accent-dim)' : 'rgba(96,165,250,0.08)') : 'var(--bg-surface-1)',
+                      borderRadius: 'var(--radius-sm)',
+                      background: isSelected ? (isAction ? 'var(--accent-soft)' : 'var(--info-soft)') : 'var(--surface-1)',
                       border: `1px solid ${isSelected ? (isAction ? 'var(--accent-border)' : 'var(--info-border)') : 'var(--border-subtle)'}`,
                       display: 'flex',
                       alignItems: 'center',
@@ -314,7 +319,7 @@ export default function CommandPalette() {
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-primary)' }}>{cmd.label}</div>
                       {cmd.description && (
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '1px' }}>{cmd.description}</div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '1px' }}>{cmd.description}</div>
                       )}
                     </div>
 
@@ -332,13 +337,13 @@ export default function CommandPalette() {
 
           {filtered.length === 0 && (
             <div style={{ padding: '2.5rem', textAlign: 'center' }}>
-              <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>No results for "{query}"</p>
+              <p style={{ fontSize: '0.875rem', color: 'var(--text-tertiary)' }}>No results for &ldquo;{query}&rdquo;</p>
             </div>
           )}
         </div>
 
         {/* Footer */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.625rem 1.125rem', borderTop: '1px solid var(--border-subtle)', fontSize: '0.6875rem', color: 'var(--text-muted)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.625rem 1.125rem', borderTop: '1px solid var(--border-subtle)', fontSize: '0.6875rem', color: 'var(--text-tertiary)' }}>
           <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><Kbd>↑</Kbd><Kbd>↓</Kbd> navigate</span>
           <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><Kbd>↵</Kbd> open</span>
           <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><Kbd>Esc</Kbd> close</span>
@@ -348,3 +353,4 @@ export default function CommandPalette() {
     </>
   );
 }
+

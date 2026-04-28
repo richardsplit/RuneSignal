@@ -10,18 +10,18 @@ interface ConflictMetricsProps {
 
 export default function ConflictMetrics({ totalMediated, blockedConflicts, queuedConflicts }: ConflictMetricsProps) {
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem', marginBottom: '2.5rem' }}>
-      <div className="glass-panel" style={{ padding: '1.5rem', borderLeft: '4px solid var(--color-primary-emerald)' }}>
-        <h3 style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>Total Mediated</h3>
-        <p style={{ fontSize: '2rem', fontWeight: 700 }}>{totalMediated}</p>
+    <div className="kpi-strip" style={{ marginBottom: '2rem' }}>
+      <div className="kpi-card">
+        <div className="kpi-label">Total Mediated</div>
+        <div className="kpi-value success">{totalMediated}</div>
       </div>
-      <div className="glass-panel" style={{ padding: '1.5rem', borderLeft: '4px solid var(--color-error-rose)' }}>
-        <h3 style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>Blocked Conflicts</h3>
-        <p style={{ fontSize: '2rem', fontWeight: 700 }}>{blockedConflicts}</p>
+      <div className="kpi-card">
+        <div className="kpi-label">Blocked Conflicts</div>
+        <div className="kpi-value danger">{blockedConflicts}</div>
       </div>
-      <div className="glass-panel" style={{ padding: '1.5rem', borderLeft: '4px solid var(--color-accent-amber)' }}>
-        <h3 style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>Queued (Collision)</h3>
-        <p style={{ fontSize: '2rem', fontWeight: 700 }}>{queuedConflicts}</p>
+      <div className="kpi-card">
+        <div className="kpi-label">Queued (Collision)</div>
+        <div className="kpi-value warning">{queuedConflicts}</div>
       </div>
     </div>
   );

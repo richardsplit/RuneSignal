@@ -21,7 +21,7 @@ export function StepIndicator({ current, total }: Props) {
               <div style={{
                 width: 22, height: 22, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: '0.625rem', fontWeight: 700,
-                background: isActive ? 'var(--accent)' : isDone ? 'var(--accent-dim)' : 'var(--surface-2)',
+                background: isActive ? 'var(--accent)' : isDone ? 'var(--accent-soft)' : 'var(--surface-2)',
                 color: isActive ? 'var(--text-inverse)' : isDone ? 'var(--accent)' : 'var(--text-tertiary)',
                 border: isActive ? 'none' : isDone ? '1px solid var(--accent-border)' : '1px solid var(--border-default)',
               }}>

@@ -13,7 +13,7 @@ export function SidebarLogo({ collapsed }: { collapsed: boolean }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', justifyContent: collapsed ? 'center' : 'flex-start', width: '100%' }}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={logoSrc} alt="RuneSignal" width={36} height={36} style={{ borderRadius: 6, flexShrink: 0, display: 'block', objectFit: 'contain' }} />
+      <img src={logoSrc} alt="RuneSignal" width={36} height={36} style={{ borderRadius: 'var(--radius-sm)', flexShrink: 0, display: 'block', objectFit: 'contain' }} />
       {!collapsed && (
         <span style={{ fontSize: '0.9375rem', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.025em', whiteSpace: 'nowrap' }}>
           RuneSignal

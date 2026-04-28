@@ -256,99 +256,99 @@ export default function PricingPage() {
     <>
       <style jsx global>{`
         .pricing-hero { text-align: center; padding: 5rem 1.5rem 3.5rem; }
-        .pricing-hero h1 { font-size: clamp(2rem, 5vw, 3.25rem); font-weight: 800; letter-spacing: -0.04em; color: #f8fafc; line-height: 1.1; }
-        .pricing-hero p { margin-top: 1rem; font-size: 1.125rem; color: #94a3b8; max-width: 480px; margin-left: auto; margin-right: auto; }
-        .pricing-tagline { font-size: 0.8rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #6366f1; margin-bottom: 1rem; }
+        .pricing-hero h1 { font-size: clamp(2rem, 5vw, 3.25rem); font-weight: 800; letter-spacing: -0.04em; color: var(--text-primary); line-height: 1.1; }
+        .pricing-hero p { margin-top: 1rem; font-size: 1.125rem; color: var(--text-secondary); max-width: 480px; margin-left: auto; margin-right: auto; }
+        .pricing-tagline { font-size: 0.8rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin-bottom: 1rem; }
 
         .plans-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 1.5rem; max-width: 1060px; margin: 0 auto; padding: 0 1.5rem 5rem; }
 
-        .plan-card { background: #0d0d20; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 2rem; display: flex; flex-direction: column; position: relative; transition: border-color 0.2s, transform 0.2s; }
+        .plan-card { background: var(--surface-1); border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius-xl); padding: 2rem; display: flex; flex-direction: column; position: relative; transition: border-color var(--t-base), transform var(--t-base); }
         .plan-card:hover { border-color: rgba(255,255,255,0.18); transform: translateY(-2px); }
-        .plan-card.highlight { border-color: #10b981; box-shadow: 0 0 0 1px #10b981, 0 8px 32px rgba(16,185,129,0.12); }
-        .plan-card.highlight:hover { border-color: #34d399; }
+        .plan-card.highlight { border-color: var(--success); box-shadow: 0 0 0 1px var(--success), 0 8px 32px var(--success-soft); }
+        .plan-card.highlight:hover { border-color: var(--success); }
 
-        .badge { display: inline-block; background: #10b981; color: #fff; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.25rem 0.65rem; border-radius: 20px; margin-bottom: 1rem; }
-        .tier-label { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #334155; margin-bottom: 0.25rem; }
+        .badge { display: inline-block; background: var(--success); color: #fff; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.25rem 0.65rem; border-radius: var(--radius-2xl); margin-bottom: 1rem; }
+        .tier-label { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-tertiary); margin-bottom: 0.25rem; }
 
-        .plan-name { font-size: 1.15rem; font-weight: 700; color: #f1f5f9; margin-bottom: 0.5rem; }
-        .plan-price { font-size: 2.75rem; font-weight: 800; color: #f8fafc; letter-spacing: -0.04em; line-height: 1; }
-        .plan-price span { font-size: 1rem; font-weight: 500; color: #64748b; letter-spacing: 0; }
-        .plan-price-note { font-size: 0.78rem; color: #64748b; margin-top: 0.35rem; line-height: 1.4; }
-        .plan-contact { font-size: 1.25rem; font-weight: 700; color: #94a3b8; letter-spacing: -0.01em; margin: 0.25rem 0; }
-        .plan-desc { margin-top: 0.75rem; font-size: 0.875rem; color: #94a3b8; line-height: 1.55; min-height: 2.8rem; }
+        .plan-name { font-size: 1.15rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem; }
+        .plan-price { font-size: 2.75rem; font-weight: 800; color: var(--text-primary); letter-spacing: -0.04em; line-height: 1; }
+        .plan-price span { font-size: 1rem; font-weight: 500; color: var(--text-tertiary); letter-spacing: 0; }
+        .plan-price-note { font-size: 0.78rem; color: var(--text-tertiary); margin-top: 0.35rem; line-height: 1.4; }
+        .plan-contact { font-size: 1.25rem; font-weight: 700; color: var(--text-secondary); letter-spacing: -0.01em; margin: 0.25rem 0; }
+        .plan-desc { margin-top: 0.75rem; font-size: 0.875rem; color: var(--text-secondary); line-height: 1.55; min-height: 2.8rem; }
         .plan-divider { border: none; border-top: 1px solid rgba(255,255,255,0.07); margin: 1.5rem 0; }
         .plan-features { list-style: none; display: flex; flex-direction: column; gap: 0.625rem; flex: 1; }
-        .plan-features li { font-size: 0.85rem; color: #cbd5e1; display: flex; align-items: flex-start; gap: 0.5rem; }
-        .plan-features li::before { content: '✓'; color: #10b981; font-weight: 700; flex-shrink: 0; margin-top: 0.05rem; }
+        .plan-features li { font-size: 0.85rem; color: var(--text-secondary); display: flex; align-items: flex-start; gap: 0.5rem; }
+        .plan-features li::before { content: '✓'; color: var(--success); font-weight: 700; flex-shrink: 0; margin-top: 0.05rem; }
 
-        .plan-cta { display: block; text-align: center; margin-top: 2rem; padding: 0.75rem 1.25rem; border-radius: 8px; font-weight: 600; font-size: 0.9rem; text-decoration: none; transition: background 0.15s, color 0.15s; cursor: pointer; }
-        .plan-cta-default { background: rgba(255,255,255,0.06); color: #e2e8f0; border: 1px solid rgba(255,255,255,0.1); }
+        .plan-cta { display: block; text-align: center; margin-top: 2rem; padding: 0.75rem 1.25rem; border-radius: var(--radius-md); font-weight: 600; font-size: 0.9rem; text-decoration: none; transition: background var(--t-fast), color var(--t-fast); cursor: pointer; }
+        .plan-cta-default { background: rgba(255,255,255,0.06); color: var(--text-primary); border: 1px solid rgba(255,255,255,0.1); }
         .plan-cta-default:hover { background: rgba(255,255,255,0.1); }
-        .plan-cta-highlight { background: #10b981; color: #fff; }
-        .plan-cta-highlight:hover { background: #059669; }
+        .plan-cta-highlight { background: var(--success); color: #fff; }
+        .plan-cta-highlight:hover { background: var(--success); }
 
         .section { max-width: 1060px; margin: 0 auto; padding: 0 1.5rem 5rem; }
 
         /* Metered add-ons section */
         .addons-header { max-width: 1060px; margin: 0 auto; padding: 0 1.5rem 2rem; }
-        .addons-eyebrow { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #6366f1; margin-bottom: 0.75rem; }
-        .addons-headline { font-size: clamp(1.5rem, 3.5vw, 2.25rem); font-weight: 800; color: #f8fafc; letter-spacing: -0.03em; }
+        .addons-eyebrow { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.75rem; }
+        .addons-headline { font-size: clamp(1.5rem, 3.5vw, 2.25rem); font-weight: 800; color: var(--text-primary); letter-spacing: -0.03em; }
         .addons-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 1.25rem; max-width: 1060px; margin: 0 auto; padding: 0 1.5rem 2rem; }
-        .addon-card { background: #0d0d20; border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 1.75rem; display: flex; flex-direction: column; transition: border-color 0.2s, transform 0.2s; }
+        .addon-card { background: var(--surface-1); border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius-lg); padding: 1.75rem; display: flex; flex-direction: column; transition: border-color var(--t-base), transform var(--t-base); }
         .addon-card:hover { border-color: rgba(255,255,255,0.16); transform: translateY(-2px); }
-        .addon-card.oem { border-color: rgba(239,68,68,0.35); }
+        .addon-card.oem { border-color: var(--danger-border); }
         .addon-tier { display: inline-flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; }
-        .addon-tier-badge { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; background: rgba(99,102,241,0.15); color: #818cf8; border: 1px solid rgba(99,102,241,0.3); border-radius: 20px; padding: 0.2rem 0.55rem; }
-        .addon-tier-badge.oem { background: rgba(239,68,68,0.12); color: #f87171; border-color: rgba(239,68,68,0.3); }
-        .addon-name { font-size: 1rem; font-weight: 700; color: #f1f5f9; }
-        .addon-price-sub { font-size: 0.78rem; color: #475569; margin-bottom: 0.25rem; }
-        .addon-buyers { font-size: 0.75rem; color: #64748b; margin: 0.75rem 0 0.25rem; display: flex; align-items: center; gap: 0.4rem; }
-        .addon-trigger { font-size: 0.72rem; font-weight: 600; background: rgba(245,158,11,0.12); color: #fbbf24; border: 1px solid rgba(245,158,11,0.25); border-radius: 4px; padding: 0.2rem 0.5rem; margin: 0.5rem 0 0.75rem; display: inline-block; }
-        .addon-trigger.consortium { background: rgba(239,68,68,0.1); color: #f87171; border-color: rgba(239,68,68,0.25); }
-        .addon-desc { font-size: 0.85rem; color: #94a3b8; line-height: 1.55; margin-bottom: 1rem; }
+        .addon-tier-badge { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; background: var(--accent-soft); color: var(--accent); border: 1px solid var(--accent-border); border-radius: var(--radius-2xl); padding: 0.2rem 0.55rem; }
+        .addon-tier-badge.oem { background: var(--danger-soft); color: var(--danger); border-color: var(--danger-border); }
+        .addon-name { font-size: 1rem; font-weight: 700; color: var(--text-primary); }
+        .addon-price-sub { font-size: 0.78rem; color: var(--text-tertiary); margin-bottom: 0.25rem; }
+        .addon-buyers { font-size: 0.75rem; color: var(--text-tertiary); margin: 0.75rem 0 0.25rem; display: flex; align-items: center; gap: 0.4rem; }
+        .addon-trigger { font-size: 0.72rem; font-weight: 600; background: var(--warning-soft); color: var(--warning); border: 1px solid var(--warning-border); border-radius: var(--radius-xs); padding: 0.2rem 0.5rem; margin: 0.5rem 0 0.75rem; display: inline-block; }
+        .addon-trigger.consortium { background: var(--danger-soft); color: var(--danger); border-color: var(--danger-border); }
+        .addon-desc { font-size: 0.85rem; color: var(--text-secondary); line-height: 1.55; margin-bottom: 1rem; }
         .addon-features { list-style: none; padding: 0; margin: 0 0 1.25rem; display: flex; flex-direction: column; gap: 0.5rem; flex: 1; }
-        .addon-features li { font-size: 0.82rem; color: #cbd5e1; display: flex; align-items: flex-start; gap: 0.45rem; }
-        .addon-features li::before { content: '✓'; color: #10b981; font-weight: 700; flex-shrink: 0; }
+        .addon-features li { font-size: 0.82rem; color: var(--text-secondary); display: flex; align-items: flex-start; gap: 0.45rem; }
+        .addon-features li::before { content: '✓'; color: var(--success); font-weight: 700; flex-shrink: 0; }
         .addon-tiers-table { border-top: 1px solid rgba(255,255,255,0.07); padding-top: 1rem; margin-top: auto; margin-bottom: 1.25rem; display: flex; flex-direction: column; gap: 0.3rem; }
         .addon-tier-row { display: flex; justify-content: space-between; font-size: 0.78rem; }
-        .addon-tier-row .vol { color: #64748b; }
-        .addon-tier-row .rate { color: #94a3b8; font-weight: 600; }
-        .addon-cta { display: block; text-align: center; padding: 0.65rem 1rem; border-radius: 8px; font-weight: 600; font-size: 0.875rem; text-decoration: none; background: rgba(255,255,255,0.05); color: #e2e8f0; border: 1px solid rgba(255,255,255,0.1); transition: background 0.15s; cursor: pointer; }
+        .addon-tier-row .vol { color: var(--text-tertiary); }
+        .addon-tier-row .rate { color: var(--text-secondary); font-weight: 600; }
+        .addon-cta { display: block; text-align: center; padding: 0.65rem 1rem; border-radius: var(--radius-md); font-weight: 600; font-size: 0.875rem; text-decoration: none; background: rgba(255,255,255,0.05); color: var(--text-primary); border: 1px solid rgba(255,255,255,0.1); transition: background var(--t-fast); cursor: pointer; }
         .addon-cta:hover { background: rgba(255,255,255,0.09); }
-        .addon-cta.oem { color: #f87171; border-color: rgba(239,68,68,0.3); }
-        .addon-cta.oem:hover { background: rgba(239,68,68,0.08); }
+        .addon-cta.oem { color: var(--danger); border-color: var(--danger-border); }
+        .addon-cta.oem:hover { background: var(--danger-soft); }
 
         /* Collapsible section header */
-        .collapsible-header { display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; padding: 1.25rem 1.5rem; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; background: #0d0d20; margin-bottom: 0; transition: border-color 0.2s, background 0.2s; }
+        .collapsible-header { display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; padding: 1.25rem 1.5rem; border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius-lg); background: var(--surface-1); margin-bottom: 0; transition: border-color var(--t-base), background var(--t-base); }
         .collapsible-header:hover { border-color: rgba(255,255,255,0.16); background: rgba(255,255,255,0.02); }
-        .collapsible-header.open { border-radius: 12px 12px 0 0; border-bottom-color: transparent; }
-        .collapsible-title { font-size: 1.2rem; font-weight: 700; color: #f8fafc; letter-spacing: -0.02em; }
-        .collapsible-chevron { color: #64748b; transition: transform 0.25s; font-size: 1.1rem; }
+        .collapsible-header.open { border-radius: var(--radius-lg) var(--radius-lg) 0 0; border-bottom-color: transparent; }
+        .collapsible-title { font-size: 1.2rem; font-weight: 700; color: var(--text-primary); letter-spacing: -0.02em; }
+        .collapsible-chevron { color: var(--text-tertiary); transition: transform var(--t-base); font-size: 1.1rem; }
         .collapsible-chevron.open { transform: rotate(180deg); }
-        .collapsible-body { border: 1px solid rgba(255,255,255,0.08); border-top: none; border-radius: 0 0 12px 12px; overflow: hidden; }
+        .collapsible-body { border: 1px solid rgba(255,255,255,0.08); border-top: none; border-radius: 0 0 var(--radius-lg) var(--radius-lg); overflow: hidden; }
 
         /* Comparison table */
         .comparison-table { width: 100%; border-collapse: collapse; }
-        .comparison-table thead th { background: #0d0d20; padding: 1rem 1.25rem; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b; text-align: left; }
+        .comparison-table thead th { background: var(--surface-1); padding: 1rem 1.25rem; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-tertiary); text-align: left; }
         .comparison-table thead th:not(:first-child) { text-align: center; }
-        .comparison-table thead th.col-t1 { color: #10b981; }
-        .comparison-table tbody tr { border-top: 1px solid rgba(255,255,255,0.05); transition: background 0.12s; }
+        .comparison-table thead th.col-t1 { color: var(--success); }
+        .comparison-table tbody tr { border-top: 1px solid rgba(255,255,255,0.05); transition: background var(--duration-instant) var(--ease-out); }
         .comparison-table tbody tr:hover { background: rgba(255,255,255,0.02); }
-        .comparison-table tbody td { padding: 0.875rem 1.25rem; font-size: 0.875rem; color: #cbd5e1; }
-        .comparison-table tbody td:not(:first-child) { text-align: center; color: #94a3b8; }
-        .comparison-table tbody td.check { color: #10b981; font-weight: 700; }
-        .comparison-table tbody td.dash { color: #334155; }
+        .comparison-table tbody td { padding: 0.875rem 1.25rem; font-size: 0.875rem; color: var(--text-secondary); }
+        .comparison-table tbody td:not(:first-child) { text-align: center; color: var(--text-secondary); }
+        .comparison-table tbody td.check { color: var(--success); font-weight: 700; }
+        .comparison-table tbody td.dash { color: var(--text-tertiary); }
 
         /* FAQ accordion */
-        .faq-list { display: flex; flex-direction: column; gap: 0; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; overflow: hidden; }
+        .faq-list { display: flex; flex-direction: column; gap: 0; border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius-lg); overflow: hidden; }
         .faq-item { border-top: 1px solid rgba(255,255,255,0.06); }
         .faq-item:first-child { border-top: none; }
-        .faq-toggle { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 1.75rem; cursor: pointer; background: none; border: none; text-align: left; gap: 1rem; transition: background 0.15s; }
+        .faq-toggle { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 1.75rem; cursor: pointer; background: none; border: none; text-align: left; gap: 1rem; transition: background var(--t-fast); }
         .faq-toggle:hover { background: rgba(255,255,255,0.02); }
-        .faq-q { font-size: 0.975rem; font-weight: 600; color: #f1f5f9; line-height: 1.4; }
-        .faq-chevron { color: #64748b; flex-shrink: 0; transition: transform 0.25s; font-size: 1rem; }
+        .faq-q { font-size: 0.975rem; font-weight: 600; color: var(--text-primary); line-height: 1.4; }
+        .faq-chevron { color: var(--text-tertiary); flex-shrink: 0; transition: transform var(--t-base); font-size: 1rem; }
         .faq-chevron.open { transform: rotate(180deg); }
-        .faq-a { font-size: 0.9rem; color: #94a3b8; line-height: 1.65; padding: 0 1.75rem 1.25rem; }
+        .faq-a { font-size: 0.9rem; color: var(--text-secondary); line-height: 1.65; padding: 0 1.75rem 1.25rem; }
 
         @media (max-width: 640px) {
           .pricing-hero { padding: 3rem 1rem 2.5rem; }
@@ -422,7 +422,7 @@ export default function PricingPage() {
 
             {/* Platform fee label for T-I only */}
             {addon.oem && (
-              <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#64748b', fontStyle: 'italic', marginBottom: '0.2rem' }}>
+              <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-tertiary)', fontStyle: 'italic', marginBottom: '0.2rem' }}>
                 Platform fee
               </div>
             )}
@@ -500,7 +500,7 @@ export default function PricingPage() {
         <div className="faq-list">
           {/* Section header row */}
           <div style={{ padding: '1.25rem 1.75rem', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-            <div style={{ fontSize: '1.2rem', fontWeight: 700, color: '#f8fafc', letterSpacing: '-0.02em' }}>
+            <div style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
               Frequently asked questions
             </div>
           </div>

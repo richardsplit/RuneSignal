@@ -44,7 +44,7 @@ export default function IntegrationsModal({ isOpen, onClose }: IntegrationsModal
             value={formData.slackWebhook}
             onChange={(e) => setFormData({ ...formData, slackWebhook: e.target.value })}
           />
-          <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.25rem' }}>Used for immediate approval routing to #security-ops</p>
+          <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '0.25rem' }}>Used for immediate approval routing to #security-ops</p>
         </div>
 
         <div className="form-group">
@@ -75,7 +75,7 @@ export default function IntegrationsModal({ isOpen, onClose }: IntegrationsModal
           <button type="button" className="btn btn-outline" onClick={onClose} disabled={isSubmitting}>
             Cancel
           </button>
-          <button type="submit" className="btn btn-primary" style={{ background: 'var(--color-info-cyan)', borderColor: 'var(--color-info-cyan)' }} disabled={isSubmitting}>
+          <button type="submit" className="btn btn-primary" style={{ background: 'var(--info)', borderColor: 'var(--info)' }} disabled={isSubmitting}>
             {isSubmitting ? 'Saving Configuration...' : 'Save Integrations'}
           </button>
         </div>

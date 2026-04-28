@@ -39,7 +39,7 @@ export default function DemoPage() {
         @media (max-width: 860px) { .demo-page { grid-template-columns: 1fr; } .demo-left { display: none; } }
 
         .demo-left {
-          background: linear-gradient(145deg, #064e3b 0%, #065f46 40%, #047857 80%, #059669 100%);
+          background: linear-gradient(145deg, #064e3b 0%, #065f46 40%, #047857 80%, var(--success) 100%);
           padding: 4rem 3.5rem;
           display: flex; flex-direction: column; justify-content: center;
           position: relative; overflow: hidden;
@@ -55,53 +55,53 @@ export default function DemoPage() {
         .demo-left-sub { font-size: 1rem; color: rgba(255,255,255,0.8); line-height: 1.6; margin-bottom: 2.5rem; max-width: 400px; }
         .demo-bullets { list-style: none; display: flex; flex-direction: column; gap: 0.875rem; }
         .demo-bullets li { display: flex; align-items: flex-start; gap: 0.75rem; color: rgba(255,255,255,0.9); font-size: 0.9375rem; }
-        .demo-bullet-icon { width: 20px; height: 20px; background: rgba(255,255,255,0.15); border-radius: 4px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; margin-top: 2px; }
+        .demo-bullet-icon { width: 20px; height: 20px; background: rgba(255,255,255,0.15); border-radius: var(--radius-xs); flex-shrink: 0; display: flex; align-items: center; justify-content: center; margin-top: 2px; }
 
-        .demo-right { background: var(--surface-1, #080812); padding: 4rem 3rem; display: flex; flex-direction: column; justify-content: center; }
+        .demo-right { background: var(--surface-1); padding: 4rem 3rem; display: flex; flex-direction: column; justify-content: center; }
         @media (max-width: 860px) { .demo-right { padding: 3rem 1.5rem; } }
 
-        .demo-form-title { font-size: 1.5rem; font-weight: 700; color: var(--text-primary, #f8fafc); margin-bottom: 0.5rem; letter-spacing: -0.02em; }
-        .demo-form-sub { font-size: 0.9rem; color: var(--text-secondary, #94a3b8); margin-bottom: 2rem; }
+        .demo-form-title { font-size: 1.5rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem; letter-spacing: -0.02em; }
+        .demo-form-sub { font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 2rem; }
 
         .demo-form { display: flex; flex-direction: column; gap: 1rem; max-width: 480px; }
         .demo-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
         @media (max-width: 500px) { .demo-row { grid-template-columns: 1fr; } }
 
         .demo-field { display: flex; flex-direction: column; gap: 0.375rem; }
-        .demo-label { font-size: 0.8125rem; font-weight: 500; color: var(--text-secondary, #94a3b8); }
-        .demo-label .req { color: #10b981; margin-left: 2px; }
+        .demo-label { font-size: 0.8125rem; font-weight: 500; color: var(--text-secondary); }
+        .demo-label .req { color: var(--success); margin-left: 2px; }
         .demo-input {
           background: rgba(255,255,255,0.04);
           border: 1px solid rgba(255,255,255,0.1);
-          border-radius: 8px;
+          border-radius: var(--radius-md);
           padding: 0.625rem 0.875rem;
           font-size: 0.9rem;
-          color: var(--text-primary, #f1f5f9);
+          color: var(--text-primary);
           outline: none;
-          transition: border-color 0.15s;
+          transition: border-color var(--t-fast);
           width: 100%;
         }
-        .demo-input:focus { border-color: #10b981; box-shadow: 0 0 0 3px rgba(16,185,129,0.12); }
+        .demo-input:focus { border-color: var(--success); box-shadow: 0 0 0 3px var(--success-soft); }
         .demo-input::placeholder { color: rgba(148,163,184,0.5); }
         .demo-textarea { resize: vertical; min-height: 90px; }
 
         .demo-consent { display: flex; align-items: flex-start; gap: 0.75rem; }
-        .demo-consent input[type=checkbox] { width: 16px; height: 16px; margin-top: 2px; accent-color: #10b981; flex-shrink: 0; }
-        .demo-consent-label { font-size: 0.8rem; color: var(--text-secondary, #94a3b8); line-height: 1.5; }
+        .demo-consent input[type=checkbox] { width: 16px; height: 16px; margin-top: 2px; accent-color: var(--success); flex-shrink: 0; }
+        .demo-consent-label { font-size: 0.8rem; color: var(--text-secondary); line-height: 1.5; }
 
         .demo-submit {
-          background: #10b981; color: #fff; border: none; border-radius: 8px;
+          background: var(--success); color: #fff; border: none; border-radius: var(--radius-md);
           padding: 0.8rem 1.5rem; font-size: 0.9375rem; font-weight: 600;
-          cursor: pointer; transition: background 0.15s; width: 100%;
+          cursor: pointer; transition: background var(--t-fast); width: 100%;
         }
-        .demo-submit:hover { background: #059669; }
+        .demo-submit:hover { background: var(--success); }
         .demo-submit:disabled { opacity: 0.6; cursor: not-allowed; }
 
         .demo-success { text-align: center; padding: 3rem 1rem; }
         .demo-success-icon { font-size: 3rem; margin-bottom: 1rem; }
-        .demo-success h3 { font-size: 1.5rem; font-weight: 700; color: #f8fafc; margin-bottom: 0.75rem; }
-        .demo-success p { color: #94a3b8; font-size: 0.9375rem; line-height: 1.6; }
-        .demo-error { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.3); border-radius: 8px; padding: 0.75rem 1rem; font-size: 0.875rem; color: #fca5a5; }
+        .demo-success h3 { font-size: 1.5rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.75rem; }
+        .demo-success p { color: var(--text-secondary); font-size: 0.9375rem; line-height: 1.6; }
+        .demo-error { background: var(--danger-soft); border: 1px solid var(--danger-border); border-radius: var(--radius-md); padding: 0.75rem 1rem; font-size: 0.875rem; color: var(--danger); }
       `}</style>
 
       <div className="demo-page">
@@ -125,7 +125,7 @@ export default function DemoPage() {
                 <li key={item}>
                   <span className="demo-bullet-icon">
                     <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                      <path d="M2 6l3 3 5-5" stroke="#10b981" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M2 6l3 3 5-5" stroke="var(--success)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   </span>
                   {item}
@@ -145,7 +145,7 @@ export default function DemoPage() {
                 Thanks — we&apos;ll be in touch within one business day to
                 schedule your personalised RuneSignal demo.
               </p>
-              <Link href="/" style={{ display: 'inline-block', marginTop: '1.5rem', color: '#10b981', textDecoration: 'none', fontSize: '0.9rem' }}>
+              <Link href="/" style={{ display: 'inline-block', marginTop: '1.5rem', color: 'var(--success)', textDecoration: 'none', fontSize: '0.9rem' }}>
                 ← Back to home
               </Link>
             </div>
@@ -213,10 +213,10 @@ export default function DemoPage() {
                   {status === 'loading' ? 'Submitting…' : 'Book my demo →'}
                 </button>
 
-                <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary, #475569)', lineHeight: 1.5 }}>
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary, var(--text-tertiary))', lineHeight: 1.5 }}>
                   By submitting this form, you acknowledge that RuneSignal will process your
                   personal information in accordance with our{' '}
-                  <Link href="/legal/privacy" style={{ color: '#10b981', textDecoration: 'none' }}>Privacy Policy</Link>.
+                  <Link href="/legal/privacy" style={{ color: 'var(--success)', textDecoration: 'none' }}>Privacy Policy</Link>.
                 </p>
               </form>
             </>
