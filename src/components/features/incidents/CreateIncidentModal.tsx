@@ -89,7 +89,7 @@ export function CreateIncidentModal({ isOpen, onClose, onSuccess, prefill }: Pro
             <div style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--text-primary)' }}>Create Incident</div>
             <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '0.125rem' }}>EU AI Act Art. 73 · ISO 42001 §10.2</div>
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-tertiary)', cursor: 'pointer', fontSize: '1.25rem', lineHeight: 1 }}>×</button>
+          <button onClick={onClose} aria-label="Close" style={{ background: 'none', border: 'none', color: 'var(--text-tertiary)', cursor: 'pointer', fontSize: '1.25rem', lineHeight: 1 }}>×</button>
         </div>
 
         <form onSubmit={handleSubmit} style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
