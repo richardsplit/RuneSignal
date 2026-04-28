@@ -9,26 +9,26 @@ export default function PrivacyPage() {
   return (
     <div style={{
       minHeight: '100vh',
-      background: '#080812',
-      color: '#e2e8f0',
+      background: 'var(--bg-base)',
+      color: 'var(--text-primary)',
       fontFamily: '-apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif',
     }}>
       <div style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '1rem 2rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <a href="/" style={{ fontWeight: 700, fontSize: '1.1rem', color: '#10b981', textDecoration: 'none' }}>RuneSignal</a>
-        <div style={{ display: 'flex', gap: '1.5rem', fontSize: '0.875rem', color: '#64748b' }}>
-          <a href="/legal/privacy" style={{ color: '#10b981', textDecoration: 'none', fontWeight: 600 }}>Privacy</a>
-          <a href="/legal/terms" style={{ color: '#64748b', textDecoration: 'none' }}>Terms</a>
-          <a href="/legal/dpa" style={{ color: '#64748b', textDecoration: 'none' }}>DPA</a>
-          <a href="/login" style={{ color: '#64748b', textDecoration: 'none' }}>Sign In</a>
+        <a href="/" style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--success)', textDecoration: 'none' }}>RuneSignal</a>
+        <div style={{ display: 'flex', gap: '1.5rem', fontSize: '0.875rem', color: 'var(--text-tertiary)' }}>
+          <a href="/legal/privacy" style={{ color: 'var(--success)', textDecoration: 'none', fontWeight: 600 }}>Privacy</a>
+          <a href="/legal/terms" style={{ color: 'var(--text-tertiary)', textDecoration: 'none' }}>Terms</a>
+          <a href="/legal/dpa" style={{ color: 'var(--text-tertiary)', textDecoration: 'none' }}>DPA</a>
+          <a href="/login" style={{ color: 'var(--text-tertiary)', textDecoration: 'none' }}>Sign In</a>
         </div>
       </div>
 
       <div style={{ maxWidth: 820, margin: '0 auto', padding: '4rem 2rem 6rem' }}>
         <div style={{ marginBottom: '3rem' }}>
-          <h1 style={{ fontSize: '2.25rem', fontWeight: 700, color: '#f8fafc', letterSpacing: '-0.03em', marginBottom: '0.75rem' }}>
+          <h1 style={{ fontSize: '2.25rem', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.03em', marginBottom: '0.75rem' }}>
             Privacy Policy
           </h1>
-          <p style={{ color: '#64748b', fontSize: '0.9rem' }}>Effective date: {effective}</p>
+          <p style={{ color: 'var(--text-tertiary)', fontSize: '0.9rem' }}>Effective date: {effective}</p>
         </div>
 
         {[
@@ -78,8 +78,8 @@ export default function PrivacyPage() {
           },
         ].map(({ title, body }) => (
           <section key={title} style={{ marginBottom: '2.5rem' }}>
-            <h2 style={{ fontSize: '1.1rem', fontWeight: 600, color: '#10b981', marginBottom: '0.75rem' }}>{title}</h2>
-            <p style={{ color: '#94a3b8', lineHeight: 1.75, fontSize: '0.9375rem' }}>{body}</p>
+            <h2 style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--success)', marginBottom: '0.75rem' }}>{title}</h2>
+            <p style={{ color: 'var(--text-secondary)', lineHeight: 1.75, fontSize: '0.9375rem' }}>{body}</p>
           </section>
         ))}
       </div>

@@ -32,30 +32,17 @@ export default function MoralEventFeed({ events, onFilterChange }: MoralEventFee
   };
 
   const getVerdictBadge = (verdict: string) => {
-    const colors: Record<string, string> = {
-      clear: 'var(--color-primary-emerald)',
-      pause: 'var(--color-accent-amber)',
-      block: 'var(--color-error-rose)',
-    };
-    return (
-      <span style={{
-        padding: '0.2rem 0.6rem',
-        borderRadius: '999px',
-        fontSize: '0.75rem',
-        fontWeight: 600,
-        background: `${colors[verdict] || '#666'}20`,
-        color: colors[verdict] || '#666',
-        border: `1px solid ${colors[verdict] || '#666'}40`
-      }}>
-        {verdict.toUpperCase()}
-      </span>
-    );
+    const cls =
+      verdict === 'clear' ? 'chip chip-success' :
+      verdict === 'pause' ? 'chip chip-warning' :
+      verdict === 'block' ? 'chip chip-danger'  : 'chip';
+    return <span className={cls}>{verdict.toUpperCase()}</span>;
   };
 
   return (
-    <div className="glass-panel" style={{ padding: '1.5rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-        <h3 style={{ fontSize: '1rem', fontWeight: 600 }}>Moral Event Feed</h3>
+    <div className="surface" style={{ padding: 'var(--space-6)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-4)' }}>
+        <h3 className="t-h4">Moral Event Feed</h3>
         <div style={{ display: 'flex', gap: '0.75rem' }}>
           <select
             className="form-input"
@@ -87,26 +74,26 @@ export default function MoralEventFeed({ events, onFilterChange }: MoralEventFee
       <div style={{ overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
           <thead>
-            <tr style={{ borderBottom: '1px solid var(--border-glass)' }}>
-              <th style={{ textAlign: 'left', padding: '0.75rem 0.5rem', color: 'var(--color-text-muted)', fontWeight: 500 }}>Action</th>
-              <th style={{ textAlign: 'left', padding: '0.75rem 0.5rem', color: 'var(--color-text-muted)', fontWeight: 500 }}>Domain</th>
-              <th style={{ textAlign: 'left', padding: '0.75rem 0.5rem', color: 'var(--color-text-muted)', fontWeight: 500 }}>Verdict</th>
-              <th style={{ textAlign: 'left', padding: '0.75rem 0.5rem', color: 'var(--color-text-muted)', fontWeight: 500 }}>Reason</th>
-              <th style={{ textAlign: 'left', padding: '0.75rem 0.5rem', color: 'var(--color-text-muted)', fontWeight: 500 }}>Agent</th>
-              <th style={{ textAlign: 'left', padding: '0.75rem 0.5rem', color: 'var(--color-text-muted)', fontWeight: 500 }}>Time</th>
+            <tr style={{ borderBottom: '1px solid var(--border-subtle)', background: 'var(--surface-2)' }}>
+              <th className="t-table-head" style={{ padding: 'var(--space-3) var(--space-4)' }}>Action</th>
+              <th className="t-table-head" style={{ padding: 'var(--space-3) var(--space-4)' }}>Domain</th>
+              <th className="t-table-head" style={{ padding: 'var(--space-3) var(--space-4)' }}>Verdict</th>
+              <th className="t-table-head" style={{ padding: 'var(--space-3) var(--space-4)' }}>Reason</th>
+              <th className="t-table-head" style={{ padding: 'var(--space-3) var(--space-4)' }}>Agent</th>
+              <th className="t-table-head" style={{ padding: 'var(--space-3) var(--space-4)' }}>Time</th>
             </tr>
           </thead>
           <tbody>
             {events.length === 0 ? (
-              <tr><td colSpan={6} style={{ padding: '2rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>No moral events recorded yet.</td></tr>
+              <tr><td colSpan={6} style={{ padding: 'var(--space-8)', textAlign: 'center', color: 'var(--text-tertiary)' }}>No moral events recorded yet.</td></tr>
             ) : events.map(evt => (
-              <tr key={evt.id} style={{ borderBottom: '1px solid var(--border-glass)' }} className="animate-fade-in">
-                <td style={{ padding: '0.75rem 0.5rem', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{evt.action_description}</td>
-                <td style={{ padding: '0.75rem 0.5rem', textTransform: 'capitalize' }}>{evt.domain}</td>
-                <td style={{ padding: '0.75rem 0.5rem' }}>{getVerdictBadge(evt.verdict)}</td>
-                <td style={{ padding: '0.75rem 0.5rem', maxWidth: '250px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--color-text-muted)' }}>{evt.conflict_reason || '—'}</td>
-                <td style={{ padding: '0.75rem 0.5rem', fontFamily: 'monospace', fontSize: '0.8rem' }}>{evt.agent_id.substring(0, 8)}</td>
-                <td style={{ padding: '0.75rem 0.5rem', color: 'var(--color-text-muted)', fontSize: '0.8rem' }}>{new Date(evt.created_at).toLocaleString()}</td>
+              <tr key={evt.id} style={{ borderBottom: '1px solid var(--border-subtle)' }} className="animate-fade-in">
+                <td style={{ padding: 'var(--space-3) var(--space-4)', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{evt.action_description}</td>
+                <td style={{ padding: 'var(--space-3) var(--space-4)', textTransform: 'capitalize' }}>{evt.domain}</td>
+                <td style={{ padding: 'var(--space-3) var(--space-4)' }}>{getVerdictBadge(evt.verdict)}</td>
+                <td style={{ padding: 'var(--space-3) var(--space-4)', maxWidth: '250px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--text-tertiary)' }}>{evt.conflict_reason || '—'}</td>
+                <td style={{ padding: 'var(--space-3) var(--space-4)', fontFamily: 'var(--font-mono)', fontSize: '0.8125rem' }}>{evt.agent_id.substring(0, 8)}</td>
+                <td style={{ padding: 'var(--space-3) var(--space-4)', color: 'var(--text-tertiary)', fontSize: '0.8125rem' }}>{new Date(evt.created_at).toLocaleString()}</td>
               </tr>
             ))}
           </tbody>

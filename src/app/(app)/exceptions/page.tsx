@@ -139,7 +139,7 @@ export default function ExceptionsPage() {
           <div key={i} className="kpi-card">
             <div className="kpi-label">{k.label}</div>
             {loading
-              ? <div className="skeleton-pulse" style={{ height: 28, width: '35%', borderRadius: 4, marginTop: 2 }} />
+              ? <div className="skeleton-pulse" style={{ height: 28, width: '35%', borderRadius: 'var(--radius-xs)', marginTop: 2 }} />
               : <div className="kpi-value" style={k.color ? { color: k.color } : undefined}>{k.value}</div>
             }
           </div>
@@ -191,7 +191,7 @@ export default function ExceptionsPage() {
                 <tr key={exc.id} style={{
                   background: exc.priority === 'critical' ? 'var(--danger-soft)' : undefined,
                   opacity: isPending ? 0.5 : 1,
-                  transition: 'opacity 0.15s',
+                  transition: 'opacity var(--t-fast)',
                 }}>
                   <td><span className="t-mono text-tertiary">{exc.id}</span></td>
                   <td><span style={{ fontWeight: 600 }}>{exc.agent_credentials?.agent_name ?? exc.agent_id}</span></td>
@@ -240,7 +240,7 @@ export default function ExceptionsPage() {
         style={{ fontSize: '0.8125rem', marginBottom: '0.75rem', gap: '0.375rem' }}
         onClick={() => setResolvedVisible(v => !v)}
       >
-        <span style={{ display: 'inline-block', transition: 'transform 0.15s', transform: resolvedVisible ? 'rotate(90deg)' : 'none' }}>›</span>
+        <span style={{ display: 'inline-block', transition: 'transform var(--t-fast)', transform: resolvedVisible ? 'rotate(90deg)' : 'none' }}>›</span>
         Recently Resolved ({resolvedItems.length})
       </button>
 

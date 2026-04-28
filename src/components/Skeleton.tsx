@@ -8,7 +8,7 @@ const PULSE_STYLE = `
 }
 .skeleton-pulse {
   animation: skeletonPulse 1.6s ease-in-out infinite;
-  background: var(--bg-surface-3);
+  background: var(--surface-3);
   border-radius: 4px;
 }
 `;
@@ -79,7 +79,7 @@ export function SkeletonTable({ rows = 5, cols }: SkeletonTableProps) {
 /* ── KPI card skeleton ──────────────────────────────────────────────── */
 export function SkeletonKpi() {
   return (
-    <div style={{ background: 'var(--bg-surface-1)', padding: '1.25rem 1.5rem' }}>
+    <div style={{ background: 'var(--surface-1)', padding: '1.25rem 1.5rem' }}>
       <SkeletonBlock width="60%" height={10} style={{ marginBottom: '0.875rem' }} />
       <SkeletonBlock width="40%" height={28} />
     </div>
@@ -101,7 +101,7 @@ export function ApiErrorBanner({ message, onRetry }: ApiErrorBannerProps) {
       padding: '0.75rem 1.25rem',
       borderRadius: 'var(--radius-md)',
       border: '1px solid var(--danger-border)',
-      background: 'var(--danger-bg)',
+      background: 'var(--danger-soft)',
       fontSize: '0.8125rem',
       marginBottom: '1.5rem',
     }}>
@@ -122,3 +122,4 @@ export function ApiErrorBanner({ message, onRetry }: ApiErrorBannerProps) {
     </div>
   );
 }
+

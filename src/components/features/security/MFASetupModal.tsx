@@ -85,45 +85,35 @@ export default function MFASetupModal({ isOpen, onClose, onSuccess }: MFASetupMo
     <Modal isOpen={isOpen} onClose={onClose} title="Configure Multi-Factor Authentication">
       <div style={{ padding: '1rem 0' }}>
         {/* Progress Bar */}
-        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '2rem' }}>
+        <div style={{ display: 'flex', gap: 'var(--space-2)', marginBottom: 'var(--space-6)' }}>
           {[1, 2, 3, 4].map((i) => (
-            <div 
-              key={i} 
-              style={{ 
-                height: '4px', 
-                flex: 1, 
-                background: i <= step ? 'var(--color-primary-emerald)' : 'rgba(255,255,255,0.1)',
-                borderRadius: '2px',
-                transition: 'all 0.3s'
-              }} 
+            <div
+              key={i}
+              style={{
+                height: '4px',
+                flex: 1,
+                background: i <= step ? 'var(--accent)' : 'var(--surface-3)',
+                borderRadius: 'var(--radius-pill)',
+                transition: 'background var(--t-base)'
+              }}
             />
           ))}
         </div>
 
         {error && (
-          <div style={{ 
-            background: 'rgba(239, 68, 68, 0.1)', 
-            border: '1px solid var(--color-error-rose)', 
-            color: 'var(--color-error-rose)',
-            padding: '0.75rem',
-            borderRadius: 'var(--radius-md)',
-            fontSize: '0.85rem',
-            marginBottom: '1.5rem'
-          }}>
-            {error}
-          </div>
+          <div className="callout callout-danger" style={{ marginBottom: 'var(--space-5)' }}>{error}</div>
         )}
 
         {step === 1 && (
           <div className="animate-fade-in">
             <h3 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '1rem' }}>Secure your account</h3>
-            <p style={{ color: 'var(--color-text-muted)', marginBottom: '1.5rem', lineHeight: '1.6' }}>
+            <p style={{ color: 'var(--text-tertiary)', marginBottom: 'var(--space-5)', lineHeight: '1.6' }}>
               Multi-Factor Authentication adds an extra layer of security. We support any standard TOTP app like Google Authenticator or Authy.
             </p>
-            <div className="glass-panel" style={{ padding: '1.5rem', background: 'rgba(16, 185, 129, 0.05)', marginBottom: '2rem' }}>
-              <ul style={{ color: 'var(--color-text-main)', fontSize: '0.9rem', paddingLeft: '1.2rem', margin: 0 }}>
-                <li style={{ marginBottom: '0.5rem' }}>Protects against stolen passwords</li>
-                <li style={{ marginBottom: '0.5rem' }}>Required for enterprise workspace access</li>
+            <div className="callout callout-success" style={{ marginBottom: 'var(--space-6)' }}>
+              <ul style={{ paddingLeft: '1.25rem', margin: 0 }}>
+                <li style={{ marginBottom: 'var(--space-2)' }}>Protects against stolen passwords</li>
+                <li style={{ marginBottom: 'var(--space-2)' }}>Required for enterprise workspace access</li>
                 <li>Verifiable audit trail for compliance</li>
               </ul>
             </div>
@@ -136,7 +126,7 @@ export default function MFASetupModal({ isOpen, onClose, onSuccess }: MFASetupMo
         {step === 2 && (
           <div className="animate-fade-in" style={{ textAlign: 'center' }}>
             <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '1rem' }}>Scan QR Code</h3>
-            <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
+            <p style={{ color: 'var(--text-tertiary)', fontSize: '0.9rem', marginBottom: 'var(--space-5)' }}>
               Open your authenticator app and scan this code to link your account.
             </p>
             <div style={{ 
@@ -145,7 +135,7 @@ export default function MFASetupModal({ isOpen, onClose, onSuccess }: MFASetupMo
               background: 'white', 
               margin: '0 auto 1.5rem', 
               padding: '10px', 
-              borderRadius: '8px',
+              borderRadius: 'var(--radius-md)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -157,8 +147,8 @@ export default function MFASetupModal({ isOpen, onClose, onSuccess }: MFASetupMo
                 style={{ width: '100%', height: '100%' }}
               />
             </div>
-            <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginBottom: '2rem' }}>
-              Can't scan? Use code: <span style={{ fontFamily: 'monospace', color: 'var(--color-info-cyan)', fontWeight: 600 }}>{secret}</span>
+            <div style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', marginBottom: 'var(--space-6)' }}>
+              Can&apos;t scan? Use code: <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--info)', fontWeight: 600 }}>{secret}</span>
             </div>
             <button className="btn btn-primary" style={{ width: '100%' }} onClick={() => setStep(3)}>I've scanned the code</button>
           </div>
@@ -167,7 +157,7 @@ export default function MFASetupModal({ isOpen, onClose, onSuccess }: MFASetupMo
         {step === 3 && (
           <div className="animate-fade-in">
             <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '1rem' }}>Verify Connection</h3>
-            <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
+            <p style={{ color: 'var(--text-tertiary)', fontSize: '0.9rem', marginBottom: 'var(--space-5)' }}>
               Enter the 6-digit verification code from your authenticator app.
             </p>
             <div style={{ marginBottom: '1.5rem' }}>
@@ -180,17 +170,14 @@ export default function MFASetupModal({ isOpen, onClose, onSuccess }: MFASetupMo
                   setVerificationCode(e.target.value.replace(/\D/g, ''));
                   setError('');
                 }}
-                style={{ 
-                  width: '100%', 
-                  textAlign: 'center', 
-                  fontSize: '2rem', 
-                  letterSpacing: '0.5rem', 
-                  padding: '1rem',
-                  background: 'rgba(255,255,255,0.05)',
-                  border: `1px solid ${error ? 'var(--color-error-rose)' : 'var(--border-glass)'}`,
-                  borderRadius: 'var(--radius-md)',
-                  color: 'var(--color-text-main)',
-                  fontFamily: 'monospace'
+                className="form-input"
+                style={{
+                  textAlign: 'center',
+                  fontSize: '2rem',
+                  letterSpacing: '0.5rem',
+                  padding: 'var(--space-4)',
+                  fontFamily: 'var(--font-mono)',
+                  borderColor: error ? 'var(--danger)' : undefined
                 }} 
               />
             </div>
@@ -208,28 +195,26 @@ export default function MFASetupModal({ isOpen, onClose, onSuccess }: MFASetupMo
         {step === 4 && (
           <div className="animate-fade-in">
             <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '1rem' }}>MFA Enabled! 🎉</h3>
-            <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
+            <p style={{ color: 'var(--text-tertiary)', fontSize: '0.9rem', marginBottom: 'var(--space-5)' }}>
               Multi-Factor Authentication is now active. Your account is secured with secondary verification.
             </p>
-            <div className="glass-panel" style={{ padding: '1.5rem', background: 'rgba(16, 185, 129, 0.05)', marginBottom: '2rem' }}>
-              <p style={{ fontSize: '0.85rem', color: 'var(--color-text-main)', margin: 0 }}>
-                Next time you log in, you will be prompted for your authenticator code.
-              </p>
+            <div className="callout callout-success" style={{ marginBottom: 'var(--space-6)' }}>
+              Next time you log in, you will be prompted for your authenticator code.
             </div>
-            <div style={{ 
-              display: 'grid', 
-              gridTemplateColumns: '1fr 1fr', 
-              gap: '0.75rem', 
-              marginBottom: '2rem',
-              padding: '1.25rem',
-              background: 'rgba(255,255,255,0.02)',
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: 'var(--space-3)',
+              marginBottom: 'var(--space-6)',
+              padding: 'var(--space-4)',
+              background: 'var(--surface-2)',
               borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--border-glass)',
-              fontFamily: 'monospace',
-              fontSize: '0.85rem'
+              border: '1px solid var(--border-default)',
+              fontFamily: 'var(--font-mono)',
+              fontSize: '0.875rem'
             }}>
               {recoveryCodes.map((code: string) => (
-                <div key={code} style={{ color: 'var(--color-text-muted)' }}>{code}</div>
+                <div key={code} style={{ color: 'var(--text-tertiary)' }}>{code}</div>
               ))}
             </div>
             <button 

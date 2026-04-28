@@ -9,8 +9,8 @@ export default function SecurityPage() {
   return (
     <div style={{
       minHeight: '100vh',
-      background: '#080812',
-      color: '#e2e8f0',
+      background: 'var(--bg-base)',
+      color: 'var(--text-primary)',
       fontFamily: '-apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif',
     }}>
       <style>{`
@@ -18,7 +18,7 @@ export default function SecurityPage() {
           body { background: #fff !important; color: #111 !important; }
           .no-print { display: none !important; }
           .page-break { page-break-before: always; }
-          a { color: #10b981 !important; }
+          a { color: var(--success) !important; }
         }
       `}</style>
 
@@ -30,14 +30,14 @@ export default function SecurityPage() {
         alignItems: 'center',
         justifyContent: 'space-between',
       }}>
-        <a href="/" style={{ fontWeight: 700, fontSize: '1.1rem', color: '#10b981', textDecoration: 'none' }}>
+        <a href="/" style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--success)', textDecoration: 'none' }}>
           RuneSignal
         </a>
         <div style={{ display: 'flex', gap: '1.5rem', fontSize: '0.875rem' }}>
-          <a href="/legal/dpa" style={{ color: '#64748b', textDecoration: 'none' }}>DPA</a>
-          <a href="/legal/sla" style={{ color: '#64748b', textDecoration: 'none' }}>SLA</a>
-          <a href="/security" style={{ color: '#10b981', textDecoration: 'none', fontWeight: 600 }}>Security</a>
-          <a href="/login" style={{ color: '#64748b', textDecoration: 'none' }}>Sign In</a>
+          <a href="/legal/dpa" style={{ color: 'var(--text-tertiary)', textDecoration: 'none' }}>DPA</a>
+          <a href="/legal/sla" style={{ color: 'var(--text-tertiary)', textDecoration: 'none' }}>SLA</a>
+          <a href="/security" style={{ color: 'var(--success)', textDecoration: 'none', fontWeight: 600 }}>Security</a>
+          <a href="/login" style={{ color: 'var(--text-tertiary)', textDecoration: 'none' }}>Sign In</a>
         </div>
       </div>
 
@@ -45,16 +45,16 @@ export default function SecurityPage() {
 
         {/* Header */}
         <div style={{ marginBottom: '3rem' }}>
-          <p style={{ fontSize: '0.8rem', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#10b981', marginBottom: '0.75rem' }}>
+          <p style={{ fontSize: '0.8rem', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--success)', marginBottom: '0.75rem' }}>
             Security & Trust
           </p>
-          <h1 style={{ fontSize: '2.5rem', fontWeight: 700, color: '#f1f5f9', lineHeight: 1.2, marginBottom: '1rem' }}>
+          <h1 style={{ fontSize: '2.5rem', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.2, marginBottom: '1rem' }}>
             RuneSignal Architecture Trust Document
           </h1>
-          <p style={{ color: '#64748b', fontSize: '0.95rem', lineHeight: 1.7 }}>
+          <p style={{ color: 'var(--text-tertiary)', fontSize: '0.95rem', lineHeight: 1.7 }}>
             Last updated: {LAST_UPDATED} &nbsp;·&nbsp; For use in security questionnaires, vendor assessments, and enterprise due diligence.
           </p>
-          <p style={{ color: '#475569', fontSize: '0.85rem', marginTop: '0.75rem' }}>
+          <p style={{ color: 'var(--text-tertiary)', fontSize: '0.85rem', marginTop: '0.75rem' }}>
             This document describes the technical security controls implemented in the RuneSignal platform. It is not a penetration test report. A formal pentest programme is planned for Q3 2026 via a HackerOne managed engagement.
           </p>
         </div>
@@ -69,14 +69,14 @@ export default function SecurityPage() {
             { label: 'Ledger', value: 'Append-only' },
           ].map(b => (
             <div key={b.label} style={{
-              background: 'rgba(16, 185, 129, 0.05)',
-              border: '1px solid rgba(16, 185, 129, 0.15)',
-              borderRadius: '8px',
+              background: 'var(--success-soft)',
+              border: '1px solid var(--success-soft)',
+              borderRadius: 'var(--radius-md)',
               padding: '1rem',
               textAlign: 'center',
             }}>
-              <div style={{ fontSize: '0.95rem', fontWeight: 700, color: '#10b981', marginBottom: '0.25rem' }}>{b.value}</div>
-              <div style={{ fontSize: '0.7rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{b.label}</div>
+              <div style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--success)', marginBottom: '0.25rem' }}>{b.value}</div>
+              <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{b.label}</div>
             </div>
           ))}
         </div>
@@ -84,7 +84,7 @@ export default function SecurityPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
 
           {/* 1. Cryptographic Provenance */}
-          <Section title="1. Cryptographic Signing — Ed25519" accent="#10b981">
+          <Section title="1. Cryptographic Signing — Ed25519" accent="var(--success)">
             <p>
               Every event written to the RuneSignal audit ledger is signed with an <strong>Ed25519</strong> private key before persistence. Ed25519 (RFC 8032) provides 128-bit security with deterministic signatures — suitable for court-admissible audit trails and regulator-presentable evidence packages.
             </p>
@@ -96,7 +96,7 @@ export default function SecurityPage() {
           </Section>
 
           {/* 2. Tenant Isolation */}
-          <Section title="2. Tenant Data Isolation — Row-Level Security" accent="#3b82f6">
+          <Section title="2. Tenant Data Isolation — Row-Level Security" accent="var(--info)">
             <p>
               RuneSignal is a multi-tenant SaaS. Every database table that stores customer data includes a <code>tenant_id</code> foreign key referencing the <code>tenants</code> table. Isolation is enforced at the <strong>Postgres RLS layer</strong> — not only in application code.
             </p>
@@ -110,7 +110,7 @@ export default function SecurityPage() {
           </Section>
 
           {/* 3. Authentication */}
-          <Section title="3. Authentication — MFA AAL2 Enforcement" accent="#8b5cf6">
+          <Section title="3. Authentication — MFA AAL2 Enforcement" accent="var(--info)">
             <p>
               All RuneSignal dashboard access requires a valid Supabase session. If a user has enrolled a TOTP factor, the platform enforces <strong>Authenticator Assurance Level 2 (AAL2)</strong> before any dashboard route is accessible.
             </p>
@@ -122,7 +122,7 @@ export default function SecurityPage() {
           </Section>
 
           {/* 4. Encryption */}
-          <Section title="4. Encryption — At Rest and In Transit" accent="#f59e0b">
+          <Section title="4. Encryption — At Rest and In Transit" accent="var(--warning)">
             <p>
               All customer data is encrypted both at rest and in transit. RuneSignal does not operate its own database infrastructure — storage is delegated to Supabase (Postgres on AWS), which provides managed encryption.
             </p>
@@ -133,7 +133,7 @@ export default function SecurityPage() {
           </Section>
 
           {/* 5. Rate Limiting */}
-          <Section title="5. Rate Limiting and API Abuse Prevention" accent="#ef4444">
+          <Section title="5. Rate Limiting and API Abuse Prevention" accent="var(--danger)">
             <p>
               RuneSignal applies rate limiting at the edge (middleware layer) before any request reaches application code or the database.
             </p>
@@ -145,7 +145,7 @@ export default function SecurityPage() {
 
           {/* 6. Vulnerability management */}
           <div className="page-break" />
-          <Section title="6. Vulnerability Management" accent="#64748b">
+          <Section title="6. Vulnerability Management" accent="var(--text-tertiary)">
             <p>
               RuneSignal follows a structured approach to identifying and remediating security vulnerabilities.
             </p>
@@ -157,7 +157,7 @@ export default function SecurityPage() {
           </Section>
 
           {/* 7. Infrastructure */}
-          <Section title="7. Infrastructure and Supply Chain" accent="#10b981">
+          <Section title="7. Infrastructure and Supply Chain" accent="var(--success)">
             <p>
               RuneSignal is built on a minimal, auditable supply chain of established cloud infrastructure providers.
             </p>
@@ -169,7 +169,7 @@ export default function SecurityPage() {
           </Section>
 
           {/* 8. Compliance posture */}
-          <Section title="8. Regulatory Compliance Posture" accent="#3b82f6">
+          <Section title="8. Regulatory Compliance Posture" accent="var(--info)">
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem', marginTop: '0.5rem' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
@@ -179,13 +179,13 @@ export default function SecurityPage() {
                 </tr>
               </thead>
               <tbody>
-                <Tr><Td>GDPR</Td><Td><Badge color="#10b981">Implemented</Badge></Td><Td>DPA available. RLS, encryption, deletion rights, breach notification in place.</Td></Tr>
-                <Tr><Td>EU AI Act (Articles 13, 14, 17, 26)</Td><Td><Badge color="#10b981">Core capability</Badge></Td><Td>Evidence export endpoint generates article-mapped compliance packages.</Td></Tr>
-                <Tr><Td>ISO 42001</Td><Td><Badge color="#f59e0b">Partial</Badge></Td><Td>Clause 9 evidence mapping in progress. Full certification not yet pursued.</Td></Tr>
-                <Tr><Td>SOC 2 Type I</Td><Td><Badge color="#f59e0b">Planned Q3 2026</Badge></Td><Td>Observation period begins Q2 2026. Required for US enterprise buyers.</Td></Tr>
-                <Tr><Td>SOC 2 Type II</Td><Td><Badge color="#64748b">Roadmap</Badge></Td><Td>12-month observation required after Type I.</Td></Tr>
-                <Tr><Td>ISO 27001</Td><Td><Badge color="#64748b">Roadmap</Badge></Td><Td>Post Series A priority.</Td></Tr>
-                <Tr><Td>HIPAA</Td><Td><Badge color="#64748b">Roadmap</Badge></Td><Td>Available on Enterprise tier with BAA. Timeline subject to customer demand.</Td></Tr>
+                <Tr><Td>GDPR</Td><Td><Badge color="var(--success)">Implemented</Badge></Td><Td>DPA available. RLS, encryption, deletion rights, breach notification in place.</Td></Tr>
+                <Tr><Td>EU AI Act (Articles 13, 14, 17, 26)</Td><Td><Badge color="var(--success)">Core capability</Badge></Td><Td>Evidence export endpoint generates article-mapped compliance packages.</Td></Tr>
+                <Tr><Td>ISO 42001</Td><Td><Badge color="var(--warning)">Partial</Badge></Td><Td>Clause 9 evidence mapping in progress. Full certification not yet pursued.</Td></Tr>
+                <Tr><Td>SOC 2 Type I</Td><Td><Badge color="var(--warning)">Planned Q3 2026</Badge></Td><Td>Observation period begins Q2 2026. Required for US enterprise buyers.</Td></Tr>
+                <Tr><Td>SOC 2 Type II</Td><Td><Badge color="var(--text-tertiary)">Roadmap</Badge></Td><Td>12-month observation required after Type I.</Td></Tr>
+                <Tr><Td>ISO 27001</Td><Td><Badge color="var(--text-tertiary)">Roadmap</Badge></Td><Td>Post Series A priority.</Td></Tr>
+                <Tr><Td>HIPAA</Td><Td><Badge color="var(--text-tertiary)">Roadmap</Badge></Td><Td>Available on Enterprise tier with BAA. Timeline subject to customer demand.</Td></Tr>
               </tbody>
             </table>
           </Section>
@@ -194,14 +194,14 @@ export default function SecurityPage() {
 
         {/* Footer */}
         <div style={{ marginTop: '4rem', paddingTop: '2rem', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-          <p style={{ fontSize: '0.8rem', color: '#475569', marginBottom: '1rem' }}>
-            Security enquiries: <a href="mailto:security@runesignal.ai" style={{ color: '#10b981' }}>security@runesignal.ai</a>
+          <p style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', marginBottom: '1rem' }}>
+            Security enquiries: <a href="mailto:security@runesignal.ai" style={{ color: 'var(--success)' }}>security@runesignal.ai</a>
             &nbsp;·&nbsp;
-            <a href="/legal/dpa" style={{ color: '#10b981' }}>Data Processing Agreement</a>
+            <a href="/legal/dpa" style={{ color: 'var(--success)' }}>Data Processing Agreement</a>
             &nbsp;·&nbsp;
-            <a href="/legal/sla" style={{ color: '#10b981' }}>Service Level Agreement</a>
+            <a href="/legal/sla" style={{ color: 'var(--success)' }}>Service Level Agreement</a>
           </p>
-          <p style={{ fontSize: '0.75rem', color: '#334155' }}>
+          <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
             RuneSignal Architecture Trust Document · {LAST_UPDATED} · This document is provided for informational purposes only and does not constitute a warranty or guarantee of security. Controls are subject to change with notice.
           </p>
         </div>
@@ -218,7 +218,7 @@ function Section({ title, accent, children }: { title: string; accent: string; c
       <h2 style={{
         fontSize: '1.1rem',
         fontWeight: 600,
-        color: '#f1f5f9',
+        color: 'var(--text-primary)',
         marginBottom: '1.25rem',
         paddingBottom: '0.5rem',
         borderBottom: `2px solid ${accent}`,
@@ -228,7 +228,7 @@ function Section({ title, accent, children }: { title: string; accent: string; c
       }}>
         {title}
       </h2>
-      <div style={{ color: '#94a3b8', lineHeight: 1.8, fontSize: '0.9rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+      <div style={{ color: 'var(--text-secondary)', lineHeight: 1.8, fontSize: '0.9rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
         {children}
       </div>
     </section>
@@ -238,18 +238,18 @@ function Section({ title, accent, children }: { title: string; accent: string; c
 function Detail({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '180px 1fr', gap: '0.75rem', alignItems: 'start', paddingLeft: '0.5rem' }}>
-      <span style={{ color: '#64748b', fontWeight: 600, fontSize: '0.8rem', paddingTop: '0.05rem' }}>{label}</span>
+      <span style={{ color: 'var(--text-tertiary)', fontWeight: 600, fontSize: '0.8rem', paddingTop: '0.05rem' }}>{label}</span>
       <span style={{ whiteSpace: 'pre-line' }}>{children}</span>
     </div>
   );
 }
 
 function Th({ children }: { children: React.ReactNode }) {
-  return <th style={{ padding: '0.5rem 0.75rem', textAlign: 'left', color: '#64748b', fontWeight: 600, fontSize: '0.8rem' }}>{children}</th>;
+  return <th style={{ padding: '0.5rem 0.75rem', textAlign: 'left', color: 'var(--text-tertiary)', fontWeight: 600, fontSize: '0.8rem' }}>{children}</th>;
 }
 
 function Td({ children }: { children: React.ReactNode }) {
-  return <td style={{ padding: '0.5rem 0.75rem', color: '#94a3b8', fontSize: '0.85rem', verticalAlign: 'top' }}>{children}</td>;
+  return <td style={{ padding: '0.5rem 0.75rem', color: 'var(--text-secondary)', fontSize: '0.85rem', verticalAlign: 'top' }}>{children}</td>;
 }
 
 function Tr({ children }: { children: React.ReactNode }) {
@@ -257,18 +257,6 @@ function Tr({ children }: { children: React.ReactNode }) {
 }
 
 function Badge({ color, children }: { color: string; children: React.ReactNode }) {
-  return (
-    <span style={{
-      display: 'inline-block',
-      padding: '0.15rem 0.5rem',
-      borderRadius: '4px',
-      fontSize: '0.75rem',
-      fontWeight: 600,
-      color,
-      background: `${color}18`,
-      border: `1px solid ${color}40`,
-    }}>
-      {children}
-    </span>
-  );
+  const chipCls = color === 'var(--success)' ? 'chip chip-success' : color === 'var(--warning)' ? 'chip chip-warning' : color === 'var(--danger)' ? 'chip chip-danger' : 'chip';
+  return <span className={chipCls} style={{ fontSize: '0.75rem' }}>{children}</span>;
 }

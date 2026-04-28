@@ -90,39 +90,30 @@ export default function LoginPage() {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      background: 'radial-gradient(circle at top right, #1a1a2e 0%, #0d0d1a 100%)',
+      background: 'var(--bg-base)',
       padding: '2rem'
     }}>
-      <div className="glass-panel animate-fade-in" style={{
+      <div className="surface-elevated animate-fade-in" style={{
         width: '100%',
         maxWidth: '420px',
-        padding: '3rem 2.5rem',
+        padding: '2.5rem',
         textAlign: 'center'
       }}>
-        <div style={{ marginBottom: '2.5rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '0.75rem' }}>
-            <Wordmark size={48} />
+        <div style={{ marginBottom: '2rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '0.625rem' }}>
+            <Wordmark size={40} />
           </div>
-          <p style={{ color: 'var(--color-text-muted)', marginTop: '0.75rem', fontSize: '0.9rem' }}>
-            Enterprise Agent Governance Platform
+          <p style={{ color: 'var(--text-tertiary)', marginTop: '0.625rem', fontSize: '0.875rem' }}>
+            Enterprise Agent Governance
           </p>
         </div>
 
-        <h1 className="gradient-text" style={{ fontSize: '1.75rem', marginBottom: '2rem', fontWeight: 700 }}>
-          {mode === 'login' ? 'Welcome Back' : 'Get Started'}
+        <h1 style={{ fontSize: '1.5rem', marginBottom: '1.75rem', fontWeight: 600, letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
+          {mode === 'login' ? 'Welcome back' : 'Create account'}
         </h1>
 
         {error && (
-          <div style={{ 
-            background: 'rgba(239, 68, 68, 0.1)', 
-            border: '1px solid var(--color-error-rose)', 
-            color: 'var(--color-error-rose)',
-            padding: '0.75rem',
-            borderRadius: 'var(--radius-md)',
-            fontSize: '0.85rem',
-            marginBottom: '1.5rem',
-            textAlign: 'left'
-          }}>
+          <div className="callout callout-danger" style={{ marginBottom: '1.25rem', textAlign: 'left' }}>
             {error}
           </div>
         )}
@@ -161,10 +152,10 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <div style={{ margin: '2rem 0', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <div style={{ flex: 1, height: '1px', background: 'var(--border-glass)' }}></div>
-          <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>OR CONTINUE WITH</span>
-          <div style={{ flex: 1, height: '1px', background: 'var(--border-glass)' }}></div>
+        <div style={{ margin: '1.75rem 0', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div style={{ flex: 1, height: '1px', background: 'var(--border-default)' }} />
+          <span className="t-eyebrow">or continue with</span>
+          <div style={{ flex: 1, height: '1px', background: 'var(--border-default)' }} />
         </div>
 
         <div style={{ display: 'flex', gap: '1rem', marginBottom: '0.75rem' }}>
@@ -197,7 +188,7 @@ export default function LoginPage() {
                 onChange={e => setSsoDomain(e.target.value)}
                 required
               />
-              <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.4rem' }}>
+              <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '0.4rem' }}>
                 Enter your company domain to be redirected to your identity provider.
               </p>
             </div>
@@ -212,20 +203,13 @@ export default function LoginPage() {
           </form>
         )}
 
-        <p style={{ marginTop: '2.5rem', fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>
-          {mode === 'login' ? "Don't have an account?" : "Already have an account?"}
+        <p style={{ marginTop: '2rem', fontSize: '0.875rem', color: 'var(--text-tertiary)' }}>
+          {mode === 'login' ? "Don't have an account?" : 'Already have an account?'}{' '}
           <button 
             onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
-            style={{ 
-              background: 'none', 
-              border: 'none', 
-              color: 'var(--color-primary-emerald)', 
-              fontWeight: 600,
-              marginLeft: '0.5rem',
-              cursor: 'pointer'
-            }}
+            style={{ background: 'none', border: 'none', color: 'var(--accent)', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit' }}
           >
-            {mode === 'login' ? 'Sign Up' : 'Log In'}
+            {mode === 'login' ? 'Sign up' : 'Sign in'}
           </button>
         </p>
       </div>

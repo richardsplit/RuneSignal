@@ -91,13 +91,13 @@ export default function Sidebar() {
           onMouseEnter={() => setSearchHovered(true)}
           onMouseLeave={() => setSearchHovered(false)}
           title={collapsed ? 'Search (⌘K)' : undefined}
-          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', width: '100%', padding: collapsed ? '0.4375rem' : '0.4375rem 0.625rem', borderRadius: 'var(--radius-md)', background: searchHovered ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.03)', border: '1px solid var(--border-subtle)', color: 'var(--text-muted)', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.8125rem', transition: 'background var(--t-fast), border-color var(--t-fast)', justifyContent: collapsed ? 'center' : 'flex-start' }}
+          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', width: '100%', padding: collapsed ? '0.4375rem' : '0.4375rem 0.625rem', borderRadius: 'var(--radius-md)', background: searchHovered ? 'var(--hover-wash)' : 'var(--surface-2)', border: '1px solid var(--border-subtle)', color: 'var(--text-tertiary)', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.8125rem', transition: 'background var(--t-fast), border-color var(--t-fast)', justifyContent: collapsed ? 'center' : 'flex-start' }}
         >
           <IconSearch />
           {!collapsed && (
             <>
-              <span style={{ flex: 1, textAlign: 'left', color: 'var(--text-muted)' }}>Search…</span>
-              <kbd style={{ display: 'inline-flex', alignItems: 'center', gap: 1, padding: '1px 4px', borderRadius: 3, background: 'rgba(255,255,255,0.06)', border: '1px solid var(--border-default)', fontSize: '0.625rem', color: 'var(--text-muted)', fontFamily: 'inherit', lineHeight: 1.6 }}>⌘K</kbd>
+              <span style={{ flex: 1, textAlign: 'left', color: 'var(--text-tertiary)' }}>Search…</span>
+              <kbd style={{ display: 'inline-flex', alignItems: 'center', gap: 1, padding: '1px 4px', borderRadius: 3, background: 'var(--surface-3)', border: '1px solid var(--border-default)', fontSize: '0.625rem', color: 'var(--text-tertiary)', fontFamily: 'inherit', lineHeight: 1.6 }}>⌘K</kbd>
             </>
           )}
         </button>
@@ -108,7 +108,7 @@ export default function Sidebar() {
         {NAV_SECTIONS.map((section, si) => (
           <div key={si} style={{ marginBottom: si < NAV_SECTIONS.length - 1 ? '0.25rem' : 0, paddingBottom: '0.25rem', borderBottom: si < NAV_SECTIONS.length - 1 ? '1px solid var(--border-subtle)' : 'none' }}>
             {section.label && !collapsed && (
-              <div style={{ fontSize: '0.625rem', fontWeight: 600, color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '0.625rem 0.625rem 0.25rem' }}>
+              <div style={{ fontSize: '0.625rem', fontWeight: 600, color: 'var(--text-tertiary)', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '0.625rem 0.625rem 0.25rem' }}>
                 {section.label}
               </div>
             )}
@@ -130,3 +130,4 @@ export default function Sidebar() {
     </aside>
   );
 }
+

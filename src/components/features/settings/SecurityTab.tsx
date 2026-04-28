@@ -11,21 +11,22 @@ interface SecurityTabProps {
 export default function SecurityTab({ mfaEnabled, onToggleMFA, onUpdatePassword }: SecurityTabProps) {
   return (
     <div className="animate-fade-in">
-      <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '2rem', color: 'var(--color-text-main)' }}>Security & MFA</h2>
-      
-      <div style={{ display: 'grid', gap: '1.5rem' }}>
-        <div style={{ padding: '1.5rem', background: 'rgba(255,255,255,0.02)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-glass)' }}>
+      <h2 className="t-h3" style={{ marginBottom: 'var(--space-6)' }}>Security & MFA</h2>
+
+      <div style={{ display: 'grid', gap: 'var(--space-4)' }}>
+        <div className="surface" style={{ padding: 'var(--space-5)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
-              <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.25rem' }}>Multi-Factor Authentication</h3>
-              <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
-                Status: <span style={{ color: mfaEnabled ? 'var(--color-primary-emerald)' : 'var(--color-warning-amber)', fontWeight: 600 }}>
-                  {mfaEnabled ? 'Configured' : 'Not Configured'}
+              <h3 style={{ fontSize: '0.9375rem', fontWeight: 600, marginBottom: '0.25rem' }}>Multi-Factor Authentication</h3>
+              <p style={{ fontSize: '0.875rem', color: 'var(--text-tertiary)' }}>
+                Status:{' '}
+                <span style={{ color: mfaEnabled ? 'var(--success)' : 'var(--warning)', fontWeight: 600 }}>
+                  {mfaEnabled ? 'Configured' : 'Not configured'}
                 </span>
               </p>
             </div>
-            <button 
-              className={mfaEnabled ? "btn btn-outline" : "btn btn-primary"}
+            <button
+              className={mfaEnabled ? 'btn btn-outline btn-sm' : 'btn btn-primary btn-sm'}
               onClick={onToggleMFA}
             >
               {mfaEnabled ? 'Disable MFA' : 'Configure MFA'}
@@ -33,12 +34,12 @@ export default function SecurityTab({ mfaEnabled, onToggleMFA, onUpdatePassword 
           </div>
         </div>
 
-        <div style={{ padding: '1.5rem', background: 'rgba(255,255,255,0.02)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-glass)' }}>
-          <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '1rem' }}>Change Password</h3>
-          <div style={{ display: 'grid', gap: '1rem', maxWidth: '400px' }}>
-            <input type="password" placeholder="Current Password" className="form-input" style={{ width: '100%' }} />
-            <input type="password" placeholder="New Password" className="form-input" style={{ width: '100%' }} />
-            <button className="btn btn-outline" style={{ width: 'max-content' }} onClick={onUpdatePassword}>Update Password</button>
+        <div className="surface" style={{ padding: 'var(--space-5)' }}>
+          <h3 style={{ fontSize: '0.9375rem', fontWeight: 600, marginBottom: 'var(--space-4)' }}>Change Password</h3>
+          <div style={{ display: 'grid', gap: 'var(--space-3)', maxWidth: '400px' }}>
+            <input type="password" placeholder="Current password" className="form-input" />
+            <input type="password" placeholder="New password" className="form-input" />
+            <button className="btn btn-outline btn-sm" style={{ width: 'max-content' }} onClick={onUpdatePassword}>Update Password</button>
           </div>
         </div>
       </div>

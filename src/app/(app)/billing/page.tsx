@@ -35,17 +35,17 @@ const PLANS = [
 
 /** Evidence Plane sub-meters shown inside the Evidence Packs dropdown */
 const METERS = [
-  { label: 'Evidence Pack Signed',    event: 'evidence_pack_signed',   unit: 'packs',     color: '#6366f1', icon: '📦' },
-  { label: 'Decision Ledger Replay',  event: 'decision_ledger_replay', unit: 'queries',   color: '#8b5cf6', icon: '🔁' },
-  { label: 'Passport Verification',   event: 'passport_verification',  unit: 'checks',    color: '#06b6d4', icon: '🛂' },
-  { label: 'Passport Issued',         event: 'passport_issued',        unit: 'passports', color: '#10b981', icon: '🪪' },
+  { label: 'Evidence Pack Signed',    event: 'evidence_pack_signed',   unit: 'packs',     color: 'var(--accent)',   icon: '📦' },
+  { label: 'Decision Ledger Replay',  event: 'decision_ledger_replay', unit: 'queries',   color: 'var(--info)',     icon: '🔁' },
+  { label: 'Passport Verification',   event: 'passport_verification',  unit: 'checks',    color: 'var(--info)',     icon: '🛂' },
+  { label: 'Passport Issued',         event: 'passport_issued',        unit: 'passports', color: 'var(--success)',  icon: '🪪' },
 ];
 
 /** Add-on product definitions — prices shown in tier table, one CTA at bottom */
 const ADDONS = [
   {
-    tier: 'T2', name: 'Evidence Pack Add-On', accentColor: '#6366f1', accentBg: 'rgba(99,102,241,0.15)', accentBorder: 'rgba(99,102,241,0.3)',
-    badgeColor: '#818cf8',
+    tier: 'T2', name: 'Evidence Pack Add-On', accentColor: 'var(--accent)', accentBg: 'var(--accent-soft)', accentBorder: 'var(--accent-border)',
+    badgeColor: 'var(--accent)',
     // showPricingOnRequest removed per policy
     priceSub: 'per signed Pack · volume-tiered',
     buyer: '👤 General Counsel · CRO · Head of AI Risk',
@@ -56,8 +56,8 @@ const ADDONS = [
     cta: 'Talk to sales', ctaHref: 'mailto:sales@runesignal.io', ctaRed: false,
   },
   {
-    tier: 'T3', name: 'Decision Ledger & Reversibility', accentColor: '#8b5cf6', accentBg: 'rgba(139,92,246,0.15)', accentBorder: 'rgba(139,92,246,0.3)',
-    badgeColor: '#a78bfa',
+    tier: 'T3', name: 'Decision Ledger & Reversibility', accentColor: 'var(--info)', accentBg: 'var(--info-soft)', accentBorder: 'var(--info-border)',
+    badgeColor: 'var(--info)',
     priceSub: 'ACV + per-query',
     buyer: '👤 Head of AI Ops · CRO · General Counsel',
     trigger: { text: 'Triggered by first material incident', red: false },
@@ -67,8 +67,8 @@ const ADDONS = [
     cta: 'Talk to sales', ctaHref: 'mailto:sales@runesignal.io', ctaRed: false,
   },
   {
-    tier: 'T4', name: 'Agent Passport Registry', accentColor: '#06b6d4', accentBg: 'rgba(6,182,212,0.15)', accentBorder: 'rgba(6,182,212,0.3)',
-    badgeColor: '#22d3ee',
+    tier: 'T4', name: 'Agent Passport Registry', accentColor: 'var(--info)', accentBg: 'var(--info-soft)', accentBorder: 'var(--info-border)',
+    badgeColor: 'var(--info)',
     priceSub: 'ACV + per-verification',
     buyer: '👤 Platform Eng · CISO · Counterparty trust',
     trigger: { text: 'Consortium moat — 12+ mo cycle, long-term flywheel', red: true },
@@ -78,8 +78,8 @@ const ADDONS = [
     cta: 'Talk to sales', ctaHref: 'mailto:sales@runesignal.io', ctaRed: false,
   },
   {
-    tier: 'T-I', name: 'Insurance Carrier OEM', accentColor: '#ef4444', accentBg: 'rgba(239,68,68,0.12)', accentBorder: 'rgba(239,68,68,0.3)',
-    badgeColor: '#f87171',
+    tier: 'T-I', name: 'Insurance Carrier OEM', accentColor: 'var(--danger)', accentBg: 'var(--danger-soft)', accentBorder: 'var(--danger-border)',
+    badgeColor: 'var(--danger)',
     priceSub: '+ revenue-share per insured agent',
     buyer: '👤 Reinsurer / Insurance Carrier',
     trigger: { text: 'Phase 9 — requires 3+ signed contracts to activate', red: false },
@@ -238,7 +238,7 @@ export default function BillingPage() {
       {/* ── Usage This Month ── */}
       <div className="surface" style={{ maxWidth: '860px', margin: '0 auto 3rem', padding: '1.75rem 2rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1.75rem' }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--success)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
           <h2 style={{ fontSize: '1rem', fontWeight: 700, margin: 0 }}>Usage This Month</h2>
         </div>
 
@@ -252,7 +252,7 @@ export default function BillingPage() {
                 {usageStats.agentActions.toLocaleString()} / {fmt(limits.agentActions)}
               </span>
             </div>
-            <ProgressBar value={usageStats.agentActions} max={limits.agentActions === Infinity ? 1 : limits.agentActions} color="#10b981" />
+            <ProgressBar value={usageStats.agentActions} max={limits.agentActions === Infinity ? 1 : limits.agentActions} color="var(--success)" />
           </div>
 
           {/* Audit Ledger Writes */}
@@ -263,7 +263,7 @@ export default function BillingPage() {
                 {usageStats.ledgerWrites.toLocaleString()} / {fmt(limits.ledgerWrites)}
               </span>
             </div>
-            <ProgressBar value={usageStats.ledgerWrites} max={limits.ledgerWrites === Infinity ? 1 : limits.ledgerWrites} color="#3b82f6" />
+            <ProgressBar value={usageStats.ledgerWrites} max={limits.ledgerWrites === Infinity ? 1 : limits.ledgerWrites} color="var(--info)" />
           </div>
 
           {/* HITL Reviews */}
@@ -274,7 +274,7 @@ export default function BillingPage() {
                 {usageStats.hitlReviews} / {limits.hitlReviews === Infinity ? '∞' : limits.hitlReviews}
               </span>
             </div>
-            <ProgressBar value={usageStats.hitlReviews} max={limits.hitlReviews === Infinity ? 1 : limits.hitlReviews} color="#f59e0b" />
+            <ProgressBar value={usageStats.hitlReviews} max={limits.hitlReviews === Infinity ? 1 : limits.hitlReviews} color="var(--warning)" />
           </div>
 
           {/* Evidence Packs — dropdown or locked */}
@@ -286,7 +286,7 @@ export default function BillingPage() {
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Evidence Packs</span>
                 {isCoreOrAbove && (
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-tertiary)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: evidenceOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-tertiary)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: evidenceOpen ? 'rotate(180deg)' : 'none', transition: 'transform var(--t-base)' }}>
                     <polyline points="6 9 12 15 18 9" />
                   </svg>
                 )}
@@ -334,7 +334,7 @@ export default function BillingPage() {
       {/* ── Metered Add-On Products ── */}
       <div style={{ maxWidth: '1200px', margin: '0 auto 3rem' }}>
         <div style={{ marginBottom: '1.5rem' }}>
-          <p style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#6366f1', marginBottom: '0.5rem' }}>
+          <p style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--accent)', marginBottom: '0.5rem' }}>
             Metered Add-Ons — Evidence Plane
           </p>
           <h2 style={{ fontSize: '1.4rem', fontWeight: 700, marginBottom: '0.25rem' }}>Three products. Three buyers. Three budgets.</h2>
@@ -347,7 +347,7 @@ export default function BillingPage() {
 
               {/* Header */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
-                <span style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', background: addon.accentBg, color: addon.badgeColor, border: `1px solid ${addon.accentBorder}`, borderRadius: '20px', padding: '0.2rem 0.55rem' }}>{addon.tier}</span>
+                <span style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', background: addon.accentBg, color: addon.badgeColor, border: `1px solid ${addon.accentBorder}`, borderRadius: 'var(--radius-2xl)', padding: '0.2rem 0.55rem' }}>{addon.tier}</span>
                 <span style={{ fontSize: '0.95rem', fontWeight: 700 }}>{addon.name}</span>
               </div>
 
@@ -359,7 +359,7 @@ export default function BillingPage() {
 
               {/* Buyer + trigger */}
               <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginBottom: '0.35rem' }}>{addon.buyer}</div>
-              <span style={{ fontSize: '0.72rem', fontWeight: 600, background: addon.trigger.red ? 'rgba(239,68,68,0.1)' : 'rgba(245,158,11,0.12)', color: addon.trigger.red ? '#f87171' : '#fbbf24', border: `1px solid ${addon.trigger.red ? 'rgba(239,68,68,0.25)' : 'rgba(245,158,11,0.25)'}`, borderRadius: '4px', padding: '0.2rem 0.5rem', marginBottom: '0.75rem', display: 'inline-block', width: 'fit-content' }}>
+              <span className={addon.trigger.red ? 'chip chip-danger' : 'chip chip-warning'} style={{ marginBottom: 'var(--space-3)', display: 'inline-block' }}>
                 {addon.trigger.text}
               </span>
 
@@ -391,7 +391,7 @@ export default function BillingPage() {
               <a
                 href={addon.ctaHref}
                 className="btn btn-outline"
-                style={{ textAlign: 'center', textDecoration: 'none', padding: '0.65rem', ...(addon.ctaRed ? { color: '#f87171', borderColor: 'rgba(239,68,68,0.4)' } : {}) }}
+                style={{ textAlign: 'center', textDecoration: 'none', padding: '0.65rem', ...(addon.ctaRed ? { color: 'var(--danger)', borderColor: 'var(--danger-border)' } : {}) }}
               >
                 {addon.cta}
               </a>

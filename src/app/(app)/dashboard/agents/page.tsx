@@ -64,7 +64,7 @@ function AgentRow({ agent }: { agent: Agent }) {
         <Badge label={agent.platform} color="var(--accent)" />
       </td>
       <td style={tdStyle}>
-        <Badge label={agent.risk_classification} color={RISK_COLORS[agent.risk_classification] || '#6b7280'} />
+        <Badge label={agent.risk_classification} color={RISK_COLORS[agent.risk_classification] || 'var(--text-tertiary)'} />
       </td>
       <td style={tdStyle}>
         <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>

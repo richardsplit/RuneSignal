@@ -9,15 +9,15 @@ function RuneGlyph({ size = 28 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 28 28" fill="none" aria-hidden="true">
       {/* Vertical bar */}
-      <line x1="14" y1="3" x2="14" y2="25" stroke="#10b981" strokeWidth="2.2" strokeLinecap="round" />
+      <line x1="14" y1="3" x2="14" y2="25" stroke="var(--success)" strokeWidth="2.2" strokeLinecap="round" />
       {/* Upper left arm */}
-      <line x1="14" y1="9" x2="6" y2="4" stroke="#10b981" strokeWidth="2.2" strokeLinecap="round" />
+      <line x1="14" y1="9" x2="6" y2="4" stroke="var(--success)" strokeWidth="2.2" strokeLinecap="round" />
       {/* Upper right arm */}
-      <line x1="14" y1="9" x2="22" y2="4" stroke="#10b981" strokeWidth="2.2" strokeLinecap="round" />
+      <line x1="14" y1="9" x2="22" y2="4" stroke="var(--success)" strokeWidth="2.2" strokeLinecap="round" />
       {/* Lower left arm */}
-      <line x1="14" y1="17" x2="6" y2="23" stroke="#3b82f6" strokeWidth="2.2" strokeLinecap="round" />
+      <line x1="14" y1="17" x2="6" y2="23" stroke="var(--accent)" strokeWidth="2.2" strokeLinecap="round" />
       {/* Lower right arm */}
-      <line x1="14" y1="17" x2="22" y2="23" stroke="#3b82f6" strokeWidth="2.2" strokeLinecap="round" />
+      <line x1="14" y1="17" x2="22" y2="23" stroke="var(--accent)" strokeWidth="2.2" strokeLinecap="round" />
     </svg>
   );
 }
@@ -25,10 +25,10 @@ function RuneGlyph({ size = 28 }: { size?: number }) {
 function IconReport() {
   return (
     <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
-      <rect x="3" y="2" width="16" height="18" rx="2" stroke="#10b981" strokeWidth="1.6" />
-      <line x1="7" y1="7" x2="15" y2="7" stroke="#10b981" strokeWidth="1.4" strokeLinecap="round" />
-      <line x1="7" y1="11" x2="15" y2="11" stroke="#10b981" strokeWidth="1.4" strokeLinecap="round" />
-      <line x1="7" y1="15" x2="11" y2="15" stroke="#10b981" strokeWidth="1.4" strokeLinecap="round" />
+      <rect x="3" y="2" width="16" height="18" rx="2" stroke="var(--success)" strokeWidth="1.6" />
+      <line x1="7" y1="7" x2="15" y2="7" stroke="var(--success)" strokeWidth="1.4" strokeLinecap="round" />
+      <line x1="7" y1="11" x2="15" y2="11" stroke="var(--success)" strokeWidth="1.4" strokeLinecap="round" />
+      <line x1="7" y1="15" x2="11" y2="15" stroke="var(--success)" strokeWidth="1.4" strokeLinecap="round" />
     </svg>
   );
 }
@@ -36,10 +36,10 @@ function IconReport() {
 function IconHITL() {
   return (
     <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
-      <circle cx="11" cy="8" r="4" stroke="#10b981" strokeWidth="1.6" />
-      <path d="M4 19c0-3.866 3.134-7 7-7h0c3.866 0 7 3.134 7 7" stroke="#10b981" strokeWidth="1.6" strokeLinecap="round" />
-      <line x1="18" y1="4" x2="22" y2="4" stroke="#3b82f6" strokeWidth="1.4" strokeLinecap="round" />
-      <line x1="18" y1="7" x2="22" y2="7" stroke="#3b82f6" strokeWidth="1.4" strokeLinecap="round" />
+      <circle cx="11" cy="8" r="4" stroke="var(--success)" strokeWidth="1.6" />
+      <path d="M4 19c0-3.866 3.134-7 7-7h0c3.866 0 7 3.134 7 7" stroke="var(--success)" strokeWidth="1.6" strokeLinecap="round" />
+      <line x1="18" y1="4" x2="22" y2="4" stroke="var(--accent)" strokeWidth="1.4" strokeLinecap="round" />
+      <line x1="18" y1="7" x2="22" y2="7" stroke="var(--accent)" strokeWidth="1.4" strokeLinecap="round" />
     </svg>
   );
 }
@@ -47,10 +47,10 @@ function IconHITL() {
 function IconInventory() {
   return (
     <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
-      <rect x="2" y="2" width="8" height="8" rx="1.5" stroke="#10b981" strokeWidth="1.6" />
-      <rect x="12" y="2" width="8" height="8" rx="1.5" stroke="#10b981" strokeWidth="1.6" />
-      <rect x="2" y="12" width="8" height="8" rx="1.5" stroke="#3b82f6" strokeWidth="1.6" />
-      <rect x="12" y="12" width="8" height="8" rx="1.5" stroke="#3b82f6" strokeWidth="1.6" />
+      <rect x="2" y="2" width="8" height="8" rx="1.5" stroke="var(--success)" strokeWidth="1.6" />
+      <rect x="12" y="2" width="8" height="8" rx="1.5" stroke="var(--success)" strokeWidth="1.6" />
+      <rect x="2" y="12" width="8" height="8" rx="1.5" stroke="var(--accent)" strokeWidth="1.6" />
+      <rect x="12" y="12" width="8" height="8" rx="1.5" stroke="var(--accent)" strokeWidth="1.6" />
     </svg>
   );
 }
@@ -58,11 +58,11 @@ function IconInventory() {
 function IconIntegrations() {
   return (
     <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
-      <circle cx="4" cy="11" r="2.5" stroke="#10b981" strokeWidth="1.6" />
-      <circle cx="18" cy="4" r="2.5" stroke="#10b981" strokeWidth="1.6" />
-      <circle cx="18" cy="18" r="2.5" stroke="#3b82f6" strokeWidth="1.6" />
-      <line x1="6.5" y1="10" x2="15.5" y2="5.2" stroke="#10b981" strokeWidth="1.4" strokeLinecap="round" />
-      <line x1="6.5" y1="12" x2="15.5" y2="16.8" stroke="#3b82f6" strokeWidth="1.4" strokeLinecap="round" />
+      <circle cx="4" cy="11" r="2.5" stroke="var(--success)" strokeWidth="1.6" />
+      <circle cx="18" cy="4" r="2.5" stroke="var(--success)" strokeWidth="1.6" />
+      <circle cx="18" cy="18" r="2.5" stroke="var(--accent)" strokeWidth="1.6" />
+      <line x1="6.5" y1="10" x2="15.5" y2="5.2" stroke="var(--success)" strokeWidth="1.4" strokeLinecap="round" />
+      <line x1="6.5" y1="12" x2="15.5" y2="16.8" stroke="var(--accent)" strokeWidth="1.4" strokeLinecap="round" />
     </svg>
   );
 }
@@ -70,9 +70,9 @@ function IconIntegrations() {
 function IconSDK() {
   return (
     <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
-      <polyline points="6,8 2,11 6,14" stroke="#10b981" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-      <polyline points="16,8 20,11 16,14" stroke="#10b981" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-      <line x1="13" y1="5" x2="9" y2="17" stroke="#3b82f6" strokeWidth="1.6" strokeLinecap="round" />
+      <polyline points="6,8 2,11 6,14" stroke="var(--success)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <polyline points="16,8 20,11 16,14" stroke="var(--success)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <line x1="13" y1="5" x2="9" y2="17" stroke="var(--accent)" strokeWidth="1.6" strokeLinecap="round" />
     </svg>
   );
 }
@@ -80,8 +80,8 @@ function IconSDK() {
 function CheckIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ display: 'inline', marginRight: 4 }}>
-      <circle cx="8" cy="8" r="7" fill="rgba(16,185,129,0.15)" />
-      <polyline points="4.5,8.5 7,11 11.5,5.5" stroke="#10b981" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="8" cy="8" r="7" fill="var(--success-soft)" />
+      <polyline points="4.5,8.5 7,11 11.5,5.5" stroke="var(--success)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
@@ -89,9 +89,9 @@ function CheckIcon() {
 function CrossIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ display: 'inline', marginRight: 4 }}>
-      <circle cx="8" cy="8" r="7" fill="rgba(239,68,68,0.1)" />
-      <line x1="5.5" y1="5.5" x2="10.5" y2="10.5" stroke="#ef4444" strokeWidth="1.6" strokeLinecap="round" />
-      <line x1="10.5" y1="5.5" x2="5.5" y2="10.5" stroke="#ef4444" strokeWidth="1.6" strokeLinecap="round" />
+      <circle cx="8" cy="8" r="7" fill="var(--danger-soft)" />
+      <line x1="5.5" y1="5.5" x2="10.5" y2="10.5" stroke="var(--danger)" strokeWidth="1.6" strokeLinecap="round" />
+      <line x1="10.5" y1="5.5" x2="5.5" y2="10.5" stroke="var(--danger)" strokeWidth="1.6" strokeLinecap="round" />
     </svg>
   );
 }
@@ -99,8 +99,8 @@ function CrossIcon() {
 function PartialIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ display: 'inline', marginRight: 4 }}>
-      <circle cx="8" cy="8" r="7" fill="rgba(234,179,8,0.12)" />
-      <line x1="5" y1="8" x2="11" y2="8" stroke="#eab308" strokeWidth="1.8" strokeLinecap="round" />
+      <circle cx="8" cy="8" r="7" fill="var(--warning-soft)" />
+      <line x1="5" y1="8" x2="11" y2="8" stroke="var(--warning)" strokeWidth="1.8" strokeLinecap="round" />
     </svg>
   );
 }
@@ -204,9 +204,9 @@ export default function LandingPage() {
   }, []);
 
   const cellVal = (v: string) => {
-    if (v === 'yes') return <><CheckIcon /><span style={{ color: '#10b981' }}>Yes</span></>;
-    if (v === 'no') return <><CrossIcon /><span style={{ color: '#ef4444' }}>No</span></>;
-    return <><PartialIcon /><span style={{ color: '#eab308' }}>Partial</span></>;
+    if (v === 'yes') return <><CheckIcon /><span style={{ color: 'var(--success)' }}>Yes</span></>;
+    if (v === 'no') return <><CrossIcon /><span style={{ color: 'var(--danger)' }}>No</span></>;
+    return <><PartialIcon /><span style={{ color: 'var(--warning)' }}>Partial</span></>;
   };
 
   return (
@@ -215,23 +215,23 @@ export default function LandingPage() {
         * { box-sizing: border-box; margin: 0; padding: 0; }
         html { scroll-behavior: smooth; }
 
-        .landing-card { transition: all 0.2s ease; }
+        .landing-card { transition: border-color var(--t-base), background var(--t-base), transform var(--t-base); }
         .landing-card:hover {
-          border-color: rgba(16,185,129,0.35) !important;
-          background: rgba(16,185,129,0.04) !important;
+          border-color: var(--success-border) !important;
+          background: var(--success-soft) !important;
           transform: translateY(-2px);
         }
-        .landing-nav-link { transition: color 0.2s; }
+        .landing-nav-link { transition: color var(--t-base); }
         .landing-nav-link:hover { color: #fff !important; }
-        .landing-cta-primary { transition: opacity 0.2s, transform 0.15s; }
+        .landing-cta-primary { transition: opacity var(--t-base), transform var(--t-fast); }
         .landing-cta-primary:hover { opacity: 0.9; transform: translateY(-1px); }
-        .landing-cta-secondary { transition: background 0.2s; }
+        .landing-cta-secondary { transition: background var(--t-base); }
         .landing-cta-secondary:hover { background: rgba(255,255,255,0.1) !important; }
-        .badge-pill { transition: background 0.2s, border-color 0.2s; }
-        .badge-pill:hover { background: rgba(16,185,129,0.12) !important; border-color: rgba(16,185,129,0.4) !important; }
+        .badge-pill { transition: background var(--t-base), border-color var(--t-base); }
+        .badge-pill:hover { background: var(--success-soft) !important; border-color: var(--success-border) !important; }
         .compare-row:hover td { background: rgba(255,255,255,0.02) !important; }
-        .step-card:hover { border-color: rgba(59,130,246,0.3) !important; }
-        .step-card { transition: border-color 0.2s; }
+        .step-card:hover { border-color: var(--info-soft) !important; }
+        .step-card { transition: border-color var(--t-base); }
 
         pre { white-space: pre-wrap; word-break: break-all; }
         code { font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace; }
@@ -257,7 +257,7 @@ export default function LandingPage() {
           background: scrolled ? 'rgba(8,8,18,0.92)' : 'transparent',
           backdropFilter: scrolled ? 'blur(12px)' : 'none',
           borderBottom: scrolled ? '1px solid rgba(255,255,255,0.06)' : '1px solid transparent',
-          transition: 'background 0.3s, border-color 0.3s, backdrop-filter 0.3s',
+          transition: 'background var(--t-slow), border-color var(--t-slow), backdrop-filter var(--t-slow)',
           padding: '0 24px',
         }}>
           <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 64 }}>
@@ -279,8 +279,8 @@ export default function LandingPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <Link href="/login" className="landing-nav-link" style={{ color: '#94a3b8', fontSize: 14, fontWeight: 500, padding: '6px 12px', textDecoration: 'none' }}>Sign in</Link>
               <Link href="/login?mode=signup" className="landing-cta-primary" style={{
-                background: '#10b981', color: '#fff', fontSize: 14, fontWeight: 600,
-                padding: '7px 16px', borderRadius: 8, textDecoration: 'none', display: 'inline-block',
+                background: 'var(--success)', color: '#fff', fontSize: 14, fontWeight: 600,
+                padding: '7px 16px', borderRadius: 'var(--radius-md)', textDecoration: 'none', display: 'inline-block',
               }}>Get Started Free</Link>
             </div>
           </div>
@@ -289,14 +289,14 @@ export default function LandingPage() {
         {/* ── HERO ─────────────────────────────────────────── */}
         <section style={{ paddingTop: 160, paddingBottom: 100, textAlign: 'center', padding: '160px 24px 100px' }}>
           {/* Badge */}
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.25)', borderRadius: 999, padding: '6px 16px', marginBottom: 32 }}>
-            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
-            <span style={{ fontSize: 13, color: '#10b981', fontWeight: 500, letterSpacing: '0.02em' }}>EU AI Act &middot; August 2026 enforcement</span>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'var(--success-soft)', border: '1px solid var(--success-border)', borderRadius: 'var(--radius-pill)', padding: '6px 16px', marginBottom: 32 }}>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--success)', display: 'inline-block' }} />
+            <span style={{ fontSize: 13, color: 'var(--success)', fontWeight: 500, letterSpacing: '0.02em' }}>EU AI Act &middot; August 2026 enforcement</span>
           </div>
 
           <h1 style={{ fontSize: 'clamp(36px, 6vw, 72px)', fontWeight: 800, lineHeight: 1.08, letterSpacing: '-0.03em', color: '#f8fafc', maxWidth: 900, margin: '0 auto 24px' }}>
             Five features to govern<br />
-            <span style={{ color: '#10b981' }}>every AI agent</span> you ship
+            <span style={{ color: 'var(--success)' }}>every AI agent</span> you ship
           </h1>
 
           <p style={{ fontSize: 'clamp(17px, 2vw, 21px)', color: '#94a3b8', maxWidth: 680, margin: '0 auto 40px', lineHeight: 1.6 }}>
@@ -306,7 +306,7 @@ export default function LandingPage() {
           {/* CTAs */}
           <div className="hero-btns" style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 60 }}>
             <Link href="/login?mode=signup" className="landing-cta-primary" style={{
-              background: '#10b981', color: '#fff', fontSize: 16, fontWeight: 700,
+              background: 'var(--success)', color: '#fff', fontSize: 16, fontWeight: 700,
               padding: '14px 28px', borderRadius: 10, textDecoration: 'none', display: 'inline-block',
             }}>Start free trial &rarr;</Link>
             <Link href="/documentation" className="landing-cta-secondary" style={{
@@ -321,7 +321,7 @@ export default function LandingPage() {
             {['EU AI Act', 'GDPR', 'NIST RMF', 'SOC 2', 'HIPAA', 'OWASP Top 10'].map(b => (
               <span key={b} className="badge-pill" style={{
                 fontSize: 12, fontWeight: 600, color: '#64748b', border: '1px solid rgba(255,255,255,0.1)',
-                borderRadius: 999, padding: '4px 12px', background: 'rgba(255,255,255,0.03)',
+                borderRadius: 'var(--radius-pill)', padding: '4px 12px', background: 'rgba(255,255,255,0.03)',
                 cursor: 'default', letterSpacing: '0.02em',
               }}>{b}</span>
             ))}
@@ -331,7 +331,7 @@ export default function LandingPage() {
         {/* ── FEATURE CARDS ─────────────────────────────────── */}
         <section style={{ padding: '80px 24px', maxWidth: 1200, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 64 }}>
-            <p style={{ fontSize: 13, fontWeight: 600, color: '#10b981', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 12 }}>Platform</p>
+            <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--success)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 12 }}>Platform</p>
             <h2 style={{ fontSize: 'clamp(28px, 4vw, 48px)', fontWeight: 800, letterSpacing: '-0.03em', color: '#f8fafc' }}>
               Five features. Unlimited visibility.
             </h2>
@@ -341,11 +341,11 @@ export default function LandingPage() {
             {FEATURES.map(f => (
               <div key={f.id} className="landing-card" style={{
                 background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)',
-                borderRadius: 16, padding: 28, display: 'flex', flexDirection: 'column', gap: 16,
+                borderRadius: 'var(--radius-xl)', padding: 28, display: 'flex', flexDirection: 'column', gap: 16,
               }}>
                 {/* Icon + title */}
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-                  <div style={{ padding: 8, background: 'rgba(16,185,129,0.08)', borderRadius: 10, flexShrink: 0, marginTop: 2 }}>
+                  <div style={{ padding: 8, background: 'var(--success-soft)', borderRadius: 10, flexShrink: 0, marginTop: 2 }}>
                     <f.Icon />
                   </div>
                   <h3 style={{ fontSize: 17, fontWeight: 700, color: '#f1f5f9', lineHeight: 1.35, letterSpacing: '-0.01em' }}>{f.title}</h3>
@@ -364,7 +364,7 @@ export default function LandingPage() {
                 </pre>
 
                 {/* Learn more */}
-                <Link href="/documentation" className="landing-nav-link" style={{ fontSize: 13, fontWeight: 600, color: '#3b82f6', textDecoration: 'none' }}>
+                <Link href="/documentation" className="landing-nav-link" style={{ fontSize: 13, fontWeight: 600, color: 'var(--accent)', textDecoration: 'none' }}>
                   Learn more &rarr;
                 </Link>
               </div>
@@ -382,7 +382,7 @@ export default function LandingPage() {
               { val: '3 lines', label: 'To instrument any agent' },
             ].map(s => (
               <div key={s.val}>
-                <div style={{ fontSize: 'clamp(24px, 3.5vw, 40px)', fontWeight: 800, color: '#10b981', letterSpacing: '-0.03em', marginBottom: 6 }}>{s.val}</div>
+                <div style={{ fontSize: 'clamp(24px, 3.5vw, 40px)', fontWeight: 800, color: 'var(--success)', letterSpacing: '-0.03em', marginBottom: 6 }}>{s.val}</div>
                 <div style={{ fontSize: 13, color: '#64748b', lineHeight: 1.4 }}>{s.label}</div>
               </div>
             ))}
@@ -392,7 +392,7 @@ export default function LandingPage() {
         {/* ── HOW IT WORKS ──────────────────────────────────── */}
         <section style={{ padding: '80px 24px', maxWidth: 1100, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 56 }}>
-            <p style={{ fontSize: 13, fontWeight: 600, color: '#10b981', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 12 }}>How it works</p>
+            <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--success)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 12 }}>How it works</p>
             <h2 style={{ fontSize: 'clamp(26px, 3.5vw, 42px)', fontWeight: 800, letterSpacing: '-0.03em', color: '#f8fafc' }}>
               From zero to audit-ready in minutes
             </h2>
@@ -404,7 +404,7 @@ export default function LandingPage() {
                 background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)',
                 borderRadius: 14, padding: '24px 20px',
               }}>
-                <div style={{ fontSize: 12, fontWeight: 700, color: '#3b82f6', letterSpacing: '0.1em', marginBottom: 12 }}>{s.n}</div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--accent)', letterSpacing: '0.1em', marginBottom: 12 }}>{s.n}</div>
                 <div style={{ fontSize: 16, fontWeight: 700, color: '#f1f5f9', marginBottom: 10 }}>{s.title}</div>
                 <div style={{ fontSize: 13, color: '#64748b', lineHeight: 1.6 }}>{s.desc}</div>
               </div>
@@ -419,7 +419,7 @@ export default function LandingPage() {
             {INTEGRATIONS.map(i => (
               <span key={i} className="badge-pill" style={{
                 fontSize: 13, fontWeight: 600, color: '#94a3b8',
-                border: '1px solid rgba(255,255,255,0.1)', borderRadius: 999,
+                border: '1px solid rgba(255,255,255,0.1)', borderRadius: 'var(--radius-pill)',
                 padding: '6px 16px', background: 'rgba(255,255,255,0.03)', cursor: 'default',
               }}>{i}</span>
             ))}
@@ -429,7 +429,7 @@ export default function LandingPage() {
         {/* ── COMPARISON TABLE ──────────────────────────────── */}
         <section style={{ padding: '80px 24px', maxWidth: 1000, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 48 }}>
-            <p style={{ fontSize: 13, fontWeight: 600, color: '#10b981', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 12 }}>Why RuneSignal</p>
+            <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--success)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 12 }}>Why RuneSignal</p>
             <h2 style={{ fontSize: 'clamp(26px, 3.5vw, 40px)', fontWeight: 800, letterSpacing: '-0.03em', color: '#f8fafc' }}>
               Built for agentic AI — not retrofitted
             </h2>
@@ -440,7 +440,7 @@ export default function LandingPage() {
               <thead>
                 <tr>
                   <th style={{ textAlign: 'left', padding: '12px 16px', color: '#64748b', fontWeight: 600, borderBottom: '1px solid rgba(255,255,255,0.08)', fontSize: 13 }}>Feature</th>
-                  <th style={{ padding: '12px 16px', color: '#10b981', fontWeight: 700, borderBottom: '1px solid rgba(255,255,255,0.08)', fontSize: 13, textAlign: 'center' }}>RuneSignal</th>
+                  <th style={{ padding: '12px 16px', color: 'var(--success)', fontWeight: 700, borderBottom: '1px solid rgba(255,255,255,0.08)', fontSize: 13, textAlign: 'center' }}>RuneSignal</th>
                   <th style={{ padding: '12px 16px', color: '#64748b', fontWeight: 600, borderBottom: '1px solid rgba(255,255,255,0.08)', fontSize: 13, textAlign: 'center' }}>Credo AI</th>
                   <th style={{ padding: '12px 16px', color: '#64748b', fontWeight: 600, borderBottom: '1px solid rgba(255,255,255,0.08)', fontSize: 13, textAlign: 'center' }}>Lakera</th>
                 </tr>
@@ -463,8 +463,8 @@ export default function LandingPage() {
         <section style={{ padding: '80px 24px', textAlign: 'center', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
           <div style={{
             maxWidth: 680, margin: '0 auto', padding: '60px 40px',
-            background: 'linear-gradient(135deg, rgba(16,185,129,0.07) 0%, rgba(59,130,246,0.07) 100%)',
-            border: '1px solid rgba(16,185,129,0.18)', borderRadius: 24,
+            background: 'linear-gradient(135deg, var(--success-soft) 0%, var(--info-soft) 100%)',
+            border: '1px solid var(--success-border)', borderRadius: 24,
           }}>
             <RuneGlyph size={40} />
             <h2 style={{ fontSize: 'clamp(26px, 4vw, 40px)', fontWeight: 800, color: '#f8fafc', marginTop: 20, marginBottom: 14, letterSpacing: '-0.03em' }}>
@@ -475,7 +475,7 @@ export default function LandingPage() {
             </p>
             <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
               <Link href="/login?mode=signup" className="landing-cta-primary" style={{
-                background: '#10b981', color: '#fff', fontSize: 16, fontWeight: 700,
+                background: 'var(--success)', color: '#fff', fontSize: 16, fontWeight: 700,
                 padding: '14px 32px', borderRadius: 10, textDecoration: 'none', display: 'inline-block',
               }}>Start for free &rarr;</Link>
               <Link href="/documentation" className="landing-cta-secondary" style={{

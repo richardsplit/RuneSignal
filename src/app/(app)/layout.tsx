@@ -21,7 +21,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <Header />
             <main
               className="animate-fade-in"
-              style={{ flex: 1, padding: '2rem', minWidth: 0 }}
+              style={{ flex: 1, padding: 'var(--space-8) var(--space-8) var(--space-16)', minWidth: 0 }}
             >
               {children}
             </main>

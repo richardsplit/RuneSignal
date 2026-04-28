@@ -36,24 +36,24 @@ interface AgentOption {
 }
 
 /* ─── Constants ─────────────────────────────────────────────────────── */
-const STATUS_META: Record<string, { label: string; color: string }> = {
-  active:    { label: 'Active',    color: 'var(--success)' },
-  suspended: { label: 'Suspended', color: '#f59e0b' },
-  revoked:   { label: 'Revoked',   color: '#ef4444' },
+const STATUS_META: Record<string, { label: string; color: string; chipClass: string }> = {
+  active:    { label: 'Active',    color: 'var(--success)', chipClass: 'chip chip-success' },
+  suspended: { label: 'Suspended', color: 'var(--warning)', chipClass: 'chip chip-warning' },
+  revoked:   { label: 'Revoked',   color: 'var(--danger)',  chipClass: 'chip chip-danger'  },
 };
 
-const RISK_META: Record<string, { label: string; color: string }> = {
-  prohibited:   { label: 'Prohibited',   color: '#ef4444' },
-  high_risk:    { label: 'High Risk',    color: '#f59e0b' },
-  limited_risk: { label: 'Limited Risk', color: '#60a5fa' },
-  minimal_risk: { label: 'Minimal Risk', color: 'var(--success)' },
-  unclassified: { label: 'Unclassified', color: 'var(--text-muted)' },
+const RISK_META: Record<string, { label: string; color: string; chipClass: string }> = {
+  prohibited:   { label: 'Prohibited',   color: 'var(--danger)',        chipClass: 'chip chip-danger'   },
+  high_risk:    { label: 'High Risk',    color: 'var(--warning)',       chipClass: 'chip chip-warning'  },
+  limited_risk: { label: 'Limited Risk', color: 'var(--info)',          chipClass: 'chip chip-accent'   },
+  minimal_risk: { label: 'Minimal Risk', color: 'var(--success)',       chipClass: 'chip chip-success'  },
+  unclassified: { label: 'Unclassified', color: 'var(--text-tertiary)', chipClass: 'chip'               },
 };
 
 function reputationColor(score: number): string {
-  if (score >= 80) return '#34d399';
-  if (score >= 60) return '#f59e0b';
-  return '#ef4444';
+  if (score >= 80) return 'var(--success)';
+  if (score >= 60) return 'var(--warning)';
+  return 'var(--danger)';
 }
 
 function relativeTime(iso: string): string {
@@ -109,24 +109,24 @@ function IssueModal({ tenantId, onClose, onSuccess }: { tenantId: string | null;
   };
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }} onClick={onClose}>
-      <div className="surface" style={{ width: '100%', maxWidth: 440, padding: '1.5rem', borderRadius: 12 }} onClick={e => e.stopPropagation()}>
+    <div style={{ position: 'fixed', inset: 0, background: 'var(--surface-overlay)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }} onClick={onClose}>
+      <div className="surface" style={{ width: '100%', maxWidth: 440, padding: '1.5rem', borderRadius: 'var(--radius-lg)' }} onClick={e => e.stopPropagation()}>
         <h3 style={{ fontWeight: 700, marginBottom: '1.25rem', fontSize: '1rem' }}>Issue Agent Passport</h3>
 
         {[
           { label: 'AGENT', el: agents.length > 0
-            ? <select value={agentId} onChange={e => handleAgentSelect(e.target.value)} style={{ width: '100%', padding: '0.5rem 0.75rem', borderRadius: 6, background: 'var(--bg-surface-2)', border: '1px solid var(--border)', color: 'var(--text-primary)', fontSize: '0.875rem' }}>
+            ? <select value={agentId} onChange={e => handleAgentSelect(e.target.value)} style={{ width: '100%', padding: '0.5rem 0.75rem', borderRadius: 'var(--radius-sm)', background: 'var(--surface-2)', border: '1px solid var(--border-default)', color: 'var(--text-primary)', fontSize: '0.875rem' }}>
                 <option value="">Select agent…</option>
                 {agents.map(a => <option key={a.id} value={a.id}>{a.agent_name}</option>)}
               </select>
-            : <input value={agentId} onChange={e => setAgentId(e.target.value)} placeholder="Agent ID" style={{ width: '100%', padding: '0.5rem 0.75rem', borderRadius: 6, background: 'var(--bg-surface-2)', border: '1px solid var(--border)', color: 'var(--text-primary)', fontSize: '0.875rem', boxSizing: 'border-box', fontFamily: 'inherit' }} />
+            : <input value={agentId} onChange={e => setAgentId(e.target.value)} placeholder="Agent ID" style={{ width: '100%', padding: '0.5rem 0.75rem', borderRadius: 'var(--radius-sm)', background: 'var(--surface-2)', border: '1px solid var(--border-default)', color: 'var(--text-primary)', fontSize: '0.875rem', boxSizing: 'border-box', fontFamily: 'inherit' }} />
           },
-          { label: 'FRAMEWORK', el: <select value={framework} onChange={e => setFramework(e.target.value)} style={{ width: '100%', padding: '0.5rem 0.75rem', borderRadius: 6, background: 'var(--bg-surface-2)', border: '1px solid var(--border)', color: 'var(--text-primary)', fontSize: '0.875rem' }}>
+          { label: 'FRAMEWORK', el: <select value={framework} onChange={e => setFramework(e.target.value)} style={{ width: '100%', padding: '0.5rem 0.75rem', borderRadius: 'var(--radius-sm)', background: 'var(--surface-2)', border: '1px solid var(--border-default)', color: 'var(--text-primary)', fontSize: '0.875rem' }}>
             <option value="runesignal">RuneSignal</option>
             <option value="spiffe">SPIFFE</option>
             <option value="w3c_vc">W3C Verifiable Credential</option>
           </select> },
-          { label: 'VALIDITY', el: <select value={validDays} onChange={e => setValidDays(Number(e.target.value))} style={{ width: '100%', padding: '0.5rem 0.75rem', borderRadius: 6, background: 'var(--bg-surface-2)', border: '1px solid var(--border)', color: 'var(--text-primary)', fontSize: '0.875rem' }}>
+          { label: 'VALIDITY', el: <select value={validDays} onChange={e => setValidDays(Number(e.target.value))} style={{ width: '100%', padding: '0.5rem 0.75rem', borderRadius: 'var(--radius-sm)', background: 'var(--surface-2)', border: '1px solid var(--border-default)', color: 'var(--text-primary)', fontSize: '0.875rem' }}>
             <option value={90}>90 days</option>
             <option value={180}>180 days</option>
             <option value={365}>1 year</option>
@@ -134,7 +134,7 @@ function IssueModal({ tenantId, onClose, onSuccess }: { tenantId: string | null;
           </select> },
         ].map(({ label, el }) => (
           <div key={label} style={{ marginBottom: '0.875rem' }}>
-            <label style={{ fontSize: '0.6875rem', color: 'var(--text-muted)', fontWeight: 600, display: 'block', marginBottom: '0.375rem' }}>{label}</label>
+            <label style={{ fontSize: '0.6875rem', color: 'var(--text-tertiary)', fontWeight: 600, display: 'block', marginBottom: '0.375rem' }}>{label}</label>
             {el}
           </div>
         ))}
@@ -146,7 +146,7 @@ function IssueModal({ tenantId, onClose, onSuccess }: { tenantId: string | null;
           </label>
         </div>
 
-        {err && <div style={{ padding: '0.5rem 0.75rem', background: '#ef444415', border: '1px solid #ef444433', borderRadius: 6, color: '#ef4444', fontSize: '0.8125rem', marginBottom: '0.75rem' }}>{err}</div>}
+        {err && <div className="callout callout-danger" style={{ marginBottom: 'var(--space-3)' }}>{err}</div>}
 
         <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
           <button className="btn btn-outline" onClick={onClose} disabled={saving}>Cancel</button>
@@ -224,9 +224,9 @@ export default function RegistryPage() {
         {[
           { label: 'My Passports',  value: passports.length },
           { label: 'Active',        value: passports.filter(p => p.status === 'active').length,   color: 'var(--success)' },
-          { label: 'Public',        value: passports.filter(p => p.public).length,                 color: '#3b82f6' },
-          { label: 'Revoked',       value: passports.filter(p => p.status === 'revoked').length,   color: '#ef4444' },
-          { label: 'Public Registry', value: publicReg.length,                                      color: '#a78bfa' },
+          { label: 'Public',        value: passports.filter(p => p.public).length,                 color: 'var(--info)'    },
+          { label: 'Revoked',       value: passports.filter(p => p.status === 'revoked').length,   color: 'var(--danger)'  },
+          { label: 'Public Registry', value: publicReg.length,                                      color: 'var(--accent)'  },
         ].map((k, i) => (
           <div key={i} className="kpi-card">
             <div className="kpi-label">{k.label}</div>
@@ -235,13 +235,13 @@ export default function RegistryPage() {
         ))}
       </div>
 
-      {error && <div style={{ padding: '0.75rem', background: '#ef444415', border: '1px solid #ef444433', borderRadius: 8, color: '#ef4444', marginBottom: '1rem', fontSize: '0.875rem' }}>{error}</div>}
+      {error && <div className="callout callout-danger" style={{ marginBottom: 'var(--space-4)' }}>{error}</div>}
 
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid var(--border)', marginBottom: '1.5rem' }}>
+      <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid var(--border-default)', marginBottom: '1.5rem' }}>
         {[{ key: 'mine', label: `My Passports (${passports.length})` }, { key: 'browse', label: `Browse Public Registry (${publicReg.length})` }].map(t => (
           <button key={t.key} onClick={() => setTab(t.key as any)}
-            style={{ padding: '0.625rem 1.25rem', background: 'none', border: 'none', borderBottom: `2px solid ${tab === t.key ? 'var(--accent)' : 'transparent'}`, cursor: 'pointer', fontSize: '0.875rem', fontWeight: tab === t.key ? 600 : 400, color: tab === t.key ? 'var(--accent)' : 'var(--text-muted)', marginBottom: -1 }}>
+            style={{ padding: '0.625rem 1.25rem', background: 'none', border: 'none', borderBottom: `2px solid ${tab === t.key ? 'var(--accent)' : 'transparent'}`, cursor: 'pointer', fontSize: '0.875rem', fontWeight: tab === t.key ? 600 : 400, color: tab === t.key ? 'var(--accent)' : 'var(--text-tertiary)', marginBottom: -1 }}>
             {t.label}
           </button>
         ))}
@@ -250,15 +250,15 @@ export default function RegistryPage() {
       {/* Passport cards */}
       {loading ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-          {[1,2,3].map(i => <div key={i} className="skeleton-pulse" style={{ height: 96, borderRadius: 8 }} />)}
+          {[1,2,3].map(i => <div key={i} className="skeleton-pulse" style={{ height: 96, borderRadius: 'var(--radius-md)' }} />)}
         </div>
       ) : list.length === 0 ? (
-        <div style={{ padding: '3rem', textAlign: 'center', background: 'var(--bg-surface)', border: '1px dashed var(--border)', borderRadius: 8 }}>
+        <div style={{ padding: '3rem', textAlign: 'center', background: 'var(--surface-1)', border: '1px dashed var(--border-default)', borderRadius: 'var(--radius-md)' }}>
           <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>🛂</div>
           <div style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.375rem' }}>
             {tab === 'mine' ? 'No passports issued yet' : 'No public agents in registry'}
           </div>
-          <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '1.25rem' }}>
+          <div style={{ fontSize: '0.875rem', color: 'var(--text-tertiary)', marginBottom: '1.25rem' }}>
             {tab === 'mine' ? 'Issue a signed passport to register an agent\'s identity and capabilities.' : 'Agents become visible here when their owners set them as public.'}
           </div>
           {tab === 'mine' && <button className="btn btn-primary" onClick={() => setShowIssue(true)}>Issue First Passport</button>}
@@ -274,18 +274,18 @@ export default function RegistryPage() {
                 {/* Reputation */}
                 <div style={{ flexShrink: 0, width: 52, height: 52, borderRadius: '50%', border: `3px solid ${reputationColor(p.reputation_score)}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
                   <span style={{ fontSize: '0.8125rem', fontWeight: 700, color: reputationColor(p.reputation_score), lineHeight: 1 }}>{Math.round(p.reputation_score)}</span>
-                  <span style={{ fontSize: '0.5rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>rep</span>
+                  <span style={{ fontSize: '0.5rem', color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>rep</span>
                 </div>
 
                 {/* Info */}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', marginBottom: '0.25rem', flexWrap: 'wrap' }}>
                     <span style={{ fontWeight: 600, fontSize: '0.9375rem', color: 'var(--text-primary)' }}>{p.agent_name}</span>
-                    <span style={{ fontSize: '0.6875rem', fontWeight: 700, color: statusMeta.color, padding: '0.125rem 0.5rem', borderRadius: 999, background: `${statusMeta.color}18`, border: `1px solid ${statusMeta.color}33` }}>{statusMeta.label}</span>
-                    <span style={{ fontSize: '0.6875rem', color: riskMeta.color, padding: '0.125rem 0.5rem', borderRadius: 999, background: `${riskMeta.color}18`, border: `1px solid ${riskMeta.color}33` }}>{riskMeta.label}</span>
-                    {p.public && <span style={{ fontSize: '0.6875rem', color: '#3b82f6', padding: '0.125rem 0.5rem', borderRadius: 999, background: '#3b82f615', border: '1px solid #3b82f633' }}>🌐 Public</span>}
+                    <span className={statusMeta.chipClass} style={{ fontSize: '0.6875rem' }}>{statusMeta.label}</span>
+                    <span className={riskMeta.chipClass} style={{ fontSize: '0.6875rem' }}>{riskMeta.label}</span>
+                    {p.public && <span className="chip chip-accent" style={{ fontSize: '0.6875rem' }}>🌐 Public</span>}
                   </div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
                     <span className="mono" style={{ fontSize: '0.6875rem' }}>{p.passport_number}</span>
                     {' · '}Framework: {p.framework}
                     {' · '}Valid until: {p.valid_to ? new Date(p.valid_to).toLocaleDateString('en-GB') : '—'}
@@ -314,3 +314,4 @@ export default function RegistryPage() {
     </div>
   );
 }
+

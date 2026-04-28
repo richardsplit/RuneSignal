@@ -124,7 +124,7 @@ export default function FinOpsDashboard() {
         <div
           ref={overlayRef}
           onClick={e => { if (e.target === overlayRef.current) setBudgetOpen(false); }}
-          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 500 }}
+          style={{ position: 'fixed', inset: 0, background: 'var(--surface-overlay)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 500 }}
         >
           <div className="surface" style={{ width: 400, padding: '1.75rem', borderRadius: 'var(--radius-lg)' }}>
             <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '1.25rem', color: 'var(--text-primary)' }}>Set Monthly Budget</h2>

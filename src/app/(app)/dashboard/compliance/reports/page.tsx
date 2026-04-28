@@ -45,7 +45,7 @@ function ArticleCoverageGrid({ coverage }: { coverage: Record<string, boolean> }
             border: `1px solid ${covered ? 'var(--success-border)' : 'var(--danger-border)'}`,
             borderRadius: 'var(--radius-md)',
             padding: '0.625rem',
-            background: covered ? 'var(--success-bg)' : 'var(--danger-bg)',
+            background: covered ? 'var(--success-soft)' : 'var(--danger-soft)',
             textAlign: 'center',
           }}>
             <div className="t-eyebrow" style={{ color: covered ? 'var(--success)' : 'var(--danger)' }}>{label}</div>
@@ -69,21 +69,21 @@ function ReportStatusCard({ report, onRefresh }: { report: Report; onRefresh: ()
   return (
     <div style={{
       border: '1px solid var(--border-default)',
-      borderRadius: '10px',
-      padding: '16px',
+      borderRadius: 'var(--radius-lg)',
+      padding: 'var(--space-4)',
       background: 'var(--surface-1)',
       marginBottom: '0.75rem',
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-2)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
           <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-primary)' }}>
             {report.report_type === 'EU_AI_ACT_2024' ? 'EU AI Act 2024' : 'NIST AI RMF'}
           </span>
           <span style={{
             fontSize: '0.625rem',
             padding: '2px 6px',
-            borderRadius: '4px',
-            background: report.status === 'ready' ? 'var(--success-bg)' : report.status === 'failed' ? 'var(--danger-bg)' : 'var(--info-bg)',
+            borderRadius: 'var(--radius-xs)',
+            background: report.status === 'ready' ? 'var(--success-soft)' : report.status === 'failed' ? 'var(--danger-soft)' : 'var(--info-soft)',
             color: report.status === 'ready' ? 'var(--success)' : report.status === 'failed' ? 'var(--danger)' : 'var(--info)',
             fontWeight: 600,
           }}>
@@ -91,7 +91,7 @@ function ReportStatusCard({ report, onRefresh }: { report: Report; onRefresh: ()
           </span>
         </div>
         {report.status === 'ready' && (
-          <div style={{ display: 'flex', gap: '8px' }}>
+          <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
             <a
               href={`/api/v1/compliance/reports/${report.id}`}
               target="_blank"
@@ -128,7 +128,7 @@ function ReportStatusCard({ report, onRefresh }: { report: Report; onRefresh: ()
 
       {report.status === 'ready' && (
         <>
-          <div style={{ display: 'flex', gap: '16px', marginBottom: '8px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: 'var(--space-4)', marginBottom: 'var(--space-2)', flexWrap: 'wrap' }}>
             <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
               <strong style={{ color: 'var(--text-primary)' }}>{report.agent_count}</strong> agents
             </span>

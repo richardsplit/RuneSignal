@@ -97,13 +97,13 @@ export default function AgentDetailPage() {
     return (
       <div style={{ maxWidth: 1100 }}>
         <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem' }}>
-          <div className="skeleton-pulse" style={{ height: 14, width: 80, borderRadius: 4 }} />
-          <div className="skeleton-pulse" style={{ height: 14, width: 16, borderRadius: 4 }} />
-          <div className="skeleton-pulse" style={{ height: 14, width: 180, borderRadius: 4 }} />
+          <div className="skeleton-pulse" style={{ height: 14, width: 80, borderRadius: 'var(--radius-xs)' }} />
+          <div className="skeleton-pulse" style={{ height: 14, width: 16, borderRadius: 'var(--radius-xs)' }} />
+          <div className="skeleton-pulse" style={{ height: 14, width: 180, borderRadius: 'var(--radius-xs)' }} />
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: '1.5rem' }}>
-          <div className="skeleton-pulse" style={{ height: 520, borderRadius: 8 }} />
-          <div className="skeleton-pulse" style={{ height: 520, borderRadius: 8 }} />
+          <div className="skeleton-pulse" style={{ height: 520, borderRadius: 'var(--radius-md)' }} />
+          <div className="skeleton-pulse" style={{ height: 520, borderRadius: 'var(--radius-md)' }} />
         </div>
       </div>
     );
@@ -112,10 +112,10 @@ export default function AgentDetailPage() {
   if (error) {
     return (
       <div style={{ maxWidth: 1100 }}>
-        <Link href="/identity" style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', textDecoration: 'none' }}>← Agent Identity</Link>
-        <div style={{ marginTop: '2rem', padding: '2rem', background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: 8, textAlign: 'center' }}>
-          <div style={{ color: '#ef4444', fontWeight: 600, marginBottom: '0.5rem' }}>Failed to load agent</div>
-          <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>{error}</div>
+        <Link href="/identity" style={{ fontSize: '0.8125rem', color: 'var(--text-tertiary)', textDecoration: 'none' }}>← Agent Identity</Link>
+        <div style={{ marginTop: '2rem', padding: '2rem', background: 'var(--surface-1)', border: '1px solid var(--border-default)', borderRadius: 'var(--radius-md)', textAlign: 'center' }}>
+          <div style={{ color: 'var(--danger)', fontWeight: 600, marginBottom: '0.5rem' }}>Failed to load agent</div>
+          <div style={{ fontSize: '0.875rem', color: 'var(--text-tertiary)', marginBottom: '1rem' }}>{error}</div>
           <button className="btn btn-outline" onClick={() => load()}>Retry</button>
         </div>
       </div>
@@ -127,16 +127,16 @@ export default function AgentDetailPage() {
   const agentStatus = String(agentMeta.status ?? agent?.status ?? 'unknown');
   const riskMeta   = RISK_TIER_MAP[riskTier] ?? RISK_TIER_MAP.unclassified;
 
-  const statusColor = agentStatus === 'active' ? 'var(--success)' : agentStatus === 'suspended' ? '#ef4444' : 'var(--text-muted)';
+  const statusColor = agentStatus === 'active' ? 'var(--success)' : agentStatus === 'suspended' ? 'var(--danger)' : 'var(--text-tertiary)';
 
   return (
     <div style={{ maxWidth: 1100 }}>
 
       {/* Breadcrumb */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem', fontSize: '0.8125rem', color: 'var(--text-muted)' }}>
-        <Link href="/identity" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem', fontSize: '0.8125rem', color: 'var(--text-tertiary)' }}>
+        <Link href="/identity" style={{ color: 'var(--text-tertiary)', textDecoration: 'none' }}
           onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-primary)')}
-          onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}
+          onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-tertiary)')}
         >
           Agent Identity
         </Link>
@@ -147,18 +147,11 @@ export default function AgentDetailPage() {
       {/* Page title */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '1.5rem', gap: '1rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.875rem', flexWrap: 'wrap' }}>
-          <h1 style={{ fontSize: '1.375rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>{agentName}</h1>
-          <span style={{ color: statusColor, fontSize: '0.75rem', fontWeight: 600, textTransform: 'capitalize',
-            padding: '0.125rem 0.5rem', borderRadius: 999,
-            background: `${statusColor}18`, border: `1px solid ${statusColor}33`,
-          }}>
+          <h1 className="page-title" style={{ margin: 0 }}>{agentName}</h1>
+          <span className={agentStatus === 'active' ? 'chip chip-success' : agentStatus === 'suspended' ? 'chip chip-danger' : 'chip'} style={{ textTransform: 'capitalize' }}>
             {agentStatus}
           </span>
-          <span style={{
-            fontSize: '0.6875rem', fontWeight: 700, letterSpacing: '0.04em',
-            padding: '0.125rem 0.5rem', borderRadius: 999,
-            background: `${riskMeta.color}18`, color: riskMeta.color, border: `1px solid ${riskMeta.color}33`,
-          }}>
+          <span className={riskMeta.chipClass}>
             {riskMeta.label}
           </span>
         </div>
@@ -182,7 +175,7 @@ export default function AgentDetailPage() {
 
           {/* Agent info */}
           <div className="surface" style={{ padding: '1.25rem' }}>
-            <div style={{ fontSize: '0.6875rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '0.75rem' }}>Agent Details</div>
+            <div style={{ fontSize: '0.6875rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-tertiary)', marginBottom: '0.75rem' }}>Agent Details</div>
             {[
               { label: 'Framework',   value: agentType },
               { label: 'Owner',       value: String(agentMeta.created_by ?? agent?.created_by ?? '—') },
@@ -190,8 +183,8 @@ export default function AgentDetailPage() {
               { label: 'Last Seen',   value: relativeTime(String(agentMeta.last_seen_at ?? agent?.last_seen_at ?? '')) },
               { label: 'Agent ID',    value: id, mono: true },
             ].map(({ label, value, mono }) => (
-              <div key={label} style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start', padding: '0.4375rem 0', borderBottom: '1px solid var(--border)' }}>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', minWidth: 90, flexShrink: 0 }}>{label}</span>
+              <div key={label} style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start', padding: '0.4375rem 0', borderBottom: '1px solid var(--border-subtle)' }}>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', minWidth: 90, flexShrink: 0 }}>{label}</span>
                 <span style={{ fontSize: mono ? '0.6875rem' : '0.8125rem', color: 'var(--text-primary)', wordBreak: 'break-all' }} className={mono ? 'mono' : undefined}>{value}</span>
               </div>
             ))}
@@ -200,32 +193,32 @@ export default function AgentDetailPage() {
           {/* Summary stats */}
           {summary && (
             <div className="surface" style={{ padding: '1.25rem' }}>
-              <div style={{ fontSize: '0.6875rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '0.75rem' }}>
+              <div style={{ fontSize: '0.6875rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-tertiary)', marginBottom: '0.75rem' }}>
                 Activity ({DATE_RANGES.find(r => r.days === dateRange)?.label ?? `${dateRange}d`})
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                 <StatBox label="Audit Events"  value={summary.total_actions}    />
-                <StatBox label="FW Blocks"     value={summary.blocked_actions}  color={summary.blocked_actions > 0 ? '#ef4444' : undefined} />
-                <StatBox label="HITL"          value={summary.hitl_escalations} color={summary.hitl_escalations > 0 ? '#a78bfa' : undefined} />
-                <StatBox label="Anomalies"     value={summary.anomalies}        color={summary.anomalies > 0 ? '#f59e0b' : undefined} />
-                <StatBox label="Incidents"     value={summary.incidents}        color={summary.incidents > 0 ? '#f87171' : undefined} />
+                <StatBox label="FW Blocks"     value={summary.blocked_actions}  color={summary.blocked_actions > 0 ? 'var(--danger)'  : undefined} />
+                <StatBox label="HITL"          value={summary.hitl_escalations} color={summary.hitl_escalations > 0 ? 'var(--info)'    : undefined} />
+                <StatBox label="Anomalies"     value={summary.anomalies}        color={summary.anomalies > 0 ? 'var(--warning)' : undefined} />
+                <StatBox label="Incidents"     value={summary.incidents}        color={summary.incidents > 0 ? 'var(--danger)'  : undefined} />
               </div>
             </div>
           )}
 
           {/* Evidence contributions */}
           <div className="surface" style={{ padding: '1.25rem' }}>
-            <div style={{ fontSize: '0.6875rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '0.625rem' }}>
+            <div style={{ fontSize: '0.6875rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-tertiary)', marginBottom: '0.625rem' }}>
               Evidence Contributions ({evidence.length})
             </div>
             {evidence.length === 0 ? (
-              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>No evidence bundles reference this agent yet.</p>
+              <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>No evidence bundles reference this agent yet.</p>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
                 {evidence.map(e => (
-                  <div key={e.report_id} style={{ padding: '0.5rem', background: 'var(--bg-surface-2)', borderRadius: 6, fontSize: '0.75rem' }}>
+                  <div key={e.report_id} style={{ padding: '0.5rem', background: 'var(--surface-2)', borderRadius: 'var(--radius-sm)', fontSize: '0.75rem' }}>
                     <div style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{e.report_type}</div>
-                    <div style={{ color: 'var(--text-muted)', marginTop: '0.125rem' }}>
+                    <div style={{ color: 'var(--text-tertiary)', marginTop: '0.125rem' }}>
                       {e.regulation} · {relativeTime(e.generated_at)}
                     </div>
                   </div>
@@ -237,7 +230,7 @@ export default function AgentDetailPage() {
           {/* Registered scopes */}
           {Array.isArray(agentMeta.permission_scopes) && (agentMeta.permission_scopes as unknown[]).length > 0 && (
             <div className="surface" style={{ padding: '1.25rem' }}>
-              <div style={{ fontSize: '0.6875rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '0.625rem' }}>
+              <div style={{ fontSize: '0.6875rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-tertiary)', marginBottom: '0.625rem' }}>
                 Permission Scopes
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
@@ -254,7 +247,7 @@ export default function AgentDetailPage() {
         {/* ── Right: Behavior timeline ── */}
         <div className="surface" style={{ padding: '1.25rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-            <div style={{ fontSize: '0.6875rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
+            <div style={{ fontSize: '0.6875rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-tertiary)' }}>
               Behavior Timeline
             </div>
             <div style={{ display: 'flex', gap: '0.25rem' }}>
@@ -272,13 +265,13 @@ export default function AgentDetailPage() {
           </div>
 
           {events.length === 0 ? (
-            <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
+            <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-tertiary)', fontSize: '0.875rem' }}>
               No events found for this agent in the selected time range.
             </div>
           ) : (
             <div style={{ position: 'relative', paddingLeft: '1.375rem' }}>
               {/* vertical line */}
-              <div style={{ position: 'absolute', left: '0.375rem', top: 8, bottom: 8, width: 1, background: 'var(--border)' }} />
+              <div style={{ position: 'absolute', left: '0.375rem', top: 8, bottom: 8, width: 1, background: 'var(--border-subtle)' }} />
 
               {events.map((event, i) => {
                 const meta  = SOURCE_META[event.source];
@@ -294,7 +287,7 @@ export default function AgentDetailPage() {
                     <div style={{
                       position: 'absolute', left: -17, top: 5,
                       width: 8, height: 8, borderRadius: '50%',
-                      background: meta.color, border: '1.5px solid var(--bg-surface)',
+                      background: meta.color, border: '1.5px solid var(--surface-1)',
                     }} />
 
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', flexWrap: 'wrap' }}>
@@ -303,7 +296,7 @@ export default function AgentDetailPage() {
                         <span style={{ color: meta.color }}>{meta.label}</span>
                       </span>
                       <span style={{ fontSize: '0.8125rem', color: 'var(--text-primary)', fontWeight: 500 }}>{title}</span>
-                      <span style={{ fontSize: '0.6875rem', color: 'var(--text-muted)', marginLeft: 'auto' }}>
+                      <span style={{ fontSize: '0.6875rem', color: 'var(--text-tertiary)', marginLeft: 'auto' }}>
                         {new Date(event.timestamp).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>
@@ -312,13 +305,13 @@ export default function AgentDetailPage() {
                       <div style={{
                         marginTop: '0.25rem', marginLeft: '0.125rem',
                         padding: '0.375rem 0.625rem',
-                        background: 'var(--bg-surface-2)', borderRadius: 4,
+                        background: 'var(--surface-2)', borderRadius: 'var(--radius-xs)',
                         fontSize: '0.6875rem', color: 'var(--text-secondary)',
                         display: 'flex', flexWrap: 'wrap', gap: '0.5rem',
                       }}>
                         {Object.entries(detail).slice(0, 5).map(([k, v]) => (
                           <span key={k}>
-                            <span style={{ color: 'var(--text-muted)' }}>{k}:</span>{' '}
+                            <span style={{ color: 'var(--text-tertiary)' }}>{k}:</span>{' '}
                             <span style={{ color: 'var(--text-primary)' }}>{String(v).slice(0, 60)}</span>
                           </span>
                         ))}

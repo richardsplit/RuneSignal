@@ -5,6 +5,18 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  transpilePackages: ['swagger-ui-react', 'swagger-client'],
+  webpack: (config) => {
+    // Fix: @swagger-api/apidom-* packages are ESM-only and their .mjs files
+    // require fullySpecified:false to resolve correctly in webpack/Next.js.
+    // Without this, OpenApi3_1Element.refract static method is not initialized.
+    config.module.rules.push({
+      test: /node_modules[\\/]@swagger-api[\\/]apidom.*\.m?js$/,
+      resolve: { fullySpecified: false },
+      type: 'javascript/auto',
+    });
+    return config;
+  },
 };
 
 export default withSentryConfig(nextConfig, {

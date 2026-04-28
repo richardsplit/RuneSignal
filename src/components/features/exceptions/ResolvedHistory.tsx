@@ -21,34 +21,25 @@ export default function ResolvedHistory({ resolved }: ResolvedHistoryProps) {
 
   return (
     <>
-      <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '1rem', color: 'var(--color-text-muted)' }}>Recently Resolved</h3>
+      <h3 className="t-h4" style={{ marginBottom: 'var(--space-4)', color: 'var(--text-secondary)' }}>Recently Resolved</h3>
       {resolved.map(r => (
-        <div key={r.id} style={{ padding: '1rem', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--border-glass)', borderRadius: 'var(--radius-md)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+        <div key={r.id} className="surface" style={{ padding: 'var(--space-4) var(--space-5)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-3)' }}>
           <div>
-             <div style={{ fontWeight: 500, marginBottom: '0.25rem' }}>
-               {r.title} 
-               <span style={{ color: 'var(--color-text-muted)', fontSize: '0.75rem', fontWeight: 400, marginLeft: '0.5rem' }}>
-                 via Agent {r.agent_id.split('-')[0]}
-               </span>
-             </div>
-             <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontStyle: 'italic' }}>
-               "{r.resolution_reason}"
-             </div>
+            <div style={{ fontWeight: 500, marginBottom: '0.25rem' }}>
+              {r.title}
+              <span style={{ color: 'var(--text-tertiary)', fontSize: '0.75rem', fontWeight: 400, marginLeft: '0.5rem' }}>
+                via Agent {r.agent_id.split('-')[0]}
+              </span>
+            </div>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', fontStyle: 'italic' }}>
+              &ldquo;{r.resolution_reason}&rdquo;
+            </div>
           </div>
-          <div style={{ textAlign: 'right' }}>
-            <span style={{ 
-              fontSize: '0.65rem', 
-              padding: '0.2rem 0.6rem', 
-              borderRadius: '4px',
-              display: 'block',
-              marginBottom: '0.25rem',
-              background: r.status === 'approved' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-              color: r.status === 'approved' ? 'var(--color-primary-emerald)' : 'var(--color-error-rose)',
-              border: `1px solid ${r.status === 'approved' ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'}`
-            }}>
+          <div style={{ textAlign: 'right', flexShrink: 0 }}>
+            <span className={r.status === 'approved' ? 'chip chip-success' : 'chip chip-danger'} style={{ display: 'block', marginBottom: '0.25rem' }}>
               {r.status.toUpperCase()}
             </span>
-            <div style={{ fontSize: '0.65rem', color: 'var(--color-text-muted)' }}>
+            <div style={{ fontSize: '0.6875rem', color: 'var(--text-tertiary)' }}>
               {new Date(r.resolved_at).toLocaleDateString()}
             </div>
           </div>

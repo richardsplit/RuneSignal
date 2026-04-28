@@ -175,7 +175,7 @@ export default function InsurancePage() {
           <div key={i} className="kpi-card">
             <div className="kpi-label">{k.label}</div>
             {loading && i > 0
-              ? <div className="skeleton-pulse" style={{ height: 28, width: '40%', borderRadius: 4, marginTop: 2 }} />
+              ? <div className="skeleton-pulse" style={{ height: 28, width: '40%', borderRadius: 'var(--radius-xs)', marginTop: 2 }} />
               : <div className="kpi-value" style={k.color ? { color: k.color as string } : undefined}>{k.value}</div>
             }
           </div>
@@ -312,7 +312,7 @@ export default function InsurancePage() {
         <div className="surface" style={{ padding: '1.5rem' }}>
           <div style={{ marginBottom: '1.25rem' }}>
             <h2 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '0.375rem' }}>Insurance Carrier Evidence Pack</h2>
-            <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>Generate a carrier-ready evidence pack from your live audit trail. Includes loss-event sampling, anomaly rates, HITL coverage, and reversal history. One-click export for AI-liability policy underwriting.</p>
+            <p style={{ fontSize: '0.875rem', color: 'var(--text-tertiary)' }}>Generate a carrier-ready evidence pack from your live audit trail. Includes loss-event sampling, anomaly rates, HITL coverage, and reversal history. One-click export for AI-liability policy underwriting.</p>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.875rem', marginBottom: '1.25rem' }}>
             {[
@@ -321,18 +321,18 @@ export default function InsurancePage() {
               { icon: '↩️', label: 'Reversal History', desc: 'All reversed decisions with orchestration log' },
               { icon: '🔏', label: 'Cryptographic Signature', desc: 'Ed25519-signed, append-only, tamper-evident' },
             ].map(item => (
-              <div key={item.label} style={{ padding: '0.875rem', background: 'var(--bg-surface-2)', borderRadius: 8, border: '1px solid var(--border)' }}>
+              <div key={item.label} style={{ padding: '0.875rem', background: 'var(--surface-2)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-default)' }}>
                 <div style={{ fontSize: '1.25rem', marginBottom: '0.375rem' }}>{item.icon}</div>
                 <div style={{ fontWeight: 600, fontSize: '0.875rem', marginBottom: '0.25rem' }}>{item.label}</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{item.desc}</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>{item.desc}</div>
               </div>
             ))}
           </div>
           {lastPack && (
-            <div style={{ padding: '0.875rem 1rem', background: '#34d39910', border: '1px solid #34d39933', borderRadius: 8, marginBottom: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ padding: 'var(--space-4)', background: 'var(--success-soft)', border: '1px solid var(--success-border)', borderRadius: 'var(--radius-md)', marginBottom: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
-                <div style={{ fontWeight: 600, fontSize: '0.875rem', color: '#34d399' }}>✓ Pack generated</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.125rem' }}>Coverage score: {(lastPack as any).coverage_score}% · Hash: {String((lastPack as any).manifest_hash ?? '').slice(0, 16)}…</div>
+                <div style={{ fontWeight: 600, fontSize: '0.875rem', color: 'var(--success)' }}>✓ Pack generated</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '0.125rem' }}>Coverage score: {(lastPack as any).coverage_score}% · Hash: {String((lastPack as any).manifest_hash ?? '').slice(0, 16)}…</div>
               </div>
               <button className="btn btn-outline" style={{ fontSize: '0.75rem' }} onClick={() => {
                 const blob = new Blob([JSON.stringify(lastPack, null, 2)], { type: 'application/json' });
@@ -370,3 +370,4 @@ export default function InsurancePage() {
     </div>
   );
 }
+

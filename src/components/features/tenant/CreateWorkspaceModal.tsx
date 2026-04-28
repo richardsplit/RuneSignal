@@ -51,7 +51,7 @@ export default function CreateWorkspaceModal({ isOpen, onClose, onSuccess }: Cre
               className="form-input" 
               value={plan}
               onChange={(e) => setPlan(e.target.value)}
-              style={{ width: '100%', background: 'var(--color-bg-main)' }}
+              style={{ width: '100%', background: 'var(--bg-base)' }}
             >
               <option value="Starter">Starter</option>
               <option value="Pro">Pro</option>
@@ -64,7 +64,7 @@ export default function CreateWorkspaceModal({ isOpen, onClose, onSuccess }: Cre
               className="form-input" 
               value={region}
               onChange={(e) => setRegion(e.target.value)}
-              style={{ width: '100%', background: 'var(--color-bg-main)' }}
+              style={{ width: '100%', background: 'var(--bg-base)' }}
             >
               <option value="us-east-1">US East (N. Virginia)</option>
               <option value="eu-central-1">EU (Frankfurt)</option>
@@ -73,9 +73,9 @@ export default function CreateWorkspaceModal({ isOpen, onClose, onSuccess }: Cre
           </div>
         </div>
 
-        <div className="glass-panel" style={{ padding: '1rem', background: 'rgba(16, 185, 129, 0.05)', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
-          <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', margin: 0 }}>
-            <strong style={{ color: 'var(--color-primary-emerald)' }}>Pro Tip:</strong> Workspaces allow you to isolate agent fleets and billing across different environments or departments.
+        <div className="surface" style={{ padding: 'var(--space-4)', background: 'var(--success-soft)', border: '1px solid var(--success-border)' }}>
+          <p style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', margin: 0 }}>
+            <strong style={{ color: 'var(--success)' }}>Pro Tip:</strong> Workspaces allow you to isolate agent fleets and billing across different environments or departments.
           </p>
         </div>
 

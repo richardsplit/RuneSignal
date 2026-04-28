@@ -160,14 +160,14 @@ export default function ControlsPage() {
         {[
           { label: 'Total Controls', value: summary?.total ?? 0,         color: undefined },
           { label: 'Passing',        value: summary?.passing ?? 0,       color: summary && summary.passing > 0 ? 'var(--success)' : undefined },
-          { label: 'Failing',        value: summary?.failing ?? 0,       color: summary && summary.failing > 0 ? '#ef4444' : undefined },
-          { label: 'Warning',        value: summary?.warning ?? 0,       color: summary && summary.warning > 0 ? '#f59e0b' : undefined },
-          { label: 'Not Evaluated',  value: summary?.not_evaluated ?? 0, color: summary && summary.not_evaluated > 0 ? 'var(--text-muted)' : undefined },
+          { label: 'Failing',        value: summary?.failing ?? 0,       color: summary && summary.failing > 0 ? 'var(--danger)'  : undefined },
+          { label: 'Warning',        value: summary?.warning ?? 0,       color: summary && summary.warning > 0 ? 'var(--warning)' : undefined },
+          { label: 'Not Evaluated',  value: summary?.not_evaluated ?? 0, color: summary && summary.not_evaluated > 0 ? 'var(--text-tertiary)' : undefined },
         ].map((k, i) => (
           <div key={i} className="kpi-card">
             <div className="kpi-label">{k.label}</div>
             {loading
-              ? <div className="skeleton-pulse" style={{ height: 28, width: '40%', borderRadius: 4, marginTop: 2 }} />
+              ? <div className="skeleton-pulse" style={{ height: 28, width: '40%', borderRadius: 'var(--radius-xs)', marginTop: 2 }} />
               : <div className="kpi-value" style={k.color ? { color: k.color } : undefined}>{k.value}</div>
             }
           </div>
@@ -201,11 +201,11 @@ export default function ControlsPage() {
           {loading ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               {[1, 2, 3, 4, 5].map(i => (
-                <div key={i} className="skeleton-pulse" style={{ height: 110, borderRadius: 8 }} />
+                <div key={i} className="skeleton-pulse" style={{ height: 110, borderRadius: 'var(--radius-md)' }} />
               ))}
             </div>
           ) : filtered.length === 0 ? (
-            <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
+            <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-tertiary)', fontSize: '0.875rem' }}>
               {statusFilter === 'all'
                 ? <span>No controls configured. <button className="btn btn-outline" style={{ fontSize: '0.8125rem', marginLeft: '0.5rem' }} onClick={handleSeed} disabled={seeding}>{seeding ? 'Seeding…' : 'Seed defaults'}</button></span>
                 : `No controls with status "${statusFilter}".`
@@ -231,7 +231,7 @@ export default function ControlsPage() {
       {summary && (summary.recent_failures?.length ?? 0) > 0 && (
         <div className="surface" style={{ overflow: 'hidden', marginTop: '1.25rem' }}>
           <div className="panel-header">
-            <span className="panel-title" style={{ color: '#ef4444' }}>Recent Failures</span>
+            <span className="panel-title" style={{ color: 'var(--danger)' }}>Recent Failures</span>
           </div>
           <table className="data-table">
             <thead>
@@ -248,7 +248,7 @@ export default function ControlsPage() {
                 <tr key={i}>
                   <td style={{ fontWeight: 600, fontSize: '0.875rem' }}>{f.control?.name ?? f.control_id}</td>
                   <td>{f.control?.regulation ? (REGULATION_LABELS[f.control.regulation] ?? f.control.regulation) : '—'}</td>
-                  <td style={{ fontSize: '0.8125rem', color: 'var(--text-muted)' }}>{relativeTime(f.evaluated_at)}</td>
+                  <td style={{ fontSize: '0.8125rem', color: 'var(--text-tertiary)' }}>{relativeTime(f.evaluated_at)}</td>
                   <td style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{JSON.stringify(f.detail)}</td>
                   <td style={{ textAlign: 'right' }}>
                     {f.control && (
@@ -272,7 +272,7 @@ export default function ControlsPage() {
       {!loading && (
         <div style={{ marginTop: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <span className="status-dot" style={{ background: isDemo ? 'var(--warning)' : 'var(--success)' }} />
-          <span style={{ fontSize: '0.6875rem', color: 'var(--text-muted)' }}>
+          <span style={{ fontSize: '0.6875rem', color: 'var(--text-tertiary)' }}>
             {isDemo ? 'Demo data — connect Supabase to see live controls' : `${data.length} controls loaded from API`}
           </span>
         </div>
@@ -286,3 +286,4 @@ export default function ControlsPage() {
     </div>
   );
 }
+

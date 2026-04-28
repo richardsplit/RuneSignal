@@ -17,38 +17,38 @@ interface EvidenceTableProps {
 
 export default function EvidenceTable({ certs }: EvidenceTableProps) {
   return (
-    <div className="glass-panel" style={{ overflow: 'hidden' }}>
-      <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-glass)' }}>
-        <h3 style={{ fontSize: '1.1rem', fontWeight: 600 }}>Recent Certificates</h3>
+    <div className="surface" style={{ overflow: 'hidden' }}>
+      <div style={{ padding: 'var(--space-5) var(--space-6)', borderBottom: '1px solid var(--border-subtle)' }}>
+        <h3 className="t-h4">Recent Certificates</h3>
       </div>
       <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
         <thead>
-          <tr style={{ background: 'rgba(255,255,255,0.02)' }}>
-            <th style={{ padding: '1rem 1.5rem', color: 'var(--color-text-muted)', fontWeight: 500, fontSize: '0.875rem' }}>Certificate ID</th>
-            <th style={{ padding: '1rem 1.5rem', color: 'var(--color-text-muted)', fontWeight: 500, fontSize: '0.875rem' }}>Agent</th>
-            <th style={{ padding: '1rem 1.5rem', color: 'var(--color-text-muted)', fontWeight: 500, fontSize: '0.875rem' }}>Tags</th>
-            <th style={{ padding: '1rem 1.5rem', color: 'var(--color-text-muted)', fontWeight: 500, fontSize: '0.875rem' }}>Output Hash</th>
-            <th style={{ padding: '1rem 1.5rem', color: 'var(--color-text-muted)', fontWeight: 500, fontSize: '0.875rem' }}>Verified</th>
-            <th style={{ padding: '1rem 1.5rem', color: 'var(--color-text-muted)', fontWeight: 500, fontSize: '0.875rem' }}>Time</th>
+          <tr style={{ background: 'var(--surface-2)' }}>
+            <th className="t-table-head" style={{ padding: 'var(--space-3) var(--space-6)' }}>Certificate ID</th>
+            <th className="t-table-head" style={{ padding: 'var(--space-3) var(--space-6)' }}>Agent</th>
+            <th className="t-table-head" style={{ padding: 'var(--space-3) var(--space-6)' }}>Tags</th>
+            <th className="t-table-head" style={{ padding: 'var(--space-3) var(--space-6)' }}>Output Hash</th>
+            <th className="t-table-head" style={{ padding: 'var(--space-3) var(--space-6)' }}>Verified</th>
+            <th className="t-table-head" style={{ padding: 'var(--space-3) var(--space-6)' }}>Time</th>
           </tr>
         </thead>
         <tbody>
           {certs.map(c => (
-            <tr key={c.id} style={{ borderBottom: '1px solid var(--border-glass)' }}>
-              <td style={{ padding: '1rem 1.5rem', fontFamily: 'monospace', color: 'var(--color-info-cyan)' }}>{c.id}</td>
-              <td style={{ padding: '1rem 1.5rem' }}>{c.agent}</td>
-              <td style={{ padding: '1rem 1.5rem' }}>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <tr key={c.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+              <td style={{ padding: 'var(--space-4) var(--space-6)', fontFamily: 'var(--font-mono)', fontSize: '0.8125rem', color: 'var(--accent)' }}>{c.id}</td>
+              <td style={{ padding: 'var(--space-4) var(--space-6)' }}>{c.agent}</td>
+              <td style={{ padding: 'var(--space-4) var(--space-6)' }}>
+                <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
                   {c.tags.map(t => (
-                    <span key={t} style={{ padding: '0.2rem 0.5rem', borderRadius: '4px', background: 'rgba(255,255,255,0.05)', fontSize: '0.75rem' }}>{t}</span>
+                    <span key={t} className="chip">{t}</span>
                   ))}
                 </div>
               </td>
-              <td style={{ padding: '1rem 1.5rem', fontFamily: 'monospace', color: 'var(--color-text-muted)' }}>{c.hash}</td>
-              <td style={{ padding: '1rem 1.5rem' }}>
-                <span style={{ color: 'var(--color-primary-emerald)' }}>✓ Valid</span>
+              <td style={{ padding: 'var(--space-4) var(--space-6)', fontFamily: 'var(--font-mono)', fontSize: '0.8125rem', color: 'var(--text-tertiary)' }}>{c.hash}</td>
+              <td style={{ padding: 'var(--space-4) var(--space-6)' }}>
+                <span className="chip chip-success">✓ Valid</span>
               </td>
-              <td style={{ padding: '1rem 1.5rem', color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>{c.time}</td>
+              <td style={{ padding: 'var(--space-4) var(--space-6)', color: 'var(--text-tertiary)', fontSize: '0.875rem' }}>{c.time}</td>
             </tr>
           ))}
         </tbody>

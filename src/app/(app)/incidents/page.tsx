@@ -75,26 +75,19 @@ function DeadlineChip({ deadline }: { deadline: string | null }) {
   if (days === null) return null;
   let bg = 'var(--success)';
   let label = `${days}d`;
-  if (days < 0)  { bg = '#ef4444'; label = 'Overdue'; }
-  else if (days <= 2) { bg = '#ef4444'; label = `${days}d ⚠`; }
-  else if (days <= 7) { bg = '#f59e0b'; }
-  return (
-    <span style={{
-      display: 'inline-block', padding: '0.125rem 0.5rem', borderRadius: 999,
-      fontSize: '0.6875rem', fontWeight: 600, letterSpacing: '0.01em',
-      background: `${bg}22`, color: bg, border: `1px solid ${bg}44`,
-    }}>
-      {label}
-    </span>
-  );
+  if (days < 0)  { bg = 'var(--danger)'; label = 'Overdue'; }
+  else if (days <= 2) { bg = 'var(--danger)'; label = `${days}d ⚠`; }
+  else if (days <= 7) { bg = 'var(--warning)'; }
+  const cls = bg === 'var(--danger)' ? 'chip chip-danger' : bg === 'var(--warning)' ? 'chip chip-warning' : 'chip chip-success';
+  return <span className={cls} style={{ fontSize: '0.6875rem' }}>{label}</span>;
 }
 
-const STATUS_MAP: Record<IncidentStatus, { label: string; color: string }> = {
-  detected:      { label: 'Detected',      color: 'var(--text-muted)' },
-  investigating: { label: 'Investigating', color: '#60a5fa' },
-  mitigated:     { label: 'Mitigated',     color: '#f59e0b' },
-  reported:      { label: 'Reported',      color: '#34d399' },
-  closed:        { label: 'Closed',        color: 'var(--text-muted)' },
+const STATUS_MAP: Record<IncidentStatus, { label: string; color: string; chipClass: string }> = {
+  detected:      { label: 'Detected',      color: 'var(--text-tertiary)', chipClass: 'chip'              },
+  investigating: { label: 'Investigating', color: 'var(--info)',          chipClass: 'chip chip-accent'  },
+  mitigated:     { label: 'Mitigated',     color: 'var(--warning)',       chipClass: 'chip chip-warning' },
+  reported:      { label: 'Reported',      color: 'var(--success)',       chipClass: 'chip chip-success' },
+  closed:        { label: 'Closed',        color: 'var(--text-tertiary)', chipClass: 'chip'              },
 };
 
 const SEVERITY_MAP: Record<IncidentSeverity, { label: string; cls: string }> = {
@@ -105,21 +98,13 @@ const SEVERITY_MAP: Record<IncidentSeverity, { label: string; cls: string }> = {
 };
 
 const SEVERITY_HIGH_STYLE: React.CSSProperties = {
-  background: '#f59e0b22', color: '#f59e0b', border: '1px solid #f59e0b44',
+  background: 'var(--warning-soft)', color: 'var(--warning)', border: '1px solid var(--warning-border)',
 };
 
 /* ─── Status badge ───────────────────────────────────────────────────── */
 function StatusBadge({ status }: { status: IncidentStatus }) {
-  const { label, color } = STATUS_MAP[status];
-  return (
-    <span style={{
-      display: 'inline-block', padding: '0.125rem 0.5rem', borderRadius: 999,
-      fontSize: '0.6875rem', fontWeight: 600, letterSpacing: '0.01em',
-      background: `${color}1a`, color, border: `1px solid ${color}33`,
-    }}>
-      {label}
-    </span>
-  );
+  const { label, chipClass } = STATUS_MAP[status];
+  return <span className={chipClass} style={{ fontSize: '0.6875rem' }}>{label}</span>;
 }
 
 /* ─── Page ───────────────────────────────────────────────────────────── */
@@ -181,14 +166,14 @@ export default function IncidentsPage() {
         {[
           { label: 'Total Incidents', value: data.length,     color: undefined },
           { label: 'Open',            value: openCount,       color: openCount > 0 ? 'var(--warning)' : undefined },
-          { label: 'Critical',        value: criticalCount,   color: criticalCount > 0 ? '#ef4444' : undefined },
-          { label: 'Art.73 Pending',  value: seriousCount,    color: seriousCount > 0 ? '#ef4444' : undefined },
+          { label: 'Critical',        value: criticalCount,   color: criticalCount > 0 ? 'var(--danger)' : undefined },
+          { label: 'Art.73 Pending',  value: seriousCount,    color: seriousCount > 0 ? 'var(--danger)' : undefined },
           { label: 'Data source',     value: isDemo ? 'Demo' : 'Live', color: isDemo ? 'var(--warning)' : 'var(--success)' },
         ].map((k, i) => (
           <div key={i} className="kpi-card">
             <div className="kpi-label">{k.label}</div>
             {loading
-              ? <div className="skeleton-pulse" style={{ height: 28, width: '40%', borderRadius: 4, marginTop: 2 }} />
+              ? <div className="skeleton-pulse" style={{ height: 28, width: '40%', borderRadius: 'var(--radius-xs)', marginTop: 2 }} />
               : <div className="kpi-value" style={k.color ? { color: k.color } : undefined}>{k.value}</div>
             }
           </div>
@@ -230,7 +215,7 @@ export default function IncidentsPage() {
               <SkeletonTable rows={5} cols={['8%', '30%', '14%', '12%', '12%', '12%', '10%']} />
             ) : filtered.length === 0 ? (
               <tr>
-                <td colSpan={7} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
+                <td colSpan={7} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-tertiary)', fontSize: '0.875rem' }}>
                   {statusFilter === 'all' ? 'No incidents yet. Click "+ Create Incident" to log one.' : `No incidents with status "${statusFilter}".`}
                 </td>
               </tr>
@@ -255,17 +240,13 @@ export default function IncidentsPage() {
                         {inc.title}
                       </Link>
                       {inc.is_serious_incident && (
-                        <span style={{
-                          fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase',
-                          padding: '0.1rem 0.4rem', borderRadius: 3,
-                          background: '#ef444420', color: '#ef4444', border: '1px solid #ef444440',
-                        }}>
+                        <span className="chip chip-danger" style={{ textTransform: 'uppercase', fontWeight: 700 }}>
                           Art.73
                         </span>
                       )}
                     </div>
                     {inc.description && (
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.125rem', maxWidth: 360, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '0.125rem', maxWidth: 360, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {inc.description}
                       </div>
                     )}
@@ -274,13 +255,13 @@ export default function IncidentsPage() {
                     {CATEGORY_LABELS[inc.category]}
                   </td>
                   <td><StatusBadge status={inc.status} /></td>
-                  <td style={{ color: 'var(--text-muted)', fontSize: '0.8125rem' }}>
+                  <td style={{ color: 'var(--text-tertiary)', fontSize: '0.8125rem' }}>
                     {relativeTime(inc.detected_at)}
                   </td>
                   <td>
                     {inc.is_serious_incident
                       ? <DeadlineChip deadline={inc.art73_report_deadline} />
-                      : <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>—</span>
+                      : <span style={{ color: 'var(--text-tertiary)', fontSize: '0.75rem' }}>—</span>
                     }
                   </td>
                   <td style={{ textAlign: 'right' }}>
@@ -303,7 +284,7 @@ export default function IncidentsPage() {
       {!loading && (
         <div style={{ marginTop: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <span className="status-dot" style={{ background: isDemo ? 'var(--warning)' : 'var(--success)' }} />
-          <span style={{ fontSize: '0.6875rem', color: 'var(--text-muted)' }}>
+          <span style={{ fontSize: '0.6875rem', color: 'var(--text-tertiary)' }}>
             {isDemo ? 'Demo data — connect Supabase to see live incidents' : `${data.length} incidents loaded from API`}
           </span>
         </div>
@@ -321,3 +302,4 @@ export default function IncidentsPage() {
     </div>
   );
 }
+

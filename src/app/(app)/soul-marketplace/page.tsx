@@ -162,7 +162,7 @@ export default function SoulMarketplacePage() {
                 padding: '1.25rem',
                 cursor: 'pointer',
                 border: `1px solid ${template.is_activated ? 'var(--accent-border)' : 'var(--border-default)'}`,
-                background: template.is_activated ? 'var(--accent-dim)' : undefined,
+                background: template.is_activated ? 'var(--accent-soft)' : undefined,
                 transition: 'border-color var(--t-fast)',
               }}
               onClick={() => setSelectedTemplate(template)}

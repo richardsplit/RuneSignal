@@ -63,7 +63,7 @@ function TrendBadge({ trend }: { trend: 'improving' | 'stable' | 'worsening' }) 
 
 function RiskBar({ score }: { score: number }) {
   const color =
-    score < 30 ? 'var(--success)' : score < 70 ? 'var(--warning)' : score < 90 ? 'var(--warning-dark, var(--warning))' : 'var(--danger)';
+    score < 30 ? 'var(--success)' : score < 70 ? 'var(--warning)' : score < 90 ? 'var(--warning)' : 'var(--danger)';
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
       <div style={{ width: 80, height: 6, background: 'var(--border-default)', borderRadius: 3, overflow: 'hidden' }}>

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
 import { incidents as incidentsApi, Incident, IncidentSeverity, IncidentCategory, ApiError } from '@/lib/api';
@@ -44,7 +44,7 @@ export function CreateIncidentModal({ isOpen, onClose, onSuccess, prefill }: Pro
 
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '0.5rem 0.75rem', borderRadius: 'var(--radius-md)',
-    background: 'var(--bg-surface-2)', border: '1px solid var(--border)', color: 'var(--text-primary)',
+    background: 'var(--surface-2)', border: '1px solid var(--border-default)', color: 'var(--text-primary)',
     fontSize: '0.875rem', outline: 'none', boxSizing: 'border-box',
   };
   const labelStyle: React.CSSProperties = {
@@ -82,19 +82,19 @@ export function CreateIncidentModal({ isOpen, onClose, onSuccess, prefill }: Pro
   };
 
   return (
-    <div ref={overlayRef} onClick={handleOverlayClick} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
-      <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', width: '100%', maxWidth: 520, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 24px 64px rgba(0,0,0,0.5)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border)' }}>
+    <div ref={overlayRef} onClick={handleOverlayClick} style={{ position: 'fixed', inset: 0, background: 'var(--surface-overlay)', backdropFilter: 'blur(4px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+      <div style={{ background: 'var(--surface-1)', border: '1px solid var(--border-default)', borderRadius: 'var(--radius-lg)', width: '100%', maxWidth: 520, maxHeight: '90vh', overflowY: 'auto', boxShadow: 'var(--shadow-modal)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-default)' }}>
           <div>
             <div style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--text-primary)' }}>Create Incident</div>
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.125rem' }}>EU AI Act Art. 73 · ISO 42001 §10.2</div>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '0.125rem' }}>EU AI Act Art. 73 · ISO 42001 §10.2</div>
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '1.25rem', lineHeight: 1 }}>×</button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-tertiary)', cursor: 'pointer', fontSize: '1.25rem', lineHeight: 1 }}>×</button>
         </div>
 
         <form onSubmit={handleSubmit} style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div>
-            <label style={labelStyle}>Title <span style={{ color: '#ef4444' }}>*</span></label>
+            <label style={labelStyle}>Title <span style={{ color: 'var(--danger)' }}>*</span></label>
             <input style={inputStyle} value={form.title} onChange={e => set('title', e.target.value)} placeholder="Brief description of the incident" required />
           </div>
           <div>
@@ -103,7 +103,7 @@ export function CreateIncidentModal({ isOpen, onClose, onSuccess, prefill }: Pro
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
             <div>
-              <label style={labelStyle}>Severity <span style={{ color: '#ef4444' }}>*</span></label>
+              <label style={labelStyle}>Severity <span style={{ color: 'var(--danger)' }}>*</span></label>
               <select style={inputStyle} value={form.severity} onChange={e => set('severity', e.target.value as IncidentSeverity)}>
                 {(['low', 'medium', 'high', 'critical'] as IncidentSeverity[]).map(s => (
                   <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
@@ -111,7 +111,7 @@ export function CreateIncidentModal({ isOpen, onClose, onSuccess, prefill }: Pro
               </select>
             </div>
             <div>
-              <label style={labelStyle}>Category <span style={{ color: '#ef4444' }}>*</span></label>
+              <label style={labelStyle}>Category <span style={{ color: 'var(--danger)' }}>*</span></label>
               <select style={inputStyle} value={form.category} onChange={e => set('category', e.target.value as IncidentCategory)}>
                 {(Object.entries(CATEGORY_LABELS) as [IncidentCategory, string][]).map(([k, v]) => (
                   <option key={k} value={k}>{v}</option>
@@ -120,20 +120,20 @@ export function CreateIncidentModal({ isOpen, onClose, onSuccess, prefill }: Pro
             </div>
           </div>
           <div>
-            <label style={labelStyle}>Reported By <span style={{ color: '#ef4444' }}>*</span></label>
+            <label style={labelStyle}>Reported By <span style={{ color: 'var(--danger)' }}>*</span></label>
             <input style={inputStyle} value={form.reported_by} onChange={e => set('reported_by', e.target.value)} placeholder="email or system identifier" required />
           </div>
-          <div style={{ padding: '0.875rem 1rem', borderRadius: 'var(--radius-md)', background: form.is_serious_incident ? '#ef444408' : 'var(--bg-surface-2)', border: `1px solid ${form.is_serious_incident ? '#ef444444' : 'var(--border)'}` }}>
+          <div style={{ padding: 'var(--space-4)', borderRadius: 'var(--radius-md)', background: form.is_serious_incident ? 'var(--danger-soft)' : 'var(--surface-2)', border: `1px solid ${form.is_serious_incident ? 'var(--danger-border)' : 'var(--border-default)'}` }}>
             <label style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', cursor: 'pointer' }}>
-              <input type="checkbox" checked={form.is_serious_incident} onChange={e => set('is_serious_incident', e.target.checked)} style={{ width: 14, height: 14, accentColor: '#ef4444' }} />
+              <input type="checkbox" checked={form.is_serious_incident} onChange={e => set('is_serious_incident', e.target.checked)} style={{ width: 14, height: 14, accentColor: 'var(--danger)' }} />
               <span style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-primary)' }}>Serious incident (EU AI Act Art. 73)</span>
             </label>
-            <p style={{ fontSize: '0.6875rem', color: 'var(--text-muted)', marginTop: '0.375rem', marginLeft: '1.375rem' }}>
+            <p style={{ fontSize: '0.6875rem', color: 'var(--text-tertiary)', marginTop: '0.375rem', marginLeft: '1.375rem' }}>
               Triggers a 15-day reporting deadline and requires notification to market surveillance authority.
             </p>
             {form.is_serious_incident && (
               <div style={{ marginTop: '0.75rem', marginLeft: '1.375rem' }}>
-                <label style={labelStyle}>Market Surveillance Authority <span style={{ color: '#ef4444' }}>*</span></label>
+                <label style={labelStyle}>Market Surveillance Authority <span style={{ color: 'var(--danger)' }}>*</span></label>
                 <input style={inputStyle} value={form.market_surveillance_authority} onChange={e => set('market_surveillance_authority', e.target.value)} placeholder="e.g. BSI (Germany), ICO (UK)" required />
               </div>
             )}
@@ -149,3 +149,4 @@ export function CreateIncidentModal({ isOpen, onClose, onSuccess, prefill }: Pro
     </div>
   );
 }
+

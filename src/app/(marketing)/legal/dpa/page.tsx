@@ -9,8 +9,8 @@ export default function DpaPage() {
   return (
     <div style={{
       minHeight: '100vh',
-      background: '#080812',
-      color: '#e2e8f0',
+      background: 'var(--bg-base)',
+      color: 'var(--text-primary)',
       fontFamily: '-apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif',
     }}>
       {/* Nav bar */}
@@ -21,26 +21,26 @@ export default function DpaPage() {
         alignItems: 'center',
         justifyContent: 'space-between',
       }}>
-        <a href="/" style={{ fontWeight: 700, fontSize: '1.1rem', color: '#10b981', textDecoration: 'none' }}>
+        <a href="/" style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--success)', textDecoration: 'none' }}>
           RuneSignal
         </a>
-        <div style={{ display: 'flex', gap: '1.5rem', fontSize: '0.875rem', color: '#64748b' }}>
-          <a href="/legal/dpa" style={{ color: '#10b981', textDecoration: 'none', fontWeight: 600 }}>DPA</a>
-          <a href="/legal/sla" style={{ color: '#64748b', textDecoration: 'none' }}>SLA</a>
-          <a href="/login" style={{ color: '#64748b', textDecoration: 'none' }}>Sign In</a>
+        <div style={{ display: 'flex', gap: '1.5rem', fontSize: '0.875rem', color: 'var(--text-tertiary)' }}>
+          <a href="/legal/dpa" style={{ color: 'var(--success)', textDecoration: 'none', fontWeight: 600 }}>DPA</a>
+          <a href="/legal/sla" style={{ color: 'var(--text-tertiary)', textDecoration: 'none' }}>SLA</a>
+          <a href="/login" style={{ color: 'var(--text-tertiary)', textDecoration: 'none' }}>Sign In</a>
         </div>
       </div>
 
       <div style={{ maxWidth: '800px', margin: '0 auto', padding: '4rem 2rem' }}>
         {/* Header */}
         <div style={{ marginBottom: '3rem' }}>
-          <p style={{ fontSize: '0.8rem', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#10b981', marginBottom: '0.75rem' }}>
+          <p style={{ fontSize: '0.8rem', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--success)', marginBottom: '0.75rem' }}>
             Legal
           </p>
-          <h1 style={{ fontSize: '2.5rem', fontWeight: 700, color: '#f1f5f9', lineHeight: 1.2, marginBottom: '1rem' }}>
+          <h1 style={{ fontSize: '2.5rem', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.2, marginBottom: '1rem' }}>
             Data Processing Agreement
           </h1>
-          <p style={{ color: '#64748b', fontSize: '0.95rem', lineHeight: 1.7 }}>
+          <p style={{ color: 'var(--text-tertiary)', fontSize: '0.95rem', lineHeight: 1.7 }}>
             Effective: {effective} &nbsp;·&nbsp; Governs processing of personal data under GDPR Article 28 and equivalent regulations.
           </p>
         </div>
@@ -157,15 +157,15 @@ export default function DpaPage() {
           </Section>
 
           <Section title="11. Contact">
-            <p>Data protection enquiries: <a href="mailto:privacy@runesignal.ai" style={{ color: '#10b981' }}>privacy@runesignal.ai</a></p>
+            <p>Data protection enquiries: <a href="mailto:privacy@runesignal.ai" style={{ color: 'var(--success)' }}>privacy@runesignal.ai</a></p>
             <p>RuneSignal Ltd, registered in England and Wales.</p>
           </Section>
 
         </div>
 
-        <div style={{ marginTop: '4rem', paddingTop: '2rem', borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: '#475569' }}>
+        <div style={{ marginTop: '4rem', paddingTop: '2rem', borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'var(--text-tertiary)' }}>
           <span>RuneSignal Data Processing Agreement · {effective}</span>
-          <a href="/legal/sla" style={{ color: '#10b981', textDecoration: 'none' }}>Service Level Agreement →</a>
+          <a href="/legal/sla" style={{ color: 'var(--success)', textDecoration: 'none' }}>Service Level Agreement →</a>
         </div>
       </div>
     </div>
@@ -175,10 +175,10 @@ export default function DpaPage() {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section>
-      <h2 style={{ fontSize: '1.15rem', fontWeight: 600, color: '#f1f5f9', marginBottom: '1rem', paddingBottom: '0.5rem', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+      <h2 style={{ fontSize: '1.15rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '1rem', paddingBottom: '0.5rem', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
         {title}
       </h2>
-      <div style={{ color: '#94a3b8', lineHeight: 1.8, fontSize: '0.9rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+      <div style={{ color: 'var(--text-secondary)', lineHeight: 1.8, fontSize: '0.9rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
         {children}
       </div>
     </section>
@@ -186,11 +186,11 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 }
 
 function Th({ children }: { children: React.ReactNode }) {
-  return <th style={{ padding: '0.5rem 0.75rem', textAlign: 'left', color: '#64748b', fontWeight: 600 }}>{children}</th>;
+  return <th style={{ padding: '0.5rem 0.75rem', textAlign: 'left', color: 'var(--text-tertiary)', fontWeight: 600 }}>{children}</th>;
 }
 
 function Td({ children }: { children: React.ReactNode }) {
-  return <td style={{ padding: '0.5rem 0.75rem', color: '#94a3b8' }}>{children}</td>;
+  return <td style={{ padding: '0.5rem 0.75rem', color: 'var(--text-secondary)' }}>{children}</td>;
 }
 
 function Tr({ children }: { children: React.ReactNode }) {

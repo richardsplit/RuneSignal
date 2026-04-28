@@ -107,7 +107,7 @@ export default function IdentityPage() {
           <div key={i} className="kpi-card">
             <div className="kpi-label">{k.label}</div>
             {loading
-              ? <div className="skeleton-pulse" style={{ height: 28, width: '40%', borderRadius: 4, marginTop: 2 }} />
+              ? <div className="skeleton-pulse" style={{ height: 28, width: '40%', borderRadius: 'var(--radius-xs)', marginTop: 2 }} />
               : <div className="kpi-value" style={k.color ? { color: k.color } : undefined}>{k.value}</div>
             }
           </div>
@@ -155,7 +155,7 @@ export default function IdentityPage() {
               <SkeletonTable rows={5} cols={['35%', '12%', '10%', '13%', '13%', '12%', '10%']} />
             ) : filtered.length === 0 ? (
               <tr>
-                <td colSpan={7} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
+                <td colSpan={7} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-tertiary)', fontSize: '0.875rem' }}>
                   No agents match the current filter.
                 </td>
               </tr>
@@ -166,7 +166,7 @@ export default function IdentityPage() {
                 <tr key={agent.id}>
                   <td>
                     <div style={{ fontWeight: 600, fontSize: '0.875rem' }}>{agent.agent_name}</div>
-                    <div className="mono" style={{ fontSize: '0.6875rem', color: 'var(--text-muted)', marginTop: '1px' }}>{agent.id}</div>
+                    <div className="mono" style={{ fontSize: '0.6875rem', color: 'var(--text-tertiary)', marginTop: '1px' }}>{agent.id}</div>
                   </td>
                   <td>
                     <span className="badge badge-neutral" style={{ textTransform: 'none', letterSpacing: 0, fontWeight: 500, fontSize: '0.75rem' }}>
@@ -181,11 +181,11 @@ export default function IdentityPage() {
                         {RISK_TIER_MAP[agent.eu_ai_act_category]?.label || agent.eu_ai_act_category}
                       </span>
                     ) : (
-                      <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>—</span>
+                      <span style={{ color: 'var(--text-tertiary)', fontSize: '0.75rem' }}>—</span>
                     )}
                   </td>
                   <td style={{ color: 'var(--text-secondary)', fontSize: '0.8125rem' }}>{relativeTime(agent.last_seen_at)}</td>
-                  <td style={{ color: 'var(--text-muted)', fontSize: '0.8125rem' }}>{registered}</td>
+                  <td style={{ color: 'var(--text-tertiary)', fontSize: '0.8125rem' }}>{registered}</td>
                   <td style={{ textAlign: 'right' }}>
                     <div style={{ display: 'flex', gap: '0.375rem', justifyContent: 'flex-end' }}>
                       <Link
@@ -239,7 +239,7 @@ export default function IdentityPage() {
       {!loading && (
         <div style={{ marginTop: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <span className="status-dot" style={{ background: isDemo ? 'var(--warning)' : 'var(--success)' }} />
-          <span style={{ fontSize: '0.6875rem', color: 'var(--text-muted)' }}>
+          <span style={{ fontSize: '0.6875rem', color: 'var(--text-tertiary)' }}>
             {isDemo ? 'Demo data — connect Supabase to see live agents' : `${data.length} agents loaded from API`}
           </span>
         </div>
@@ -247,3 +247,4 @@ export default function IdentityPage() {
     </div>
   );
 }
+

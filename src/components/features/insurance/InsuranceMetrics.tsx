@@ -11,25 +11,25 @@ interface InsuranceMetricsProps {
 
 export default function InsuranceMetrics({ totalLiabilities, fleetAvgRisk, monthlyPremium, activeClaims }: InsuranceMetricsProps) {
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem', marginBottom: '2.5rem' }}>
-      <div className="glass-panel" style={{ padding: '1.25rem' }}>
-        <h3 style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>Total Liabilities Insured</h3>
-        <p style={{ fontSize: '1.75rem', fontWeight: 700 }}>{totalLiabilities}</p>
+    <div className="kpi-strip" style={{ marginBottom: '2rem' }}>
+      <div className="kpi-card">
+        <div className="kpi-label">Total Liabilities Insured</div>
+        <div className="kpi-value">{totalLiabilities}</div>
       </div>
-      <div className="glass-panel" style={{ padding: '1.25rem' }}>
-        <h3 style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>Fleet Average Risk</h3>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
-          <p style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--color-info-cyan)' }}>{fleetAvgRisk}</p>
-          <span style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>/ 100</span>
+      <div className="kpi-card">
+        <div className="kpi-label">Fleet Average Risk</div>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 'var(--space-2)' }}>
+          <div className="kpi-value info">{fleetAvgRisk}</div>
+          <span style={{ fontSize: '0.875rem', color: 'var(--text-tertiary)' }}>/ 100</span>
         </div>
       </div>
-      <div className="glass-panel" style={{ padding: '1.25rem' }}>
-        <h3 style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>Monthly Premium</h3>
-        <p style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--color-primary-emerald)' }}>{monthlyPremium}</p>
+      <div className="kpi-card">
+        <div className="kpi-label">Monthly Premium</div>
+        <div className="kpi-value success">{monthlyPremium}</div>
       </div>
-      <div className="glass-panel" style={{ padding: '1.25rem' }}>
-        <h3 style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>Active Claims</h3>
-        <p style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--color-accent-amber)' }}>{activeClaims}</p>
+      <div className="kpi-card">
+        <div className="kpi-label">Active Claims</div>
+        <div className="kpi-value warning">{activeClaims}</div>
       </div>
     </div>
   );
