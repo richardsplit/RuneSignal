@@ -37,7 +37,7 @@ from typing import Any, Callable, TypeVar
 from ._cost_table import calculate_cost
 from ._transport import fire_and_forget, ship
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 __all__ = ["configure", "track", "proxy_url", "calculate_cost"]
 
 logger = logging.getLogger("runesignal")

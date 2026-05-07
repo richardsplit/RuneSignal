@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "runesignal"
-version = "0.1.0"
+version = "0.2.0"
 description = "AI Cost Intelligence SDK — track, attribute, and reduce AI inference costs"
 readme = "README.md"
 license = { text = "MIT" }
