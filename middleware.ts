@@ -34,7 +34,7 @@ export async function middleware(request: NextRequest) {
   const supabase = createMiddlewareClient(request, response);
 
   // 1. Skip auth for static/public assets and public routes
-  const isPublicApi = url.startsWith('/api/health') || url.startsWith('/api/v1/verify/pubkey');
+  const isPublicApi = url.startsWith('/api/health') || url.startsWith('/api/v1/verify/pubkey') || url.startsWith('/api/ci/');
   const isRoot = url === '/';           // landing page lives at /
   const isLogin = url.startsWith('/login');
   const isLanding = url.startsWith('/landing'); // legacy /landing redirect safety
