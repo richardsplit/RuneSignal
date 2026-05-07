@@ -12,8 +12,8 @@
  * ```
  */
 
-import { calculateCost, PRICING } from './cost-table.js';
-import { ship } from './transport.js';
+import { calculateCost, PRICING } from './cost-table';
+import { ship } from './transport';
 import type {
   RuneSignalConfig,
   TrackOptions,
@@ -21,7 +21,7 @@ import type {
   OpenAILikeResponse,
   AnthropicLikeResponse,
   InferenceLog,
-} from './types.js';
+} from './types';
 
 export type { RuneSignalConfig, TrackOptions, LLMResponse, InferenceLog };
 export { calculateCost, PRICING };

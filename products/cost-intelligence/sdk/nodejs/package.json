@@ -33,7 +33,7 @@
     "build:esm": "tsc -p tsconfig.esm.json",
     "build:cjs": "tsc -p tsconfig.cjs.json",
     "build:types": "tsc -p tsconfig.types.json",
-    "test": "node --experimental-vm-modules node_modules/.bin/jest",
+    "test": "jest",
     "lint": "tsc --noEmit",
     "prepublishOnly": "npm run build"
   },

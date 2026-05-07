@@ -2,7 +2,7 @@
  * Fire-and-forget HTTP transport.
  * Never throws. Never awaits. Never blocks the caller.
  */
-import type { InferenceLog } from './types.js';
+import type { InferenceLog } from './types';
 
 const DEFAULT_BASE_URL = 'https://api.runesignal.com';
 
