@@ -42,17 +42,21 @@ export async function middleware(request: NextRequest) {
   const isSecurity = url.startsWith('/security'); // /security — architecture trust document, public
   const isPricing = url.startsWith('/pricing');   // public pricing page
   const isDemo = url.startsWith('/demo');         // public book-a-demo page
+  const isPitch = url.startsWith('/pitch');       // VC demo page — public
   const isMfaVerify = url.startsWith('/mfa-verify');
   const isOnboarding = url.startsWith('/onboarding');
   const isInternal = url.startsWith('/_next') || url.includes('.') || url.startsWith('/api/v1/billing/webhook');
 
   // Static assets and fully public non-root routes — skip all auth processing
-  if (isPublicApi || isLogin || isLanding || isLegal || isSecurity || isPricing || isDemo || isInternal) {
+  if (isPublicApi || isLogin || isLanding || isLegal || isSecurity || isPricing || isDemo || isPitch || isInternal) {
     return response;
   }
 
-  // 2. Auth Check (Supabase SSR)
-  const { data: { user } } = await supabase.auth.getUser();
+  // 2. Auth Check (Supabase SSR) — run getUser() and AAL check in parallel
+  const [{ data: { user } }, { data: aalData }] = await Promise.all([
+    supabase.auth.getUser(),
+    supabase.auth.mfa.getAuthenticatorAssuranceLevel(),
+  ]);
 
   // 2a. ALLOWLIST GATE — only whitelisted emails can access the app.
   //     Everyone else is redirected to the book-a-demo page.
@@ -155,18 +159,7 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // 2.4 MFA Enforcement (Authenticator Assurance Level 2)
-  // Use the correct Supabase API: getAuthenticatorAssuranceLevel() reads the JWT
-  // directly (no extra DB call). It returns currentLevel (what the session has)
-  // and nextLevel (what it could reach if MFA is completed).
-  // If nextLevel is 'aal2' but currentLevel is not, the user has a verified TOTP
-  // factor enrolled but has not yet completed the challenge in this session — they
-  // must go through /mfa-verify before accessing any protected route.
-  //
-  // NOTE: do NOT use session?.user?.app_metadata?.aal — Supabase does not write
-  // AAL into app_metadata. That field is always undefined and caused an infinite
-  // redirect loop in the previous implementation.
-  const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+  // 2.4 MFA Enforcement — aalData already fetched in parallel above
   const needsMfaChallenge =
     aalData?.nextLevel === 'aal2' && aalData?.currentLevel !== 'aal2';
 
@@ -282,29 +275,6 @@ export async function middleware(request: NextRequest) {
         { error: 'Forbidden', message: 'Agent identity or user session required' },
         { status: 403, headers: response.headers }
       );
-    }
-  }
-
-  // Protect all dashboard routes — require Supabase session
-  if (
-    !url.startsWith('/api') &&
-    url !== '/' &&
-    !url.startsWith('/login') &&
-    !url.startsWith('/landing') &&
-    !url.startsWith('/legal') &&
-    !url.startsWith('/security') &&
-    !url.startsWith('/mfa-verify') &&
-    !url.startsWith('/onboarding') &&
-    !url.startsWith('/_next') &&
-    !url.startsWith('/public')
-  ) {
-    const { createServerClient } = await import('./lib/db/supabase');
-    const supabaseSessionClient = await createServerClient();
-    const { data: { session: dashboardSession } } = await supabaseSessionClient.auth.getSession();
-    if (!dashboardSession) {
-      const homeUrl = new URL('/', request.url);
-      homeUrl.searchParams.set('redirect', url);
-      return NextResponse.redirect(homeUrl);
     }
   }
 
