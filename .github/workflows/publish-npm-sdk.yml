@@ -1,0 +1,40 @@
+name: Publish @runesignal/sdk to npm
+
+on:
+  push:
+    tags:
+      - "npm-v*"   # trigger: git tag npm-v0.2.0 && git push --tags
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write   # required for npm provenance
+
+    steps:
+      - uses: actions/checkout@v4.2.2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4.2.0
+        with:
+          node-version: "20"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Install dependencies
+        working-directory: products/cost-intelligence/sdk/nodejs
+        run: npm ci
+
+      - name: Build
+        working-directory: products/cost-intelligence/sdk/nodejs
+        run: npm run build
+
+      - name: Test
+        working-directory: products/cost-intelligence/sdk/nodejs
+        run: npm test
+
+      - name: Publish to npm (with provenance)
+        working-directory: products/cost-intelligence/sdk/nodejs
+        run: npm publish --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

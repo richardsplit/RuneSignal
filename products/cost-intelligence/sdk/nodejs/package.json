@@ -1,0 +1,52 @@
+{
+  "name": "@runesignal/sdk",
+  "version": "0.2.0",
+  "description": "AI Cost Intelligence SDK — track, attribute, and reduce AI inference costs",
+  "keywords": ["openai", "anthropic", "llm", "cost", "observability", "ai", "runesignal"],
+  "author": "RuneSignal <sdk@runesignal.com>",
+  "license": "MIT",
+  "homepage": "https://runesignal.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/richardsplit/RuneSignal.git",
+    "directory": "products/cost-intelligence/sdk/nodejs"
+  },
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js",
+      "types": "./dist/types/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "build": "npm run build:esm && npm run build:cjs && npm run build:types",
+    "build:esm": "tsc -p tsconfig.esm.json",
+    "build:cjs": "tsc -p tsconfig.cjs.json",
+    "build:types": "tsc -p tsconfig.types.json",
+    "test": "node --experimental-vm-modules node_modules/.bin/jest",
+    "lint": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "jest": "^29.0.0",
+    "ts-jest": "^29.0.0",
+    "typescript": "^5.4.0"
+  },
+  "peerDependencies": {
+    "openai": ">=4.0.0"
+  },
+  "peerDependenciesMeta": {
+    "openai": { "optional": true }
+  }
+}
