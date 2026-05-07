@@ -23,7 +23,7 @@ jobs:
 
       - name: Install dependencies
         working-directory: products/cost-intelligence/sdk/nodejs
-        run: npm ci
+        run: npm install
 
       - name: Build
         working-directory: products/cost-intelligence/sdk/nodejs
@@ -35,6 +35,6 @@ jobs:
 
       - name: Publish to npm (with provenance)
         working-directory: products/cost-intelligence/sdk/nodejs
-        run: npm publish --access public --provenance
+        run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
