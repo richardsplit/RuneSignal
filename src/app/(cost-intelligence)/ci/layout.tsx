@@ -3,10 +3,13 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 const NAV = [
-  { href: '/ci',          label: 'Customer Margins',  icon: '📊' },
-  { href: '/ci/models',   label: 'AI Spend by Model', icon: '🤖' },
-  { href: '/ci/trends',   label: 'Monthly Trends',    icon: '📈' },
-  { href: '/ci/settings', label: 'Connections',       icon: '⚙️' },
+  { href: '/ci',           label: 'Customer Margins',  icon: '📊' },
+  { href: '/ci/models',    label: 'AI Spend by Model', icon: '🤖' },
+  { href: '/ci/trends',    label: 'Monthly Trends',    icon: '📈' },
+  { href: '/ci/features',  label: 'Features',          icon: '🏷️' },
+  { href: '/ci/alerts',    label: 'Anomalies',         icon: '⚡' },
+  { href: '/ci/policies',  label: 'Guardrails',        icon: '🛡️' },
+  { href: '/ci/settings',  label: 'Connections',       icon: '⚙️' },
 ];
 
 export default function CiLayout({ children }: { children: React.ReactNode }) {

@@ -9,7 +9,8 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .api.v1 import ingest, margins, stripe_webhook
+from .api.v1 import ingest, margins, stripe_webhook, features, anomalies, policies
+from .integrations import proxy_middleware
 from .config import get_settings
 from .services.job_scheduler import start_scheduler
 
@@ -43,9 +44,13 @@ app.add_middleware(
 )
 
 # ── Routers ────────────────────────────────────────────────────────────────────
-app.include_router(ingest.router,           prefix="/v1")
-app.include_router(margins.router,          prefix="/v1")
-app.include_router(stripe_webhook.router)   # /webhooks/stripe (no prefix)
+app.include_router(ingest.router,              prefix="/v1")
+app.include_router(margins.router,             prefix="/v1")
+app.include_router(features.router,            prefix="/v1")
+app.include_router(anomalies.router,           prefix="/v1")
+app.include_router(policies.router,            prefix="/v1")
+app.include_router(stripe_webhook.router)      # /webhooks/stripe (no prefix)
+app.include_router(proxy_middleware.router)    # /proxy/openai/{path}
 
 
 # ── Lifecycle ──────────────────────────────────────────────────────────────────
