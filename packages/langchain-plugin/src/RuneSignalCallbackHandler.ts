@@ -11,7 +11,7 @@
  *   });
  */
 
-import type { RuneSignal } from '@runesignal/sdk';
+import type { RuneSignalClient } from 'runesignal';
 
 // Minimal interface to avoid requiring langchain as a hard dep at type-check time
 interface BaseCallbackHandlerInput {
@@ -26,7 +26,7 @@ export class RuneSignalCallbackHandler {
   ignoreChain = true;
   ignoreAgent = false;
 
-  constructor(private tlClient: RuneSignal) {}
+  constructor(private tlClient: RuneSignalClient) {}
 
   /**
    * Called when a LangChain tool starts execution.
@@ -37,12 +37,12 @@ export class RuneSignalCallbackHandler {
     input: string | Record<string, unknown>
   ): Promise<void> {
     try {
-      await this.tlClient.ledger.sign({
-        type: 'langchain.tool_start',
-        payload: {
-          tool: tool.name,
-          input: typeof input === 'string' ? { raw: input } : input,
-        },
+      await this.tlClient.provenance.certify({
+        provider: 'custom',
+        model: 'langchain',
+        prompt: `tool_start:${tool.name}`,
+        completion: typeof input === 'string' ? input : JSON.stringify(input),
+        metadata: { event: 'tool_start', tool: tool.name },
       });
     } catch (err) {
       console.warn('[RuneSignal] ledger.sign failed (non-fatal):', err);
@@ -55,9 +55,12 @@ export class RuneSignalCallbackHandler {
    */
   async handleToolEnd(output: string): Promise<void> {
     try {
-      await this.tlClient.ledger.sign({
-        type: 'langchain.tool_end',
-        payload: { output: output.slice(0, 2000) }, // Truncate large outputs
+      await this.tlClient.provenance.certify({
+        provider: 'custom',
+        model: 'langchain',
+        prompt: 'tool_end',
+        completion: output.slice(0, 2000),
+        metadata: { event: 'tool_end' },
       });
     } catch (err) {
       console.warn('[RuneSignal] ledger.sign failed (non-fatal):', err);
@@ -69,9 +72,12 @@ export class RuneSignalCallbackHandler {
    */
   async handleToolError(err: Error): Promise<void> {
     try {
-      await this.tlClient.ledger.sign({
-        type: 'langchain.tool_error',
-        payload: { error: err.message },
+      await this.tlClient.provenance.certify({
+        provider: 'custom',
+        model: 'langchain',
+        prompt: 'tool_error',
+        completion: err.message,
+        metadata: { event: 'tool_error' },
       });
     } catch {
       // ignore
@@ -88,26 +94,25 @@ export class RuneSignalCallbackHandler {
     log?: string;
   }): Promise<void> {
     try {
-      // Evaluate whether this action requires human oversight
-      const policy = await this.tlClient.policy.evaluate({
-        tool: action.tool,
-        toolInput: action.toolInput,
+      // Evaluate through the firewall — escalate verdict triggers HITL
+      const evaluation = await this.tlClient.firewall.evaluate({
+        action: action.tool,
+        resource: 'langchain:tool',
+        toolName: action.tool,
+        metadata: action.toolInput,
       });
 
-      if (policy.requiresHuman) {
-        const approval = await this.tlClient.hitl.requestApproval({
-          action: action.tool,
-          payload: action.toolInput,
-          blastRadius: policy.blastRadius,
-          context: {
-            triggeringPrompt: action.log,
-          },
-        });
+      if (evaluation.verdict === 'block') {
+        throw new Error(
+          `[RuneSignal] Action "${action.tool}" blocked by firewall. Reasons: ${evaluation.reasons.join('; ')}`
+        );
+      }
 
+      if (evaluation.verdict === 'escalate' && evaluation.hitlTicketId) {
+        const approval = await this.tlClient.approvals.poll(evaluation.hitlTicketId);
         if (approval.status !== 'approved') {
           throw new Error(
-            `[RuneSignal] Action "${action.tool}" rejected by human reviewer. ` +
-            `Status: ${approval.status}. Note: ${approval.reviewerNote || 'none'}`
+            `[RuneSignal] Action "${action.tool}" ${approval.status} by human reviewer.`
           );
         }
       }
@@ -125,9 +130,12 @@ export class RuneSignalCallbackHandler {
    */
   async handleAgentEnd(action: { returnValues: Record<string, unknown> }): Promise<void> {
     try {
-      await this.tlClient.ledger.sign({
-        type: 'langchain.agent_end',
-        payload: { return_values: action.returnValues },
+      await this.tlClient.provenance.certify({
+        provider: 'custom',
+        model: 'langchain',
+        prompt: 'agent_end',
+        completion: JSON.stringify(action.returnValues).slice(0, 2000),
+        metadata: { event: 'agent_end' },
       });
     } catch {
       // ignore

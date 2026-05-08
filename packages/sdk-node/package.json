@@ -1,7 +1,7 @@
 {
-  "name": "@runesignal/sdk",
+  "name": "runesignal",
   "version": "1.0.0",
-  "description": "Official Node.js SDK for RuneSignal — AI Agent Action Firewall for Enterprise Systems",
+  "description": "Official Node.js SDK for RuneSignal — AI Agent Governance: HITL approvals, Ed25519 provenance, EU AI Act evidence bundles, compliance controls",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
@@ -12,23 +12,31 @@
       "types": "./dist/index.d.ts"
     }
   },
-  "files": ["dist"],
+  "files": ["dist", "README.md"],
   "scripts": {
     "build": "tsup src/index.ts --format cjs,esm --dts --clean",
     "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build && npm run typecheck"
   },
-  "keywords": ["runesignal", "ai", "governance", "firewall", "agent", "policy", "audit"],
-  "author": "RuneSignal",
+  "keywords": [
+    "runesignal", "ai", "governance", "compliance", "hitl",
+    "eu-ai-act", "iso42001", "agent", "provenance", "audit", "firewall"
+  ],
+  "author": "RuneSignal <sdk@runesignal.com>",
   "license": "MIT",
+  "homepage": "https://runesignal.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/richardsplit/RuneSignal.git",
+    "directory": "packages/sdk-node"
+  },
   "engines": {
     "node": ">=18.0.0"
   },
   "devDependencies": {
+    "@types/node": "^20.0.0",
     "tsup": "^8.0.0",
     "typescript": "^5.0.0"
-  },
-  "peerDependencies": {
-    "node": ">=18.0.0"
   }
 }

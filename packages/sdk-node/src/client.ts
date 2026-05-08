@@ -22,8 +22,8 @@ export class BaseClient {
 
   constructor(config: RuneSignalClientConfig) {
     if (!config.apiKey) throw new Error('RuneSignal SDK: apiKey is required');
-    if (!config.apiKey.startsWith('tl_')) {
-      throw new Error('RuneSignal SDK: apiKey must start with "tl_"');
+    if (!config.apiKey.startsWith('rs_') && !config.apiKey.startsWith('tl_')) {
+      throw new Error('RuneSignal SDK: apiKey must start with "rs_"');
     }
 
     this.apiKey = config.apiKey;

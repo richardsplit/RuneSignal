@@ -5,12 +5,13 @@
  * High-risk tool calls are blocked until a human approves them.
  */
 
-import type { RuneSignal, BlastRadius } from '@runesignal/sdk';
+import type { RuneSignalClient, BlastRadiusLevel } from 'runesignal';
 
 export interface RuneSignalToolOptions {
-  blastRadius?: BlastRadius;
+  agentId: string;
+  blastRadius?: BlastRadiusLevel;
   reversible?: boolean;
-  requireApproval?: boolean; // Force approval regardless of policy
+  requireApproval?: boolean;
 }
 
 /**
@@ -21,35 +22,43 @@ export interface RuneSignalToolOptions {
  */
 export function wrapToolWithHITL<T extends { name: string; _call: (input: string) => Promise<string> }>(
   tool: T,
-  tl: RuneSignal,
-  options: RuneSignalToolOptions = {}
+  client: RuneSignalClient,
+  options: RuneSignalToolOptions
 ): T {
   const originalCall = tool._call.bind(tool);
 
   tool._call = async (input: string): Promise<string> => {
     if (options.requireApproval) {
-      const approval = await tl.hitl.requestApproval({
-        action: tool.name,
+      const ticket = await client.approvals.requestApproval({
+        agentId: options.agentId,
+        actionType: tool.name,
+        actionSummary: `Execute LangChain tool: ${tool.name}`,
+        blastRadius: {
+          level: options.blastRadius ?? 'medium',
+          reversible: options.reversible ?? true,
+        },
         payload: { input },
-        blastRadius: options.blastRadius || 'medium',
-        reversible: options.reversible ?? true,
       });
 
-      if (approval.status !== 'approved') {
-        return `Action rejected: human reviewer ${approval.status} this action. Note: ${approval.reviewerNote || 'none'}`;
+      if (ticket.status !== 'approved') {
+        return `Action rejected: human reviewer ${ticket.status} this action.`;
       }
     } else {
-      const policy = await tl.policy.evaluate({ tool: tool.name, toolInput: { input } });
-      if (policy.requiresHuman) {
-        const approval = await tl.hitl.requestApproval({
-          action: tool.name,
-          payload: { input },
-          blastRadius: policy.blastRadius,
-          reversible: options.reversible ?? true,
-        });
+      const evaluation = await client.firewall.evaluate({
+        action: tool.name,
+        resource: 'langchain:tool',
+        toolName: tool.name,
+        metadata: { input },
+      });
 
-        if (approval.status !== 'approved') {
-          return `Action rejected: human reviewer ${approval.status} this action. Note: ${approval.reviewerNote || 'none'}`;
+      if (evaluation.verdict === 'block') {
+        return `Action blocked by RuneSignal firewall: ${evaluation.reasons.join('; ')}`;
+      }
+
+      if (evaluation.verdict === 'escalate' && evaluation.hitlTicketId) {
+        const ticket = await client.approvals.poll(evaluation.hitlTicketId);
+        if (ticket.status !== 'approved') {
+          return `Action rejected: human reviewer ${ticket.status} this action.`;
         }
       }
     }

@@ -12,7 +12,7 @@
     }
   },
   "peerDependencies": {
-    "@runesignal/sdk": "^1.0.0",
+    "runesignal": "^1.0.0",
     "langchain": ">=0.1.0"
   },
   "license": "MIT"
